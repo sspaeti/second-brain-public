@@ -1,9 +1,9 @@
 // Replace this with your own font imports!
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Inter:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap');
 :root {
-  --font-body: "Source Sans Pro";
+  --font-body: 'Open Sans', sans-serif, system-ui, -apple-system, BlinkMacSystemFont, PingFang SC, Microsoft YaHei UI, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, Helvetica, Arial !important; //"Source Sans Pro";
   --font-header: "Inter";
-  --font-mono: "Fira Code"
+  --font-mono: Open Sans //"Fira Code"
 }
 
 // typography

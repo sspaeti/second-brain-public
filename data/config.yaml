@@ -1,4 +1,5 @@
-name: Jacky Zhao
+name: sspaeti.com
+website: https://sspaeti.com
 enableToc: true
 openToc: false
 enableLinkPreview: true
@@ -10,17 +11,16 @@ enableSPA: true
 enableFooter: true
 enableContextualBacklinks: true
 enableRecentNotes: false
-enableGitHubEdit: true
-GitHubLink: https://github.com/jackyzha0/quartz/tree/hugo/content
+enableGitHubEdit: false
+GitHubLink: https://github.com/sspaeti/second-brain/tree/hugo/content
 enableSemanticSearch: false
 operandApiKey: "REPLACE-WITH-YOUR-OPERAND-API-KEY"
 description:
-  Host your second brain and digital garden for free. Quartz features extremely fast full-text search,
-  Wikilink support, backlinks, local graph, tags, and link previews.
+  This is the public version of my SecondBrain
 page_title:
-  "🪴 Quartz 3.3"
+  "🧠 Second Brain"
 links:
   - link_name: Twitter
-    link: https://twitter.com/_jzhao
+    link: https://twitter.com/sspaeti
   - link_name: Github
-    link: https://github.com/jackyzha0
+    link: https://github.com/sspaeti
