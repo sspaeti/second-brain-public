@@ -1,26 +1,17 @@
 ---
-title: 🪴 Quartz 3.3
+title: "Second Brain \U0001F9E0"
 ---
 
-Host your second brain and [digital garden](https://jzhao.xyz/posts/networked-thought) for free. Quartz features
+This is my public [[Second Brain]] organized as a [[Zettelkasten]] (sometimes also called [[Digital Garden]]).
 
-1. Extremely fast natural-language [[notes/search|search]]
-2. Customizable and hackable design based on [Hugo](https://gohugo.io/)
-3. Automatically generated backlinks, link previews, and local graph
-4. Built-in [[notes/CJK + Latex Support (测试) | CJK + Latex Support]] and [[notes/callouts | Admonition-style callouts]]
-5. Support for both Markdown Links and Wikilinks
+## Navigation
+You can go inside my Brain by clicking through the [[Zettel]]s on the [[Map of Content (MOC)]] below and go deeper inside the brain. You can also use the search on the top right or simply `cmd+k` (`ctrl+k` on Windows).
 
-Check out some of the [amazing gardens that community members](notes/showcase.md) have published with Quartz or read about [why I made Quartz](notes/philosophy.md) to begin with.
-
-## Get Started
-> 📚 Step 1: [Setup your own digital garden using Quartz](notes/setup.md)
-
-Returning user? Figure out how to [[notes/updating|update]] your existing Quartz garden.
-
-If you prefer browsing the contents of this site through a list instead of a graph, you see a list of all [setup-related notes](/tags/setup).
-
-### Troubleshooting
-- 🚧 [Troubleshooting and FAQ](notes/troubleshooting.md)
-- 🐛 [Submit an Issue](https://github.com/jackyzha0/quartz/issues)
-- 👀 [Discord Community](https://discord.gg/cRFFHYye7t)
-
+## Map of Content (MOC)
+Here I will give you some starting points of what my Second Brain contains:
+- [[Personal Knowledge Management (PKM)]]
+- [[Deep Life]]
+- [[Writing]]
+- [[Data Engineering]]
+	- [[Data Orchestrators]]
+- many more to come

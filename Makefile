@@ -17,4 +17,14 @@ update-force: ## Forcefully pull all changes and don't ask to patch
 	git checkout upstream/hugo -- layouts .github Makefile assets/js assets/styles/base.scss assets/styles/darkmode.scss config.toml data
 
 serve: ## Serve Quartz locally
-	hugo-obsidian -input=content -output=assets/indices -index -root=. && hugo server --enableGitInfo --minify
+	find "/Users/sspaeti/Documents/git/sspaeti.com/second-brain-public/content" -type f -delete
+	python utils/find-publish-notes.py #copy all notes from my secondbrain with hashtag #publish to quartz
+	rm -r public
+	hugo-obsidian -input=content -output=assets/indices -index -root=. && hugo && hugo server --enableGitInfo --minify
+
+deploy: 
+	find "/Users/sspaeti/Documents/git/sspaeti.com/second-brain-public/content" -type f -delete
+	python utils/find-publish-notes.py #copy all notes from my secondbrain with hashtag #publish to quartz
+	rm -r public
+	hugo-obsidian -input=content -output=assets/indices -index -root=. && hugo --gc && hugo
+	rsync -avz --delete public/ sspaeti@sspaeti.com:~/www/brain
