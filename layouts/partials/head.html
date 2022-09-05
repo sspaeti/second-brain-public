@@ -8,6 +8,10 @@
     name="description"
     content="{{if .IsHome}}{{$data.description | default $.Site.Data.config.description}}{{else}}{{.Summary}}{{end}}"
   />
+  <meta property="og:image" content="https://brain.sspaeti.com/second-brain-sspaeti.com.jpeg">
+  <meta property="og:width" content="1024">
+  <meta property="og:height" content="469">
+  <meta name="twitter:image" content="https://brain.sspaeti.com/second-brain-sspaeti.com.jpeg">
   <title>
     {{ if .Title }}{{ .Title }}{{ else }}{{ $data.page_title | default $.Site.Data.config.page_title }}{{
     end }}
