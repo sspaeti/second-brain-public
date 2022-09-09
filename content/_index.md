@@ -14,4 +14,5 @@ Here I will give you some starting points of what my Second Brain contains:
 - [[Writing]]
 - [[Data Engineering]]
 	- [[Data Orchestrators]]
+- [[Kubernetes]]
 - many more to come
