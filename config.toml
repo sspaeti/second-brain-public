@@ -1,6 +1,6 @@
 baseURL = "https://brain.sspaeti.com"
 languageCode = "en-us"
-googleAnalytics = "G-"
+googleAnalytics = "UA-68881944-2"
 relativeURLs = false
 disablePathToLower = true
 # ignoreFiles = [
