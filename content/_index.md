@@ -1,6 +1,6 @@
 ---
 enableToc: false
-lastmod: '2022-09-26'
+lastmod: '2022-09-26 19:51:48'
 title: "Second Brain \U0001F9E0"
 ---
 
