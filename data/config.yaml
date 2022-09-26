@@ -1,7 +1,7 @@
 name: sspaeti.com
 website: https://sspaeti.com
-enableToc: false
-openToc: false
+enableToc: true
+openToc: true
 enableLinkPreview: true
 enableLatex: true
 enableCodeBlockTitle: true
@@ -12,7 +12,7 @@ enableFooter: true
 enableContextualBacklinks: true
 enableRecentNotes: false
 enableGitHubEdit: false
-GitHubLink: https://github.com/sspaeti/second-brain/tree/hugo/content
+GitHubLink: https://github.com/sspaeti/second-brain-public/tree/hugo/content
 enableSemanticSearch: false
 operandApiKey: "REPLACE-WITH-YOUR-OPERAND-API-KEY"
 description:
