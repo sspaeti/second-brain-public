@@ -55,7 +55,6 @@ def find_hashtag(second_brain_path: str, copy_to_path: str) -> None:
                                 file_path, os.path.join(copy_to_path, file_name_lower)
                             )
                             # get last modified date file_path
-                            print(f"!!! {file_path}")
                             last_modified = datetime.utcfromtimestamp(
                                 os.path.getmtime(file_path)
                             ).strftime("%Y-%m-%d")
