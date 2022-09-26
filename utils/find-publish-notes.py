@@ -57,7 +57,7 @@ def find_hashtag(second_brain_path: str, copy_to_path: str) -> None:
                             # get last modified date file_path
                             last_modified = datetime.utcfromtimestamp(
                                 os.path.getmtime(file_path)
-                            ).strftime("%Y-%m-%d")
+                            ).strftime("%Y-%m-%d %H:%M:%S")
 
                             # add h1 as title frontmatter
                             add_h1_as_title_frontmatter(
