@@ -1,5 +1,5 @@
 import os
-
+from datetime import datetime
 import shutil
 from pathlib import Path
 import re
@@ -54,14 +54,20 @@ def find_hashtag(second_brain_path: str, copy_to_path: str) -> None:
                             shutil.copy(
                                 file_path, os.path.join(copy_to_path, file_name_lower)
                             )
+                            # get last modified date file_path
+                            print(f"!!! {file_path}")
+                            last_modified = datetime.utcfromtimestamp(
+                                os.path.getmtime(file_path)
+                            ).strftime("%Y-%m-%d")
+
                             # add h1 as title frontmatter
                             add_h1_as_title_frontmatter(
-                                os.path.join(copy_to_path, file)
+                                os.path.join(copy_to_path, file), last_modified
                             )
                             break
 
 
-def add_h1_as_title_frontmatter(file_path: str):
+def add_h1_as_title_frontmatter(file_path: str, last_modified: str):
     print(f"start converting {file_path}")
     with open(file_path, "r") as f:
         content = pandoc.read(f.read(), format="markdown")
@@ -97,6 +103,9 @@ def add_h1_as_title_frontmatter(file_path: str):
             # add h1 header to `title` to frontmatter
             if len(headers) > 0:
                 frontmatter_post["title"] = headers[0]
+            # add last modified date
+            if len(last_modified):
+                frontmatter_post["lastmod"] = last_modified
             # overwrite current file with added title
             with open(file_path, "wb") as f:
                 frontmatter.dump(frontmatter_post, f)
