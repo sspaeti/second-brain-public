@@ -1,6 +1,6 @@
 baseURL = "https://brain.sspaeti.com"
 languageCode = "en-us"
-googleAnalytics = "UA-68881944-2"
+googleAnalytics = "G-PH3D1NNYSE"
 relativeURLs = false
 disablePathToLower = true
 # ignoreFiles = [
@@ -28,8 +28,8 @@ enableGitInfo = true
         lineNumbersInTable = true
         style = "dracula"
     [frontmatter]
-        # lastmod = ["lastmod", ":git", "date", "publishDate"]
-        # publishDate = ["publishDate", "date"]
+        lastmod = ["lastmod", ":git", "date", "publishDate"]
+        publishDate = ["publishDate", "date"]
     [markup.goldmark.renderer]
         unsafe = true
         hardWraps = true # this will handle line breaks correctly when uploading to HTML (without the need to add double space at the end of a line)
