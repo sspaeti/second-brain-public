@@ -1,5 +1,5 @@
 ---
-lastmod: '2022-09-26 17:15:54'
+lastmod: '2022-09-28 21:33:28'
 title: Other Public Second Brains
 ---
 
@@ -13,6 +13,7 @@ Here are some other good ones:
 - [jzhao.xyz](https://jzhao.xyz/)
 - [Hello There!](https://wiki.yigit.run/) (nice graph and good entry page)
 - [Eat Sleep Data](https://eatsleepdata.com/)
+- [David Gasquez - Obsidian Publish](https://publish.obsidian.md/davidgasquez)
 
 
 ---

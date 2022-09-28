@@ -1,5 +1,5 @@
 ---
-lastmod: '2022-09-28 07:56:01'
+lastmod: '2022-09-28 08:49:37'
 title: Writing
 ---
 
@@ -38,6 +38,8 @@ I started a long time ago with a blog back in 2005, and it was probably one of t
 > Start a blog! The best time to start one was twenty years ago. The second best time is today.
 
 Related [[The Most Important Skill...]] for writing is storytelling, Nathan says. And [Writing well by Julian Shapiro](https://www.julian.com/guide/write/intro).
+
+Or [[Write Simply]]
 
 ---
 Origin: [[Writing a good intro]]

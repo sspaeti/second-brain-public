@@ -1,5 +1,5 @@
 ---
-lastmod: '2022-08-27 09:57:34'
+lastmod: '2022-09-28 08:51:58'
 title: Journaling
 ---
 
@@ -17,6 +17,9 @@ Another way is to start with [11 curated questions](https://www.curatedquestion
 Writing is therapy! I usually write as much as possible on my laptop because I can type as fast as I think. At the same time, my handwriting can’t keep up with my thinking speed. There is no slowing down and forgetting ideas or thoughts. On the other hand, I can reformat, re-arrange, add, and delete, which will help my thinking process which wouldn’t happen in my brain. The advantage of pen and paper is that I use different muscles and brain activities when I write, which helps me think differently. I usually use them when I need to outline my blog post, if I’m stuck or distracted on something, or if I go out in nature and only bring my physical journal.
 
 Also, when writing journals or other ideas within my second brain, I can start connecting them. Improving my thoughts over time and generally refind easily and read them, whereas, on paper, notebooks get lost over time, and finding the right things when needed is very hard.
+
+Read more on [Journaling to Find Myself Again](https://blog.foster.co/superbad-and-line-drawings-journaling-to-find-myself-again/):
+> One day, DJ read some of her old journal entries and had a "cosmic" realization: she was in a toxic romantic relationship that she needed to get out of. She started writing to process her emotions and construct a path back to herself, her perspective, and a new beginning.
 
 ---
 Origin: 
