@@ -1,9 +1,9 @@
 ---
-lastmod: '2022-09-28 07:12:50'
+lastmod: '2022-09-28 07:56:01'
 title: Writing
 ---
 
-Writing has been my new job, at least part-time, since I joined [[Airbyte]]. So how to get 
+Writing has been my new job, at least part-time, since I joined [[Airbyte]]. So how to get better, and what about writing makes it so hard?
 
 ## Approaches
 Approaches to how I write are in my [[Second Brain]]. I will write [[Fleeting Notes]], collecting [[Literature Notes]] with mostly Readwise synced directly into [[Obsidian]], writing them out as [[Permanent Notes]], and tagging them as `#publish` to move them to my public brain.

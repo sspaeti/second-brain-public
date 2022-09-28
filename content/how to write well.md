@@ -1,5 +1,5 @@
 ---
-lastmod: '2022-09-28 07:13:57'
+lastmod: '2022-09-28 07:41:46'
 title: How to Write Well?
 ---
 
@@ -17,7 +17,7 @@ As many say, just write on, some days you write poor some days better. Don't wor
 
 It's also very much connected to [[Atomic Habits - James Clear]] and [[Optimize My Sleep]] where you have a good mind and maybe you get up early to write first thing in the morning without distraction!
 
-More on [[How to get a Better Writer]], and [[Writing Handbook by Julian Shapiro]].
+More on [[How to get a Better Writer]], and [[Writing Handbook by Julian Shapiro]]. 
 
 ---
 Origin: [[Writing]]
