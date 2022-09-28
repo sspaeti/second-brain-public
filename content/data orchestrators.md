@@ -1,5 +1,5 @@
 ---
-lastmod: '2022-09-21 06:47:52'
+lastmod: '2022-09-28 12:47:26'
 title: Orchestrators
 ---
 
@@ -26,6 +26,8 @@ Traditional Orchestartos focus on tasks. But newer generations e.g. [[Dagster]] 
   * [[Dagster]]
   * [[Prefect]]
   - [[Temporal]]
+  - [[Mage AI]] 
+  - [Orchest - Build data pipelines, the easy way.](https://www.orchest.io/) (connecting [[Notebooks]])
 
 After you choose your group and even the technology you want to go for, you want to have an Orchestrator. **This is one of the most critical tasks** that gets forgotten most of the time.
 

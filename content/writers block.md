@@ -1,5 +1,5 @@
 ---
-lastmod: '2022-09-24 19:43:14'
+lastmod: '2022-09-28 08:48:46'
 title: Writers Block
 ---
 
@@ -8,6 +8,9 @@ As with [[Creativity vs Productivity]], I try to embrace the block and do some c
 What else can we learn from writer's block?  
 
 Lots to learn also on [[Four Thousand Weeks, Time Management for Mortals - Oliver Burkeman]] and discussion in the podcast with [[Four Thousand Weeks, Time Management for Mortals - Oliver Burkeman#From the Podcast discussion with Ali Abdaal]].
+
+
+Great read on the very topic: [[If You Have Writer's Block, Maybe You Should Stop Lying]].
 
 ---
 Origin: [[What is Time]] 
