@@ -1,5 +1,5 @@
 ---
-lastmod: '2022-08-31 04:53:15'
+lastmod: '2022-10-08 16:31:50'
 title: Second Brain
 ---
 
@@ -41,10 +41,10 @@ In the following chapter, we're going to cover the [[Zettelkasten]] method, whic
 > 
 > By the way: Your [contacts](https://contacts.google.com/) in google, your [password tool](https://www.lastpass.com/), [email](https://www.hey.com/), all of it are also second brains. So you do not need to have only one.
 
-More on [[How to build a Second Brain]].
+More on [[How to build a Second Brain]]. 
 
 ---
 Origin: [[Personal Knowledge Management Workflow for a Deeper Life]] 
-References: 
+References: [[Obsidian]] [[Notion]]
 Tags: #🗃/🌻 #notetaking #publish 
 Created [[2022-03-26]]
