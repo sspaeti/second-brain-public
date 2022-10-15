@@ -1,5 +1,5 @@
 ---
-lastmod: '2022-09-24 07:41:20'
+lastmod: '2022-10-14 07:25:45'
 title: Open-Source Data Engineering Projects
 ---
 
@@ -14,6 +14,8 @@ Full-blown projects:
 - new [[ngods (new generation open-source data stack)]]: [GitHub - zsvoboda/ngods-stocks: New Generation Opensource Data Stack Demo](https://github.com/zsvoboda/ngods-stocks) 
 	- Aricle: [Iceberg + Spark + Trino + Dagster: modern, open-source data stack demo | by ZD | Jul, 2022 | Dev Genius](https://blog.devgenius.io/modern-data-stack-demo-5d75dcdfba50)
 - [GitHub - jacob1421/RustCheatersDataPipeline: Data pipeline that scrapes Rust cheater Steam profiles](https://github.com/jacob1421/RustCheatersDataPipeline)
+- duckdb - dbt- meltano -superset: [GitHub - matsonj/nba-monte-carlo: Monte Carlo simulation of the NBA season, leveraging meltano, dbt, duckdb and superset](https://github.com/matsonj/nba-monte-carlo) ^dcb4c6
+	- blog article: [DuckDB - Modern Data Stack in a Box with DuckDB](https://duckdb.org/2022/10/12/modern-data-stack-in-a-box.html)
 
 Articles:
 - [[Big Data Pipeline Recipe]]

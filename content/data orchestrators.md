@@ -1,5 +1,5 @@
 ---
-lastmod: '2022-09-28 12:47:26'
+lastmod: '2022-10-14 09:22:15'
 title: Orchestrators
 ---
 
@@ -55,10 +55,15 @@ If you are curious and want to see the complete list of tools and frameworks, I 
 
 ### Which tools
 As of [[2022-09-21]]:
-- [[Apache Airflow|Airflow]] when you need "dumb" task scheduling only (no data awareness)
+- [[Apache Airflow|Airflow]] when you need a task scheduling only (no data awareness)
 - **[[Dagster]]** when you foresee higher-level data engineering problems. Dagster has more abstractions as they grew from first principles with a holistic view in mind from the [very beginning](https://dagster.io/blog/introducing-dagster). They focus heavily on data integrity, testing, idempotency, data assets, etc.
 * **[[Prefect]]** if you need a fast and dynamic modern orchestration with a straightforward way to scale out. They recently revamped the prefect core as [Prefect 2.0](https://www.prefect.io/blog/introducing-prefect-2-0/) with a new second-generation orchestration engine called [Orion](https://www.prefect.io/blog/announcing-prefect-orion/). It has several abstractions that make it a swiss army knife for general task management.
 	* With the new engine Orion they build in Prefect 2.0, they're very similar to [[Temporal]] and supports fast low latency application orchestration
+	
+Or said others in this [Tweet](https://twitter.com/sspaeti/status/1580850623029075969) - I'd use:
+- airflow for plain task-scheduling
+- prefect fast, low-latency [[imperative]] scheduling
+- dagster for data-aware pipelines when you want best-in-class, but opinionated support
 
 Also heard from Nick in the podcast [Re-Bundling The Data Stack With Data Orchestration And Software Defined Assets Using Dagster | Data Engineering Podcast](https://www.dataengineeringpodcast.com/dagster-software-defined-assets-data-orchestration-episode-309/).
 

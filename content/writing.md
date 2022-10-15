@@ -1,17 +1,20 @@
 ---
-lastmod: '2022-09-28 08:49:37'
+lastmod: '2022-10-15 19:17:34'
 title: Writing
 ---
 
 Writing has been my new job, at least part-time, since I joined [[Airbyte]]. So how to get better, and what about writing makes it so hard?
 
 ## Approaches
-Approaches to how I write are in my [[Second Brain]]. I will write [[Fleeting Notes]], collecting [[Literature Notes]] with mostly Readwise synced directly into [[Obsidian]], writing them out as [[Permanent Notes]], and tagging them as `#publish` to move them to my public brain.
+Approaches to how I write are in my [[Second Brain]]. I will write [[Fleeting Notes]], collect [[Literature Notes]] mostly Readwise synced directly into [[Obsidian]], write them out as [[Permanent Notes]], and tag them as `#publish` to move them to my public brain.
 
 I was having this all accessible in one place, connecting and [[Linking Your Thinking (LYT)]] notes and ideas with each other, sparking many new ideas and inspirations I didn't have before.
 
 I like the quote from [[Writing Handbook by Julian Shapiro]]:
-> Writing is one of the most radical things you can do without money. Skilled writers change the world from their couch. 
+> Writing is one of the most radical things you can do without money. Skilled writers change the world from their couches. 
+
+Writing is "scalable teaching":
+> "**Writing is the most scalable professional networking activity** - stay home, don't go to events/conferences, and just put ideas down."
 
 ## Process 
 > [!note] I always need to remind myself:
@@ -37,9 +40,7 @@ On the other hand, as I write more, I also want to learn more and get better at 
 I started a long time ago with a blog back in 2005, and it was probably one of the best decisions for my writing portfolio or career. Besides loving to design and create websites for a long, it's also felt that I could keep my content over time. Imagine only lately with platforms such as Medium and Substack; they come and go. Simon Willson says the same in his Tweets ([[Tweets From Simon Willison]]):
 > Start a blog! The best time to start one was twenty years ago. The second best time is today.
 
-Related [[The Most Important Skill...]] for writing is storytelling, Nathan says. And [Writing well by Julian Shapiro](https://www.julian.com/guide/write/intro).
-
-Or [[Write Simply]]
+Related [[The Most Important Skill...]] for writing is storytelling, Nathan says. And [Writing well by Julian Shapiro](https://www.julian.com/guide/write/intro). Or [[Write Simply]]
 
 ---
 Origin: [[Writing a good intro]]
