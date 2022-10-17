@@ -1,5 +1,5 @@
 ---
-lastmod: '2022-10-15 19:18:52'
+lastmod: '2022-10-15 19:57:36'
 title: Fonts
 ---
 
@@ -15,7 +15,7 @@ Here are some tips for programming (from [[15 Best Programming Fonts for Better 
 Testing out fonts: [Programming Fonts - Test Drive](https://www.programmingfonts.org/).
 
 ### Open Source Favorites
-- Trying this now: [GitHub - be5invis/Iosevka: Versatile typeface for code, from code.](https://github.com/be5invis/Iosevka)
+- [Iosevka](https://github.com/be5invis/Iosevka) - My current one, 14.7k start on GitHub 😳
 - [Source Code Pro for Powerline](https://kinsta.com/blog/best-programming-fonts/#4-source-code-pro) - Adobe open source
 - [Cascadia Code](https://kinsta.com/blog/best-programming-fonts/#9-cascadia-code) - default font for the Windows Terminal and Visual Studio
 - [Anonymous Pro for Powerline](https://www.marksimonson.com/fonts/view/anonymous-pro) - I like
@@ -29,6 +29,7 @@ Some comparisons while testing:
 ![[Pasted image 20221015161127.png]]
 
 A nice [summary](https://forum.obsidian.md/t/your-favourite-fonts-choice-and-why-thread/18129/6?u=sspaeti) that has similar preferences that are similar to mine:
+	
 > [!summary]  Some of my favourite monospace / coding fonts [Link](https://forum.obsidian.md/t/your-favourite-fonts-choice-and-why-thread/18129/6?u=sspaeti)
 > - [Cascadia Code 81](https://devblogs.microsoft.com/commandline/cascadia-code/) ← What I use in my terminal
 > - [JetBrains Mono 63](https://www.jetbrains.com/lp/mono/) ← What I use in VS Code and other editors
@@ -37,7 +38,8 @@ A nice [summary](https://forum.obsidian.md/t/your-favourite-fonts-choice-and-why
 
 ### Payed
 - [Gintronic](https://markfromberg.com/index.php?/projects/gintronic/) so far one of my favorite
-	- ![[Pasted image 20221015150021.png]]
+
+![[Pasted image 20221015212258.png]]
 
 ## Reading and Writing
 - [Atkinson Hyperlegible](https://brailleinstitute.org/freefont) (mentioned [Your favourite fonts choice and why? thread - Share & showcase - Obsidian Forum](https://forum.obsidian.md/t/your-favourite-fonts-choice-and-why-thread/18129/5?u=sspaeti) )
@@ -46,10 +48,10 @@ A nice [summary](https://forum.obsidian.md/t/your-favourite-fonts-choice-and-why
 - [[Fonts - DYSLEXIA]] which makes reading easier for people with problems (from [[Tobias Schäuble]])
 
 Updated fonts in [[Obsidian]]:
-![[Pasted image 20221015211135.png]]
+![[Pasted image 20221015212239.png]]
 
 ---
 Origin: 
-References: [[Writing]] 
+References: [[Writing]], [[New Tabs in Obsidian with version 1.0]]
 Tags: #🗃/🌳 #publish 
 Created [[2022-10-15]]
