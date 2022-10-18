@@ -1,5 +1,5 @@
 ---
-lastmod: '2022-10-15 19:57:36'
+lastmod: '2022-10-18 08:48:57'
 title: Fonts
 ---
 
@@ -26,8 +26,7 @@ Testing out fonts: [Programming Fonts - Test Drive](https://www.programmingfonts
 	- Extended language support for most Latin-based Western and Central European languages, as well as Greek and Cyrillic.
 
 Some comparisons while testing:
-![[Pasted image 20221015161127.png]]
-
+![[Pasted image 20221018104849.png]]
 A nice [summary](https://forum.obsidian.md/t/your-favourite-fonts-choice-and-why-thread/18129/6?u=sspaeti) that has similar preferences that are similar to mine:
 	
 > [!summary]  Some of my favourite monospace / coding fonts [Link](https://forum.obsidian.md/t/your-favourite-fonts-choice-and-why-thread/18129/6?u=sspaeti)
