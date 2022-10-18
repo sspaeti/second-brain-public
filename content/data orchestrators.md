@@ -1,5 +1,5 @@
 ---
-lastmod: '2022-10-14 09:22:15'
+lastmod: '2022-10-18 07:03:58'
 title: Orchestrators
 ---
 
@@ -16,7 +16,7 @@ Making orchestrators experts on:
 - when stuff is going wrong
 - what it takes to fix the wrong state
 
-Traditional Orchestartos focus on tasks. But newer generations e.g. [[Dagster]] focus on [[Data Assets]] and [[Software-Defined Assets]], which makes scheduling and orchestration much more powerful. For more see [[Dagster#Why it's so powerful]]. It ties in with the [[Modern Data Stack]].
+Traditional Orchestartos focus on tasks. But newer generations e.g. [[Dagster]] focus on [[Data Assets ^gvdd3tf]] and [[Software-Defined Assets]], which makes scheduling and orchestration much more powerful. For more see [[Dagster#Why it's so powerful]]. It ties in with the [[Modern Data Stack]].
 
 ## Tools
   * [Apache Airflow][24] (created in Airbnb)
@@ -53,7 +53,7 @@ To understand the complete picture, let’s explore where we came from before Ai
 
 If you are curious and want to see the complete list of tools and frameworks, I suggest you check out the [Awesome Pipeline List](https://github.com/pditommaso/awesome-pipeline#pipeline-frameworks--libraries) on GitHub.
 
-### Which tools
+### Which tool
 As of [[2022-09-21]]:
 - [[Apache Airflow|Airflow]] when you need a task scheduling only (no data awareness)
 - **[[Dagster]]** when you foresee higher-level data engineering problems. Dagster has more abstractions as they grew from first principles with a holistic view in mind from the [very beginning](https://dagster.io/blog/introducing-dagster). They focus heavily on data integrity, testing, idempotency, data assets, etc.
