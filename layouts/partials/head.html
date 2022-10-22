@@ -50,11 +50,6 @@
 
   {{$lightSyntax := resources.Get "styles/_light_syntax.scss" | resources.ToCSS (dict "outputStyle" "compressed") | resources.Fingerprint "md5" | resources.Minify  }}
   <link href="{{$lightSyntax.Permalink}}" rel="stylesheet" id="theme-link">
-
-  <!-- mono font -->
-  <link href="https://pvinis.github.io/iosevka-webfont/3.4.1/iosevka.css" rel="stylesheet" />
-
-
    <!-- Base scripts -->
   {{$scripts := (slice "js/darkmode.js" "js/util.js")}}
   {{range $scripts}}
