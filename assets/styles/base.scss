@@ -1,9 +1,13 @@
 // Replace this with your own font imports!
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Inter:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible&family=Inter:wght@400;600;700');
+// keeping for reference
+// @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Inter:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap');
+// @import url('https://fonts.googleapis.com/css2?family=Piazzolla:opsz@8..30&display=swap');
+
 :root {
-  --font-body: 'Open Sans', sans-serif, system-ui, -apple-system, BlinkMacSystemFont, PingFang SC, Microsoft YaHei UI, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, Helvetica, Arial !important; //"Source Sans Pro";
-  --font-header: "Inter";
-  --font-mono: Open Sans //"Fira Code"
+  --font-body: 'Atkinson Hyperlegible', 'Piazzolla, serif;', 'Open Sans', sans-serif, system-ui, -apple-system, BlinkMacSystemFont, PingFang SC, Microsoft YaHei UI, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, Helvetica, Arial !important; //"Source Sans Pro";
+  --font-header: 'Iosevka Web','Atkinson Hyperlegible',  'Inter';
+  --font-mono: 'Iosevka Web', 'Fira Code', 'Fira Code', 'Open Sans';
 }
 
 // typography
@@ -66,7 +70,14 @@ p, ul, text, a, tr, td, li, ol, ul {
 }
 
 tbody, li, p {
-  line-height: 1.5em;
+  // line-height: 1.45em;
+  // line-height: 1.45em;
+  line-height: 1.6em;
+  font-size: 1.1em;
+  // font-size: 18px;
+  font-optical-sizing: auto;
+  font-variant-numeric: oldstyle-nums proportional-nums;
+
 }
 
 .mainTOC {
