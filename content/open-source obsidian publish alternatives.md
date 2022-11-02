@@ -1,5 +1,5 @@
 ---
-lastmod: '2022-09-09 13:13:10'
+lastmod: '2022-10-21 14:06:54'
 title: Open-Source Obsidian Publish Alternatives
 ---
 
@@ -13,10 +13,6 @@ Here are some examples:
 - Free Obsidian Plugin that can share directly [obsius-obsidian-plugin: Easily publish notes to the web](https://github.com/jonstodle/obsius-obsidian-plugin)
 - [[Graph Share]]
 - [pubsidian](https://github.com/yoursamlan/pubsidian)
-- [[Vim]]
-	- [[Brain- A Zettelkasten software for terminal users]]
-	- Zettelkasten with vim: [GitHub - renerocksai/telekasten.nvim](https://github.com/renerocksai/telekasten.nvim)I
-	- [GitHub - michal-h21/vim-zettel: [[VimWiki]] addon for managing notes according to Zettelkasten method](https://github.com/michal-h21/vim-zettel)
 
 Good combination with a Glossary entry page such as shown here by Secoda: [75+ Data Terms: Modern Data Definitions Glossary](https://www.secoda.co/glossary).
 

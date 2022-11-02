@@ -1,11 +1,25 @@
 ---
-lastmod: '2022-10-18 08:48:57'
+lastmod: '2022-10-22 14:42:27'
 title: Fonts
 ---
 
 I have a love for nice fonts.
 
-## Programming
+## Reading and Writing Fonts
+- [Atkinson Hyperlegible](https://brailleinstitute.org/freefont) (mentioned [Your favourite fonts choice and why? thread - Share & showcase - Obsidian Forum](https://forum.obsidian.md/t/your-favourite-fonts-choice-and-why-thread/18129/5?u=sspaeti) )
+- [iA Writer Quattro](https://github.com/iaolo/iA-Fonts/tree/8548eea983611993db2d6f65bd3ae1609f62dcbd) 
+- [Inter](https://fonts.google.com/specimen/Inter) - Default of [[Obsidian]] and used also at [[Airbyte]] website
+- [[Fonts - DYSLEXIA]] which makes reading easier for people with problems (from [[Tobias Schäuble]])
+- Piazzolla, serif; from [How to treat monospace alike fonts in a tech blog? - Pimp my Type](https://pimpmytype.com/review-tech-blog/)
+	- [Piazzolla Type System](https://piazzolla.huertatipografica.com/) 
+	
+Atkinson Hyperlegible vs Piazzolla:
+![[Pasted image 20221022164222.png]]
+
+Updated fonts in [[Obsidian]]:
+![[Pasted image 20221015212239.png]]
+
+## Programming Fonts
 Here are some tips for programming (from [[15 Best Programming Fonts for Better Coding]]):
 - Clear and easy-to-read characters to reduce eye strain when spending hours looking at hundreds of lines of code.
 - Makes a clear distinction between commonly-confused characters such as the letter “O” and the number “0” or the lowercase “L” and the number “1”.
@@ -39,15 +53,6 @@ A nice [summary](https://forum.obsidian.md/t/your-favourite-fonts-choice-and-why
 - [Gintronic](https://markfromberg.com/index.php?/projects/gintronic/) so far one of my favorite
 
 ![[Pasted image 20221015212258.png]]
-
-## Reading and Writing
-- [Atkinson Hyperlegible](https://brailleinstitute.org/freefont) (mentioned [Your favourite fonts choice and why? thread - Share & showcase - Obsidian Forum](https://forum.obsidian.md/t/your-favourite-fonts-choice-and-why-thread/18129/5?u=sspaeti) )
-- [iA Writer Quattro](https://github.com/iaolo/iA-Fonts/tree/8548eea983611993db2d6f65bd3ae1609f62dcbd) 
-- [Inter](https://fonts.google.com/specimen/Inter) - Default of [[Obsidian]] and used also at [[Airbyte]] website
-- [[Fonts - DYSLEXIA]] which makes reading easier for people with problems (from [[Tobias Schäuble]])
-
-Updated fonts in [[Obsidian]]:
-![[Pasted image 20221015212239.png]]
 
 ---
 Origin: 

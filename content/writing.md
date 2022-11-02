@@ -1,5 +1,5 @@
 ---
-lastmod: '2022-10-15 19:17:34'
+lastmod: '2022-10-20 07:18:52'
 title: Writing
 ---
 
@@ -20,6 +20,11 @@ Writing is "scalable teaching":
 > [!note] I always need to remind myself:
 > Writing is hard! It's easy to start, hard to finish. You get stuck, you have a blockage, your creativity is low, you get interrupted, and you lose confidence in your writing. Reminding myself that the first 10 minutes are the hardest and envisioning the end product keeps me motivated.
 
+> [!hint] [[Public Narrative, Collective Action, and Power (now, us and self)]]
+> 1. A story of now
+> 2. A story of us
+> 3. A story of self
+
 This is what brought me to writing. To release my thoughts (brain dump), make my brain accessible for more, for being creative. I like to brainstorm, change, delete, add, research, and do the thinking while writing. When writing on a computer, I can do it almost at the speed of my thinking; I do not lose thoughts as I would when writing on paper ([[Journaling#Digital vs Paper]]). I can stop at any given time and come back, as all the thinking is written down. As well, I love the editing part. Making it better, finding correlations, and things I wouldn't have expected before. 
 
 But before getting into the editing phase, during the initial phase, when drafting or coming up with the content itself, I try to get into distraction-free [[Deep Work|Flow]]. Long chunks of uninterrupted time, [[Cal Newport]] talks about [[Deep Work]] in his book.
@@ -30,7 +35,7 @@ When I let the writing stay for a while, that typically leads to better quality 
 
 Writing doesn't always need to be about an article. You can just put some thought, [[Journaling]], or something you learned or find interesting, into a note. Save it for later. You mostly don't need the thing you just knew at that moment. Something you find interesting today is doubtful to be of value right now. But maybe in two years from now.
 
-Other things I'm pondering are [[Writing a good intro]], [[How to Write (Titles, Heading, Bolding, etc.)]], [[Long vs Short Form Posts]], [[How to Write Well]], [[Learn in Public]], or [[1000 True Fans]]. As well as having found my writing voice was important. In short, I need to write from experience and cannot create a free story—more in [[My Writing Process]] and [[My Writing Voice]].
+Other things I'm pondering are [[Writing a good intro]], [[How to Write (Titles, Heading, Bolding, etc.)]], [[Long vs Short Form Posts]], [[Writing One Sentence Per Line  Derek Sivers]], [[Writing- Copy Work]], [[How to Write Well]], [[Learn in Public]], or [[1000 True Fans]]. As well as having found my writing voice was important. In short, I need to write from experience and cannot create a free story—more in [[My Writing Process]] and [[My Writing Voice]].
 
 More on [[How to Write Well]].
 
@@ -41,6 +46,10 @@ I started a long time ago with a blog back in 2005, and it was probably one of t
 > Start a blog! The best time to start one was twenty years ago. The second best time is today.
 
 Related [[The Most Important Skill...]] for writing is storytelling, Nathan says. And [Writing well by Julian Shapiro](https://www.julian.com/guide/write/intro). Or [[Write Simply]]
+
+## Distribution of the Writing
+[[How to distribute on Social Media]]
+
 
 ---
 Origin: [[Writing a good intro]]
