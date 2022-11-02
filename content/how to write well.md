@@ -1,5 +1,5 @@
 ---
-lastmod: '2022-10-12 07:07:33'
+lastmod: '2022-10-22 15:29:09'
 title: How to Write Well?
 ---
 
@@ -16,6 +16,9 @@ As many say, just write on, some days you write poor some days better. Don't wor
 > When I spend a lot of time optimizing an article, and I can see the changes and how the article improves with each edit, that makes me happy every time and is just a magical moment as you never know how it will end up before you do the hard work.
 
 It's also very much connected to [[Atomic Habits - James Clear]] and [[Optimize My Sleep]] where you have a good mind and maybe you get up early to write first thing in the morning without distraction!
+
+Focus on the Audience and tell a story, here are some pointers from [[How to not be terrible at writing]]:
+![[Pasted image 20221021065715.png]]
 
 More on [[How to get a Better Writer]], and [[Writing Handbook by Julian Shapiro]]. [[Writing Advice From A16z's Andrew Chen]].
 
