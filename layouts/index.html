@@ -6,15 +6,15 @@
 {{partial "search.html" .}}
 <div class="singlePage">
     <!-- Begin actual content -->
-    {{partial "header.html" .}}
     <article>
+    {{partial "header.html" .}}
         {{partial "toc.html" .}}
         {{partial "textprocessing.html" . }}
         {{if $.Site.Data.config.enableRecentNotes}}
           {{partial "recent.html" . }}
         {{end}}
-    </article>
     {{partial "footerIndex.html" .}}
+    </article>
 </div>
 </body>
 </html>

@@ -6,8 +6,8 @@
 {{partial "search.html" .}}
 <div class="singlePage">
     <!-- Begin actual content -->
-    {{partial "header.html" .}}
     <article>
+    {{partial "header.html" .}}
       {{if .Title}}<h1>{{ .Title }}</h1>{{end}}
       <p class="meta">
           Last updated {{ partial "date-fmt.html" .}} 
@@ -20,8 +20,11 @@
       </ul>
       {{partial "toc.html" .}}
       {{partial "textprocessing.html" . }}
+      {{partial "footer.html" .}}
     </article>
-    {{partial "footer.html" .}}
+    <div class="backlinks-container">
+        {{partial "backlinks.html" .}}
+    </div>   
 </div>
 </body>
 

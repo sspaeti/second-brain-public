@@ -6,16 +6,16 @@
 {{partial "search.html" .}}
 <div class="singlePage">
     <!-- Begin actual content -->
-    {{partial "header.html" .}}
     <article>
+    {{partial "header.html" .}}
         <h1>{{ i18n "all_posts" . }}</h1>
         {{with .Params.description}}
             <p>{{.}}</p>
         {{end}}
         {{partial "page-list.html" .Paginator.Pages.ByLastmod.Reverse }}
         {{ template "_internal/pagination.html" .}}
-    </article>
     {{partial "contact.html" .}}
+    </article>
 </div>
 </body>
 </html>
