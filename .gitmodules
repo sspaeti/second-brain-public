@@ -1,0 +1,3 @@
+[submodule "content"]
+	path = content
+	url = git@github.com:sspaeti/second-brain-public-content.git
