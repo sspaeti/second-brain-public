@@ -3,7 +3,7 @@ public
 resources
 .idea
 content/.obsidian
-content/*
+# content/*
 # !content/_index.md
 assets/indices/linkIndex.json
 assets/indices/contentIndex.json
