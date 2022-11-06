@@ -89,7 +89,7 @@ def add_h1_as_title_frontmatter(file_path: str, last_modified: str):
             lines = f.readlines()
             for line in lines:
                 if re.search(h1, line):
-                    print(f"found h1 in {file_path}. removing...liine: {line}")
+                    # print(f"found h1 in {file_path}. removing...liine: {line}")
                     lines.remove(line)
                     break
         # write back to file
@@ -121,12 +121,17 @@ def find_image_and_copy(image_name: str, root_path: str, public_brain_image_path
 def list_images_from_markdown(file_path: str):
     # search for images in markdown file
     file_content = open(file_path, "r").read()
-    images = re.search(regexp_md_images, file_content)
+    images = re.findall(regexp_md_images, file_content)
     if images:
-        for image in images.groups():
-            if image:
+        # print(f"-found images in {file_path}")
+        for image in images:
+            image_name = image[0]
+            if image_name:
                 # find image recursively in folder and copy to public image folder
-                find_image_and_copy(image, second_brain_path, public_folder_path_copy)
+                # print(f"--image: {image_name}")
+                find_image_and_copy(
+                    image_name, second_brain_path, public_folder_path_copy
+                )
 
     # print(f"image: {file_path}, ln: {line}")
     pass
