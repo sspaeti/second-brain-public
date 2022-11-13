@@ -13,15 +13,30 @@
   --million-progress-bar-color: var(--secondary);
 }
 
+//check base.scss and .internal-linking for background color: can be set as varable
+
+
 [saved-theme="dark"] {
-  --light: #1b212a !important; // #161A1C // #040809
-  --dark: #e2e2ff !important;
-  --secondary: #f25656 !important;
-  --visited: #394FA4rtant;
-  --tertiary: #f25656 !important;
-  --primary: #f58382 !important;
-  --gray: #c5c5d4 !important; //#a9a9b3
-  --lightgray: #444652 !important;
-  --outlinegray: #343434 !important;
+  --light: #1F1F28 !important;
+  --dark: #FF5D62 !important;
+  --secondary: #658594 !important;
+  --visited: #938AA9 !important;
+  --tertiary: #E46876 !important;
+  --primary: #D27E99 !important;
+  --gray: #DCD7BA !important;
+  --lightgray: #181820 !important;
+  --outlinegray: #C8C093 !important;
 }
+
+// [saved-theme="dark"] {
+//   --light: #1b212a !important; // #161A1C // #040809
+//   --dark: #e2e2ff !important;
+//   --secondary: #f25656 !important;
+//   --visited: #394FA4 !important;
+//   --tertiary: #f25656 !important;
+//   --primary: #f58382 !important;
+//   --gray: #c5c5d4 !important; //#a9a9b3
+//   --lightgray: #444652 !important;
+//   --outlinegray: #343434 !important;
+// }
 
