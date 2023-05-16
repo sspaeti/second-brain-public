@@ -197,7 +197,7 @@
   {{end}}
     {{- /* GoatCounter */ -}}
     {{if $data.enableGoatCounter | default false}}
-        {{- partial "goat-counter.html" . -}}
+      {{ partial "goat-counter.html" (dict "goatCounterUser" $data.goatCounterUser) }}
     {{end}}
 
   <!-- Replaced with GoatCounter -->
