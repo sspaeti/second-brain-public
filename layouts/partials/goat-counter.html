@@ -1,1 +1,3 @@
-<script data-goatcounter="https://sspaeti.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+{{- /* catch passed variable */ -}}
+{{- $goatCounterUser := .goatCounterUser -}}
+<script data-goatcounter="https://{{- $goatCounterUser -}}.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>

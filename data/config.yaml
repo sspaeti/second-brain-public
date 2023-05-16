@@ -15,6 +15,7 @@ enableGitHubEdit: false
 GitHubLink: https://github.com/sspaeti/second-brain-public/tree/hugo/content
 enableSemanticSearch: false
 enableGoatCounter: true
+goatCounterUser: "sspaeti" #add your GoatCounter here, see https://www.goatcounter.com/help/start
 operandApiKey: "REPLACE-WITH-YOUR-OPERAND-API-KEY"
 description:
   This is the public version of my SecondBrain
