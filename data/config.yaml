@@ -14,6 +14,7 @@ enableRecentNotes: true
 enableGitHubEdit: false
 GitHubLink: https://github.com/sspaeti/second-brain-public/tree/hugo/content
 enableSemanticSearch: false
+enableGoatCounter: true
 operandApiKey: "REPLACE-WITH-YOUR-OPERAND-API-KEY"
 description:
   This is the public version of my SecondBrain

@@ -195,14 +195,19 @@
     })
   </script>
   {{end}}
-  <!-- {{ template "_internal/google_analytics.html" . }} -->
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PH3D1NNYSE"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
+    {{- /* GoatCounter */ -}}
+    {{if $data.enableGoatCounter | default false}}
+        {{- partial "goat-counter.html" . -}}
+    {{end}}
 
-    gtag('config', 'G-PH3D1NNYSE');
-  </script>
+  <!-- Replaced with GoatCounter -->
+  <!-- <!-1- Google tag (gtag.js) -1-> -->
+  <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-PH3D1NNYSE"></script> -->
+  <!-- <script> -->
+  <!--   window.dataLayer = window.dataLayer || []; -->
+  <!--   function gtag(){dataLayer.push(arguments);} -->
+  <!--   gtag('js', new Date()); -->
+
+  <!--   gtag('config', 'G-PH3D1NNYSE'); -->
+  <!-- </script> -->
 </head>
