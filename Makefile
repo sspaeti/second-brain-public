@@ -29,9 +29,10 @@ run: ## run hugo from a clean state
 hugo-generate: ## generate hugo from clean but don't run
 	hugo --gc && hugo
 
-upload-only: ## upload to server 
+upload: ## upload to server 
 	rsync -avz --delete public/ sspaeti@sspaeti.com:~/www/brain
 
 serve: prepare run
 
-deploy: prepare hugo-generate upload-only
+upload-only: hugo-generate upload
+deploy: prepare hugo-generate upload
