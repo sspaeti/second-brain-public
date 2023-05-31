@@ -30,7 +30,7 @@ hugo-generate: ## generate hugo from clean but don't run
 	hugo --gc && hugo
 
 upload: ## upload to server 
-	rsync -avz --delete public/ sspaeti@sspaeti.com:~/www/brain
+	rsync -avz --delete public/ sspaeti@sspaeti.com:~/www/ssp/brain
 
 serve: prepare run
 

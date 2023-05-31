@@ -62,4 +62,4 @@ other = "Search for something..."
 other = "Table of Contents"
 
 [copyright]
-other = "<a href=\"https://sspaeti.com\">{{ .name }} </a>, © {{ .year }}"
+other = "<a href=\"https://www.ssp.sh\">{{ .name }} </a>, © {{ .year }}"
