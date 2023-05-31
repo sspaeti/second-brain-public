@@ -1,6 +1,6 @@
-baseURL = "https://brain.sspaeti.com"
+baseURL = "https://ssp.sh/brain/"
 languageCode = "en-us"
-googleAnalytics = "G-PH3D1NNYSE"
+googleAnalytics = ""
 relativeURLs = false
 disablePathToLower = true
 # ignoreFiles = [

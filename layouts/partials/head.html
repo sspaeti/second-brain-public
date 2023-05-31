@@ -9,7 +9,7 @@
     content="{{if .IsHome}}{{$data.description | default $.Site.Data.config.description}}{{else}}{{.Summary}}{{end}}"
   />
   <meta property="og:title" content="{{ .Title }}">
-  <meta property="og:image" content="https://brain.sspaeti.com/second-brain-sspaeti.com.jpeg">
+  <meta property="og:image" content="https://ssp.sh/brain/second-brain.jpeg">
   <meta property="og:type" content="website">
   <meta property="og:url" content="{{ .Permalink }}">
   <meta property="og:width" content="1002">
@@ -18,7 +18,7 @@
   <meta name="twitter:site" content="@sspaeti" />
   <meta name="twitter:title" content="{{ .Title }}" />
   <meta name="twitter:description" content="{{if .IsHome}}{{$data.description | default $.Site.Data.config.description}}{{else}}{{.Summary}}{{end}}" />
-  <meta name="twitter:image" content="https://brain.sspaeti.com/second-brain-sspaeti.com.jpeg">
+  <meta name="twitter:image" content="https://ssp.sh/brain/second-brain.jpeg">
   <title>
     {{ if .Title }}{{ .Title }}{{ else }}{{ $data.page_title | default $.Site.Data.config.page_title }}{{
     end }}
