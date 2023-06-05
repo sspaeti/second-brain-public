@@ -1,4 +1,4 @@
-baseURL = "https://ssp.sh/brain/"
+baseURL = "https://www.ssp.sh/brain/"
 languageCode = "en-us"
 googleAnalytics = ""
 relativeURLs = false
