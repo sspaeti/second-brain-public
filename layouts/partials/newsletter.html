@@ -1,19 +1,17 @@
 <div class='newsletter'>
     <input class='toggle' id='newsletter-toggle' type='checkbox' tabindex="-1">
-<a href="{{ $.Site.Data.config.newsletter_link }}">
-    <label id="toggle-label-newsletter" for='newsletter-toggle' tabindex="-1">
-        {{ $lightSVG := resources.Get "svg/newsletter-icon-light.svg" }}
+    <label id="toggle-label-newsletter" for='newsletter-toggle' tabindex="-1"></label>
+    <a href="{{ $.Site.Data.config.newsletter_link }}">
+        {{ $lightSVG := resources.Get "svg/newsletter-icon.svg" }}
         {{ $lightTemplate := $lightSVG | resources.ExecuteAsTemplate "svg/newsletter-icon-light.svg" . }}
         <div id="newsletterLight">
             {{ $lightTemplate.Content | safeHTML }}
         </div>
-        
-        {{ $darkSVG := resources.Get "svg/newsletter-icon-dark.svg" }}
+
+        {{ $darkSVG := resources.Get "svg/newsletter-icon.svg" }}
         {{ $darkTemplate := $darkSVG | resources.ExecuteAsTemplate "svg/newsletter-icon-dark.svg" . }}
         <div id="newsletterDark">
             {{ $darkTemplate.Content | safeHTML }}
         </div>
-    </label>
-</a>
+    </a>
 </div>
-
