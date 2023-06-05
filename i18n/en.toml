@@ -34,6 +34,10 @@ other = "Light Mode"
 [dark_mode]
 other = "Dark Mode"
 
+[newsletter_icon]
+other = "Newsletter"
+
+
 [edit_source]
 other = "Edit Source"
 

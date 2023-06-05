@@ -13,6 +13,7 @@ enableContextualBacklinks: true
 enableRecentNotes: true
 enableGitHubEdit: false
 GitHubLink: https://github.com/sspaeti/second-brain-public/tree/hugo/content
+newsletter_link: /brain/newsletter/
 enableSemanticSearch: false
 enableGoatCounter: true
 goatCounterUser: "sspaeti" #add your GoatCounter here, see https://www.goatcounter.com/help/start
