@@ -39,32 +39,50 @@ fn process_file(path: &Path, public_folder: &str) -> std::io::Result<()> {
     let mut title = String::new();
     let mut found_title = false;
     let mut found_publish = false;
+    let mut tags: Vec<String> = Vec::new();
 
     for line in reader.lines() {
         let line = line?;
         lines.push(line.clone());
-        if line.contains("#publish") {
-            if title.is_empty() {
-                title = String::from("Untitled");
-            }
-            found_publish = true;
-            break;
-        }
 
+        // Extract title from the first line starting with "#"
         if line.starts_with("#") && title.is_empty() {
             title = line[1..].trim().to_string();
             found_title = true;
+            continue;
+        }
+
+        // Check for the publish tag
+        if line.contains("#publish") {
+            found_publish = true;
+        }
+
+        // Look for tags line, extract tags, and remove it from the lines
+        if line.starts_with("Tags:") {
+            let tags_line = line[5..].trim();
+            tags = tags_line.split(' ').map(|s| s.replace("#", "").to_string()).collect();
+            lines.pop();
+            continue;
         }
     }
     
+    // If we found a publish tag, process the file
     if found_publish {
         // Read the last modified timestamp
         let metadata = fs::metadata(path)?;
         let last_modified: DateTime<Utc> = DateTime::from(metadata.modified()?);
         let last_modified_str = last_modified.format("%Y-%m-%d %H:%M:%S").to_string();
         
+        // Prepare tags for frontmatter
+        let mut frontmatter_tags = String::new();
+        for tag in tags.iter() {
+            if tag != "publish" {
+                frontmatter_tags.push_str(&format!("- {}\n", tag));
+            }
+        }
+        
         // Create frontmatter
-        let frontmatter = format!("---\nlastmod: '{}'\ntitle: {}\n---\n", last_modified_str, title);
+        let frontmatter = format!("---\nlastmod: '{}'\ntitle: \"{}\"\ntags:\n{}\n---\n", last_modified_str, title, frontmatter_tags);
         
         let dest_path = format!("{}/{}", public_folder, path.file_name().unwrap().to_str().unwrap());
         let mut file = fs::File::create(&dest_path)?;
