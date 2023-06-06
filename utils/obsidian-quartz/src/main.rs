@@ -3,10 +3,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::io::prelude::*;
 use std::io::{BufReader, Write};
-use std::os::unix::fs::MetadataExt;
 use chrono::{DateTime, Utc};
 
-use std::fs::File;
 use regex::Regex;
 use std::fs::copy;
 use std::collections::HashMap;
@@ -38,6 +36,15 @@ fn visit_dirs(dir: &Path, public_folder: &str, public_brain_image_path: &str, im
             if path.is_dir() {
                 visit_dirs(&path, public_folder, public_brain_image_path, images_map)?;
             } else {
+                ////DEBUG:
+                ////skip if file is not "Folder Structure PARA.md"
+                //if let Some(file_name) = path.file_name() {
+                //    if file_name != "Folder Structure PARA.md" {
+                //        continue;
+                //    }
+                //}
+
+
                 if let Some(extension) = path.extension() {
                     if extension == "md" {
                         process_file(&path, public_folder, public_brain_image_path, images_map)?;
@@ -79,11 +86,15 @@ fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &str,
     let mut found_title = false;
     let mut found_publish = false;
     let mut tags: Vec<String> = Vec::new();
-    let re = Regex::new(r"!\[\[(.*?)\]\](.*)\s").unwrap();
+    let re = Regex::new(r"\s*!\[\[(.*?)\]\](.*)").unwrap();
+
+    // HashMap to store images to copy
+    let mut images_to_copy: Vec<String> = Vec::new();
 
     for line in reader.lines() {
         let line = line?;
         lines.push(line.clone());
+
 
         // Extract title from the first line starting with "#"
         if line.starts_with("#") && title.is_empty() {
@@ -104,20 +115,17 @@ fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &str,
             lines.pop();
             continue;
         }
-
-        // Search for images and copy them
+        // println!("1 image: {}", &line);
+        
+        // Search for images and store them in `images_to_copy`
         if let Some(mat) = re.captures(&line) {
-            // We check if the #publish tag is found before copying the image
             if mat.len() > 1 {
                 let image_name = &mat[1];
-                if let Some(image_path) = images_map.get(image_name) {
-                    println!("Found image: {}", image_path.display());
-                    let destination_path = format!("{}/{}", public_brain_image_path, image_name);
-                    println!("Copying image to: {}", destination_path);
-                    match copy(&image_path, &destination_path) {
-                        Ok(_) => println!("Successfully copied image."),
-                        Err(e) => println!("Error while copying image: {} - {} -> {}", e, image_path.display(), destination_path),
-                    };
+                if images_map.contains_key(image_name) {
+                    println!("Found image: {}", image_name);
+                    images_to_copy.push(image_name.to_string());
+                    // images_to_copy.insert(image_name.to_string(), image_path.clone());
+
                 } else {
                     println!("Image not found in map: {}", image_name);
                 }
@@ -139,7 +147,19 @@ fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &str,
                 frontmatter_tags.push_str(&format!("- {}\n", tag));
             }
         }
-        
+
+        // Copy images here
+        for image_name in &images_to_copy {
+            if let Some(image_path) = images_map.get(image_name) {
+                let destination_path = format!("{}/{}", public_brain_image_path, image_name);
+                println!("Copying image to: {}", destination_path);
+                match copy(image_path, &destination_path) {
+                    Ok(_) => println!("Successfully copied image."),
+                    Err(e) => println!("Error while copying image: {} - {} -> {}", e, image_path.display(), destination_path),
+                };
+            }
+        }
+
         // Create frontmatter
         let frontmatter = format!("---\nlastmod: '{}'\ntitle: \"{}\"\ntags:\n{}\n---\n", last_modified_str, title, frontmatter_tags);
         
