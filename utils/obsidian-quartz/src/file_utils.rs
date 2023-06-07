@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use serde_yaml::Value;
 
 pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &str, images_map: &HashMap<String, PathBuf>) -> std::io::Result<()> {
-    println!("Opening file: {}", path.display());
+    // println!("Opening file: {}", path.display());
     let file = fs::File::open(path)?;
     let reader = BufReader::new(file);
     let mut lines: Vec<String> = Vec::new();
@@ -22,10 +22,12 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
     let mut found_publish = false;
 
     let mut in_frontmatter = false;
+    let mut line_end_frontmatter = 0;
     let mut existing_frontmatter: HashMap<String, Value> = HashMap::new();
     let mut frontmatter_string = String::new();
 
-    let re = Regex::new(r"\s*!\[\[(.*?)\]\](.*)").unwrap();
+    let re = Regex::new(r"\s*!\[\[(.*?(?:png|jpg|gif))\]\](.*)").unwrap();
+
 
     // HashMap to store images to copy
     let mut images_to_copy: Vec<String> = Vec::new();
@@ -38,30 +40,47 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
         line_number += 1;
         
         // Check if we're inside the frontmatter
-        if line == "---" && line_number == 1 {
-            println!("Found frontmatter");
+        if ( line == "---" && line_number == 1 ) || ( in_frontmatter && line == "---") {
             in_frontmatter = !in_frontmatter;
-            
+            // count lines until `---` (end of frontmatter)
+
             // If we're exiting the frontmatter, parse the frontmatter string
             if !in_frontmatter {
+                line_end_frontmatter = line_number;
+
                 match serde_yaml::from_str(&frontmatter_string) {
                     Ok(frontmatter) => { 
                         // existing_frontmatter = serde_yaml::from_str(&frontmatter_string).unwrap();
                         existing_frontmatter = frontmatter;
+                        // println!("Existing frontmatter: {:?}", existing_frontmatter);
+
+                        //if existing frontmatter, check if it contains #publish tag
+                        if let Some(tags_values) = existing_frontmatter.get("tags").and_then(|v| v.as_sequence()) {
+                            let contains_publish = tags_values.iter().any(|tag| {
+                                if let Some(tag_str) = tag.as_str() {
+                                    tag_str.contains("publish")
+                                } else {
+                                    false
+                                }
+                            });
+                            if contains_publish {
+                                found_publish = true;
+                            }
+                        }
                     }
                     Err(err) => {
                         eprintln!("Failed to parse frontmatter: {}", err);
                         eprintln!("Frontmatter content was:\n{}", frontmatter_string);
                     }
                 }
-                break;
+                // break;
             }
         } else if in_frontmatter {
             // Collect lines in the frontmatter to a string
             frontmatter_string.push_str(&line);
             frontmatter_string.push('\n');
+            // println!("Frontmatter string: {}", &line);
         }
-
 
         // Extract title from the first line starting with "#"
         if line.starts_with("#") && title.is_empty() {
@@ -70,7 +89,6 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
             continue;
         }
 
-        // Check for the publish tag
         if line.contains("#publish") {
             found_publish = true;
         }
@@ -82,34 +100,34 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
             lines.pop();
             continue;
         }
-        // println!("1 image: {}", &line);
         
         // Search for images and store them in `images_to_copy`
         if let Some(mat) = re.captures(&line) {
             if mat.len() > 1 {
                 let image_name = &mat[1];
                 if images_map.contains_key(image_name) {
-                    println!("Found image: {}", image_name);
+                    // println!("Found image: {}", image_name);
                     images_to_copy.push(image_name.to_string());
                     // images_to_copy.insert(image_name.to_string(), image_path.clone());
 
-                } else {
-                    println!("Image not found in map: {}", image_name);
-                }
+                } 
+                // else {
+                //     println!("Image not found in map: {}", image_name);
+                // }
             }
         }
     }
     
     // If we found a publish tag, process the file
     if found_publish {
+        // println!("Found publish tag");
         // Copy images here
         for image_name in &images_to_copy {
             if let Some(image_path) = images_map.get(image_name) {
                 let destination_path = format!("{}/{}", public_brain_image_path, image_name);
-                println!("Copying image to: {}", destination_path);
-                match copy(image_path, &destination_path) {
-                    Ok(_) => println!("Successfully copied image."),
-                    Err(e) => println!("Error while copying image: {} - {} -> {}", e, image_path.display(), destination_path),
+                // println!("Copying image to: {}", destination_path);
+                if let Err(e) = copy(image_path, &destination_path) {
+                    println!("Error while copying image: {} - {} -> {}", e, image_path.display(), destination_path);
                 };
             }
         }
@@ -128,48 +146,64 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
             }
         }
 
-        if existing_frontmatter.is_empty() {
+        if existing_frontmatter.is_empty() { 
             // Create frontmatter
             frontmatter = format!("---\nlastmod: '{}'\ntitle: \"{}\"\ntags:\n{}\n---\n", last_modified_str, title, frontmatter_tags);
         }
         else {
             // Merge frontmatter
+            let mut existing_frontmatter = existing_frontmatter.clone();
 
             title = existing_frontmatter.get("title").and_then(|v| v.as_str()).filter(|s| !s.is_empty()).unwrap_or(&title).to_string();
+            existing_frontmatter.insert("title".to_string(), serde_yaml::Value::String(title));
+
             let enabletoc = existing_frontmatter.get("enabletoc").and_then(|v| v.as_str()).filter(|s| !s.is_empty()).unwrap_or("").to_string();
+            if !enabletoc.is_empty() {
+                existing_frontmatter.insert("enableToc".to_string(), serde_yaml::Value::String(enabletoc));
+            }
+
             last_modified_str = existing_frontmatter.get("lastmod").and_then(|v| v.as_str()).filter(|s| !s.is_empty()).unwrap_or(&last_modified_str).to_string();
+            existing_frontmatter.insert("lastmod".to_string(), serde_yaml::Value::String(last_modified_str));
+
 
             if let Some(serde_yaml::Value::Sequence(seq)) = existing_frontmatter.get("tags") {
                 let tags: Vec<String> = seq.iter().filter_map(|v| match v {
                     serde_yaml::Value::String(s) => Some(s.clone()),
                     _ => None,
                 }).collect();
+                            
                 if !tags.is_empty() {
-                    frontmatter_tags = tags.iter().map(|tag| format!("- {}", tag)).collect::<Vec<String>>().join("\n");
-                } // else keep the hashtags as tags from the note
+                    let tags_value: Vec<serde_yaml::Value> = tags.iter().map(|tag| serde_yaml::Value::String(tag.clone())).collect();
+                    existing_frontmatter.insert("tags".to_string(), serde_yaml::Value::Sequence(tags_value));
+                } // else keep the hashtags as tags from the note 
             }
 
-            frontmatter = format!("---\nlastmod: '{}'\ntitle: \"{}\"\n", last_modified_str, title);
-
-            if enabletoc != "" {
-                frontmatter.push_str(&format!("enableToc: {}\n", enabletoc));
-            }
-
-            frontmatter.push_str(&format!("tags:\n{}\n---\n", frontmatter_tags));
+            frontmatter = serde_yaml::to_string(&existing_frontmatter).unwrap();
+            frontmatter = format!("---\n{}\n---\n", frontmatter);
+            // println!("Merged frontmatter: {}", frontmatter);
         }
         
-        let dest_path = format!("{}/{}", public_folder, path.file_name().unwrap().to_str().unwrap());
+        // destination should be lower-case (spaces will be handled by hugo with `urlize`)
+        let file_name = path.file_name().unwrap().to_str().unwrap().to_lowercase();
+        let dest_path = format!("{}/{}", public_folder, file_name);
         println!("Writing to file: {}", dest_path);
         let mut file = fs::File::create(&dest_path)?;
         file.write_all(frontmatter.as_bytes())?;
         
+        let mut line_number = 0;
         for line in lines.iter() {
+            line_number += 1;
+
             if found_title {
                 found_title = false;
                 continue;
             }
-            file.write_all(line.as_bytes())?;
-            file.write_all(b"\n")?;
+
+            //ignore existing frontmatter (new merged added above)
+            if line_number > line_end_frontmatter {
+                file.write_all(line.as_bytes())?;
+                file.write_all(b"\n")?;
+            } 
         }
     }
     Ok(())
