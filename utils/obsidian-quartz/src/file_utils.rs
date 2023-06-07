@@ -136,7 +136,7 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
         let last_modified: DateTime<Utc> = DateTime::from(metadata.modified()?);
         let mut last_modified_str = last_modified.format("%Y-%m-%d %H:%M:%S").to_string();
         let mut frontmatter = String::new();
-        
+
         // Prepare tags for frontmatter
         let mut frontmatter_tags = String::new();
         for tag in tags.iter() {
@@ -154,16 +154,15 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
             let mut existing_frontmatter = existing_frontmatter.clone();
 
             title = existing_frontmatter.get("title").and_then(|v| v.as_str()).filter(|s| !s.is_empty()).unwrap_or(&title).to_string();
-            existing_frontmatter.insert("title".to_string(), serde_yaml::Value::String(title));
+            existing_frontmatter.remove("title");
 
             let enabletoc = existing_frontmatter.get("enabletoc").and_then(|v| v.as_str()).filter(|s| !s.is_empty()).unwrap_or("").to_string();
             if !enabletoc.is_empty() {
-                existing_frontmatter.insert("enableToc".to_string(), serde_yaml::Value::String(enabletoc));
+                existing_frontmatter.remove("enableToc");
             }
 
             last_modified_str = existing_frontmatter.get("lastmod").and_then(|v| v.as_str()).filter(|s| !s.is_empty()).unwrap_or(&last_modified_str).to_string();
-            existing_frontmatter.insert("lastmod".to_string(), serde_yaml::Value::String(last_modified_str));
-
+            existing_frontmatter.remove("lastmod");
 
             let mut tags: Vec<String> = vec![];
 
@@ -192,7 +191,7 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
             }
 
             frontmatter = serde_yaml::to_string(&existing_frontmatter).unwrap();
-            frontmatter = format!("---\n{}\n---\n", frontmatter);
+            frontmatter = format!("---\ntitle: \"{}\"\nlastmod: '{}'\nenableToc: \"{}\"\n{}\n---\n", title, last_modified_str, enabletoc, frontmatter);
             // println!("Merged frontmatter: {}", frontmatter);
         }
         
