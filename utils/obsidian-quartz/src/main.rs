@@ -2,25 +2,38 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::collections::HashMap;
+use std::error::Error;
 
 mod file_utils;
 use file_utils::process_file;
 
-fn main() {
-    let second_brain_path = env::var("secondbrain").expect("Set the SECOND_BRAIN_PATH variable");
-    let public_folder_path_copy = env::var("public_secondbrain").expect("Set the PUBLIC_FOLDER_PATH_COPY variable");
-    // let public_brain_image_path = format!("{}/{}", public_folder_path_copy, "images");
-    let public_brain_image_path = env::var("public_secondbrain").expect("Set the PUBLIC_FOLDER_PATH_COPY variable");
+mod handle_link_index;
+use handle_link_index::convert_to_lower_case;
 
-    let mut images_map: HashMap<String, PathBuf> = HashMap::new();
-    build_images_map(Path::new(&second_brain_path), &mut images_map).unwrap();
+fn main() -> Result<(), Box<dyn Error>> {
+   let args: Vec<String> = env::args().collect();
+    
+    if args.len() > 1 && args[1] == "convert_to_lower_case" {
+        //handle hugo linkindexes
+        println!("Handling link indexes");
+        let link_index_path = Path::new("assets/indices/linkIndex.json");
+        convert_to_lower_case(link_index_path)?;
+        println!("Handling link indexes: DONE");
+    } else {
+        let second_brain_path = env::var("secondbrain")?;
+        let public_folder_path_copy = env::var("public_secondbrain")?;
+        let public_brain_image_path = env::var("public_secondbrain")?;
 
-    // visit_dirs(Path::new(&second_brain_path), &public_folder_path_copy, &public_brain_image_path, &images_map).unwrap();
-    match visit_dirs(Path::new(&second_brain_path), &public_folder_path_copy, &public_brain_image_path, &images_map) {
-        Ok(_) => (),
-        Err(e) => println!("An error occurred: {}", e),
+        let mut images_map: HashMap<String, PathBuf> = HashMap::new();
+        build_images_map(Path::new(&second_brain_path), &mut images_map)?;
+
+        match visit_dirs(Path::new(&second_brain_path), &public_folder_path_copy, &public_brain_image_path, &images_map) {
+            Ok(_) => (),
+            Err(e) => println!("An error occurred: {}", e),
+        }
     }
 
+    Ok(())
 }
 
 fn visit_dirs(dir: &Path, public_folder: &str, public_brain_image_path: &str, images_map: &HashMap<String, PathBuf>) -> std::io::Result<()> {
@@ -36,7 +49,7 @@ fn visit_dirs(dir: &Path, public_folder: &str, public_brain_image_path: &str, im
                 ////DEBUG:
                 ////skip if file is not "Folder Structure PARA.md"
                 //if let Some(file_name) = path.file_name() {
-                //    if file_name != "Folder Structure PARA.md" {
+                //    if file_name != "_index.md" {
                 //        continue;
                 //    }
                 //}
