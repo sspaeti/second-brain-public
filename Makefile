@@ -16,12 +16,21 @@ update-force: ## Forcefully pull all changes and don't ask to patch
 	git fetch upstream
 	git checkout upstream/hugo -- layouts .github Makefile assets/js assets/styles/base.scss assets/styles/darkmode.scss config.toml data
 
-prepare: ## prepare commands
+prepare-python: ## prepare commands
 	find /Users/sspaeti/Documents/git/sspaeti.com/second-brain-public/content -type f -not -name ".git" -delete
 	python utils/find-publish-notes.py #copy all notes from my secondbrain with hashtag #publish to quartz
 	rm -r public
 	hugo-obsidian -input=content -output=assets/indices -index -root=. 
 	python utils/lower_case.py #change linkIndex to lowercase for proper linking
+
+# run with Rust: build with `cargo build --release`
+#	./utils/obsidian-quartz/target/release/obsidian-quartz
+prepare: ## prepare commands
+	find /Users/sspaeti/Documents/git/sspaeti.com/second-brain-public/content -type f -not -name ".git" -delete
+	./utils/obsidian-quartz/target/release/obsidian-quartz
+	rm -r public
+	hugo-obsidian -input=content -output=assets/indices -index -root=. 
+	./utils/obsidian-quartz/target/release/obsidian-quartz convert_to_lower_case #change linkIndex to lowercase for proper linking
 
 run: ## run hugo from a clean state
 	hugo --gc && hugo server --enableGitInfo --minify
