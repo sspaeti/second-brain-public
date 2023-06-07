@@ -42,9 +42,8 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
         // Check if we're inside the frontmatter
         if ( line == "---" && line_number == 1 ) || ( in_frontmatter && line == "---") {
             in_frontmatter = !in_frontmatter;
-            // count lines until `---` (end of frontmatter)
 
-            // If we're exiting the frontmatter, parse the frontmatter string
+            // If there is an existing frontmatter, parse the frontmatter string
             if !in_frontmatter {
                 line_end_frontmatter = line_number;
 
@@ -166,16 +165,30 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
             existing_frontmatter.insert("lastmod".to_string(), serde_yaml::Value::String(last_modified_str));
 
 
+            let mut tags: Vec<String> = vec![];
+
+            // If tags exist in the front matter, get them and convert them to Vec<String>.
             if let Some(serde_yaml::Value::Sequence(seq)) = existing_frontmatter.get("tags") {
-                let tags: Vec<String> = seq.iter().filter_map(|v| match v {
+                tags = seq.iter().filter_map(|v| match v {
                     serde_yaml::Value::String(s) => Some(s.clone()),
                     _ => None,
                 }).collect();
-                            
-                if !tags.is_empty() {
-                    let tags_value: Vec<serde_yaml::Value> = tags.iter().map(|tag| serde_yaml::Value::String(tag.clone())).collect();
-                    existing_frontmatter.insert("tags".to_string(), serde_yaml::Value::Sequence(tags_value));
-                } // else keep the hashtags as tags from the note 
+            }
+
+            // If there are additional frontmatter_tags, add them to the tags vector.
+            if !frontmatter_tags.is_empty() {
+                let new_tags: Vec<String> = frontmatter_tags
+                    .lines()
+                    .map(|line| line.trim_start_matches("- ").to_string())
+                    .collect();
+                tags.extend(new_tags);
+            }
+
+            // If there are any tags (either from the existing front matter or new ones), convert them into a 
+            // serde_yaml::Value::Sequence and insert it back into the front matter.
+            if !tags.is_empty() {
+                let tags_value: Vec<serde_yaml::Value> = tags.iter().map(|tag| serde_yaml::Value::String(tag.clone())).collect();
+                existing_frontmatter.insert("tags".to_string(), serde_yaml::Value::Sequence(tags_value));
             }
 
             frontmatter = serde_yaml::to_string(&existing_frontmatter).unwrap();
