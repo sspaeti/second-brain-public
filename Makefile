@@ -19,18 +19,19 @@ update-force: ## Forcefully pull all changes and don't ask to patch
 prepare-python: ## prepare commands
 	find /Users/sspaeti/Documents/git/sspaeti.com/second-brain-public/content -type f -not -name ".git" -delete
 	python utils/find-publish-notes.py #copy all notes from my secondbrain with hashtag #publish to quartz
-	rm -r public
-	hugo-obsidian -input=content -output=assets/indices -index -root=. 
+	rm -rf public
+	hugo-obsidian -input=content -output=/Users/sspaeti/Documents/git/sspaeti.com/second-brain-public/assets/indices -index=true -root=. 
 	python utils/lower_case.py #change linkIndex to lowercase for proper linking
 
 # run with Rust: build with `cargo build --release`
-#	./utils/obsidian-quartz/target/release/obsidian-quartz
 prepare: ## prepare commands
 	find /Users/sspaeti/Documents/git/sspaeti.com/second-brain-public/content -type f -not -name ".git" -delete
-	./utils/obsidian-quartz/target/release/obsidian-quartz
-	rm -r public
-	hugo-obsidian -input=content -output=assets/indices -index -root=. 
-	./utils/obsidian-quartz/target/release/obsidian-quartz convert_to_lower_case #change linkIndex to lowercase for proper linking
+	obsidian-quartz #copy all notes from my secondbrain with hashtag #publish to /content
+	rm -rf public
+	hugo-obsidian -input=content -output=/Users/sspaeti/Documents/git/sspaeti.com/second-brain-public/assets/indices -index=true -root=. 
+	# obsidian-quartz convert_to_lower_case #change linkIndex to lowercase for proper linking
+	python utils/lower_case.py #change linkIndex to lowercase for proper linking
+	# TODO: somehow the index is not correctly shown. E.g open source projects engineeing project does not show backlink to poeple od data engineering...if make prepare-python is used, it works.......
 
 run: ## run hugo from a clean state
 	hugo --gc && hugo server --enableGitInfo --minify
@@ -42,6 +43,7 @@ upload: ## upload to server
 	rsync -avz --delete public/ sspaeti@sspaeti.com:~/www/ssp/brain
 
 serve: prepare run
+serve-old: prepare-python run
 
 upload-only: hugo-generate upload
 deploy: prepare hugo-generate upload
