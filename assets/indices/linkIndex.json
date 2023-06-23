@@ -1,6 +1,273 @@
 {
   "index": {
     "links": {
+      "/": [
+        {
+          "source": "/",
+          "target": "/second-brain",
+          "text": "second brain"
+        },
+        {
+          "source": "/",
+          "target": "/zettelkasten",
+          "text": "zettelkasten"
+        },
+        {
+          "source": "/",
+          "target": "/digital-garden",
+          "text": "digital garden"
+        },
+        {
+          "source": "/",
+          "target": "/map-of-content-moc",
+          "text": "map of content (moc)"
+        },
+        {
+          "source": "/",
+          "target": "/personal-knowledge-management-pkm",
+          "text": "personal knowledge management (pkm)"
+        },
+        {
+          "source": "/",
+          "target": "/smart-note-taking",
+          "text": "smart note taking"
+        },
+        {
+          "source": "/",
+          "target": "/zettelkasten",
+          "text": "zettelkasten"
+        },
+        {
+          "source": "/",
+          "target": "/linking-your-thinking-lyt",
+          "text": "linking your thinking (lyt)"
+        },
+        {
+          "source": "/",
+          "target": "/literature-notes",
+          "text": "literature notes"
+        },
+        {
+          "source": "/",
+          "target": "/fleeting-notes",
+          "text": "fleeting notes"
+        },
+        {
+          "source": "/",
+          "target": "/permanent-notes",
+          "text": "permanent notes"
+        },
+        {
+          "source": "/",
+          "target": "/deep-life",
+          "text": "deep life"
+        },
+        {
+          "source": "/",
+          "target": "/digital-minimalism",
+          "text": "digital minimalism"
+        },
+        {
+          "source": "/",
+          "target": "/deep-work",
+          "text": "deep work"
+        },
+        {
+          "source": "/",
+          "target": "/what-makes-a-happy-life",
+          "text": "what makes a happy life"
+        },
+        {
+          "source": "/",
+          "target": "/ultradian-rhythm",
+          "text": "ultradian rhythm"
+        },
+        {
+          "source": "/",
+          "target": "/routines-such-as-sports-or-meditation",
+          "text": "routines such as sports or meditation"
+        },
+        {
+          "source": "/",
+          "target": "/journaling",
+          "text": "journaling"
+        },
+        {
+          "source": "/",
+          "target": "/stoic",
+          "text": "stoic"
+        },
+        {
+          "source": "/",
+          "target": "/writing",
+          "text": "writing"
+        },
+        {
+          "source": "/",
+          "target": "/on-writing",
+          "text": "on writing"
+        },
+        {
+          "source": "/",
+          "target": "/how-to-write-well",
+          "text": "how to write well"
+        },
+        {
+          "source": "/",
+          "target": "/writing-effectively",
+          "text": "writing effectively"
+        },
+        {
+          "source": "/",
+          "target": "/writers-block",
+          "text": "writers block"
+        },
+        {
+          "source": "/",
+          "target": "/how-to-read-books",
+          "text": "how to read books"
+        },
+        {
+          "source": "/",
+          "target": "/speed-reading",
+          "text": "speed reading"
+        },
+        {
+          "source": "/",
+          "target": "/reading-books-for-a-happy-life",
+          "text": "reading books for a happy life"
+        },
+        {
+          "source": "/",
+          "target": "/readwise",
+          "text": "readwise"
+        },
+        {
+          "source": "/",
+          "target": "/data-engineering",
+          "text": "data engineering"
+        },
+        {
+          "source": "/",
+          "target": "/data-engineering-approaches",
+          "text": "data engineering approaches"
+        },
+        {
+          "source": "/",
+          "target": "/data-orchestrators",
+          "text": "data orchestrators"
+        },
+        {
+          "source": "/",
+          "target": "/datafusion",
+          "text": "datafusion"
+        },
+        {
+          "source": "/",
+          "target": "/ballista-arrow",
+          "text": "ballista (arrow)"
+        },
+        {
+          "source": "/",
+          "target": "/etl-is-changing",
+          "text": "etl is changing"
+        },
+        {
+          "source": "/",
+          "target": "/data-modelling-is-changing",
+          "text": "data modelling is changing"
+        },
+        {
+          "source": "/",
+          "target": "/kubernetes",
+          "text": "kubernetes"
+        },
+        {
+          "source": "/",
+          "target": "/managed-data-stacks",
+          "text": "managed data stacks"
+        },
+        {
+          "source": "/",
+          "target": "/open-source-data-engineering-projects",
+          "text": "open-source data engineering projects"
+        },
+        {
+          "source": "/",
+          "target": "/productivity",
+          "text": "productivity"
+        },
+        {
+          "source": "/",
+          "target": "/getting-things-done-gtd",
+          "text": "getting things done (gtd)"
+        },
+        {
+          "source": "/",
+          "target": "/two-minutes-rules",
+          "text": "two minutes rules"
+        },
+        {
+          "source": "/",
+          "target": "/creativity-vs-productivity",
+          "text": "creativity vs productivity"
+        },
+        {
+          "source": "/",
+          "target": "/digital-garden",
+          "text": "digital garden"
+        },
+        {
+          "source": "/",
+          "target": "/public-second-brain-with-quartz",
+          "text": "public second brain with quartz"
+        },
+        {
+          "source": "/",
+          "target": "/open-source-obsidian-publish-alternatives",
+          "text": "open-source obsidian publish alternatives"
+        },
+        {
+          "source": "/",
+          "target": "/static-site-generators-ssg",
+          "text": "static site generators (ssg)"
+        },
+        {
+          "source": "/",
+          "target": "/python",
+          "text": "python"
+        },
+        {
+          "source": "/",
+          "target": "/python-and-functional-programming",
+          "text": "python and functional programming"
+        },
+        {
+          "source": "/",
+          "target": "/python-args-and-kwargs",
+          "text": "python *args and **kwargs"
+        },
+        {
+          "source": "/",
+          "target": "/minimalism",
+          "text": "minimalism"
+        },
+        {
+          "source": "/",
+          "target": "/location-independent-lifestyle",
+          "text": "location independent lifestyle"
+        },
+        {
+          "source": "/",
+          "target": "/education-is-changing",
+          "text": "education is changing"
+        },
+        {
+          "source": "/",
+          "target": "/vim",
+          "text": "vim"
+        }
+      ],
       "/admonition-call-outs": [
         {
           "source": "/admonition-call-outs",
@@ -2555,6 +2822,18 @@
           "source": "/new-tabs-in-obsidian-with-version-1.0",
           "target": "/2022-10-15",
           "text": "2022-10-15"
+        }
+      ],
+      "/newsletter": [
+        {
+          "source": "/newsletter",
+          "target": "/select-insights-bundling-with-microsoft-fabric-and-orchestration",
+          "text": "select insights - bundling with microsoft fabric and orchestration"
+        },
+        {
+          "source": "/newsletter",
+          "target": "/april-newsletter-2023",
+          "text": "april newsletter 2023"
         }
       ],
       "/niklas-luhmann": [
@@ -6358,6 +6637,13 @@
           "text": "apache superset"
         }
       ],
+      "/april-newsletter-2023": [
+        {
+          "source": "/newsletter",
+          "target": "/april-newsletter-2023",
+          "text": "april newsletter 2023"
+        }
+      ],
       "/arc-browser": [
         {
           "source": "/select-insights-bundling-with-microsoft-fabric-and-orchestration",
@@ -6404,6 +6690,11 @@
         }
       ],
       "/ballista-arrow": [
+        {
+          "source": "/",
+          "target": "/ballista-arrow",
+          "text": "ballista (arrow)"
+        },
         {
           "source": "/datafusion",
           "target": "/ballista-arrow",
@@ -6682,6 +6973,11 @@
       ],
       "/creativity-vs-productivity": [
         {
+          "source": "/",
+          "target": "/creativity-vs-productivity",
+          "text": "creativity vs productivity"
+        },
+        {
           "source": "/writers-block",
           "target": "/creativity-vs-productivity",
           "text": "creativity vs productivity"
@@ -6786,6 +7082,11 @@
       ],
       "/data-engineering": [
         {
+          "source": "/",
+          "target": "/data-engineering",
+          "text": "data engineering"
+        },
+        {
           "source": "/april-newsletter-2023",
           "target": "/data-engineering",
           "text": "data engineering"
@@ -6827,6 +7128,11 @@
         }
       ],
       "/data-engineering-approaches": [
+        {
+          "source": "/",
+          "target": "/data-engineering-approaches",
+          "text": "data engineering approaches"
+        },
         {
           "source": "/data-modelling-is-changing",
           "target": "/data-engineering-approaches",
@@ -6892,6 +7198,13 @@
           "text": "data modeling"
         }
       ],
+      "/data-modelling-is-changing": [
+        {
+          "source": "/",
+          "target": "/data-modelling-is-changing",
+          "text": "data modelling is changing"
+        }
+      ],
       "/data-observability": [
         {
           "source": "/people-of-data-engineering",
@@ -6907,6 +7220,11 @@
         }
       ],
       "/data-orchestrators": [
+        {
+          "source": "/",
+          "target": "/data-orchestrators",
+          "text": "data orchestrators"
+        },
         {
           "source": "/data-engineering",
           "target": "/data-orchestrators",
@@ -6999,6 +7317,13 @@
           "text": "databricks notebook"
         }
       ],
+      "/datafusion": [
+        {
+          "source": "/",
+          "target": "/datafusion",
+          "text": "datafusion"
+        }
+      ],
       "/david-gasquez": [
         {
           "source": "/ballista-arrow",
@@ -7027,6 +7352,11 @@
       ],
       "/deep-life": [
         {
+          "source": "/",
+          "target": "/deep-life",
+          "text": "deep life"
+        },
+        {
           "source": "/april-newsletter-2023",
           "target": "/deep-life",
           "text": "deep life"
@@ -7043,6 +7373,11 @@
         }
       ],
       "/deep-work": [
+        {
+          "source": "/",
+          "target": "/deep-work",
+          "text": "deep work"
+        },
         {
           "source": "/deep-life",
           "target": "/deep-work",
@@ -7143,6 +7478,16 @@
       ],
       "/digital-garden": [
         {
+          "source": "/",
+          "target": "/digital-garden",
+          "text": "digital garden"
+        },
+        {
+          "source": "/",
+          "target": "/digital-garden",
+          "text": "digital garden"
+        },
+        {
           "source": "/linking-your-thinking-lyt",
           "target": "/digital-garden",
           "text": "digital garden"
@@ -7159,6 +7504,11 @@
         }
       ],
       "/digital-minimalism": [
+        {
+          "source": "/",
+          "target": "/digital-minimalism",
+          "text": "digital minimalism"
+        },
         {
           "source": "/deep-life",
           "target": "/digital-minimalism",
@@ -7252,6 +7602,13 @@
       ],
       "/etl-is-changing": [
         {
+          "source": "/",
+          "target": "/etl-is-changing",
+          "text": "etl is changing"
+        }
+      ],
+      "/etl-is-changing": [
+        {
           "source": "/data-modelling-is-changing",
           "target": "/etl-is-changing",
           "text": "etl is changing"
@@ -7262,6 +7619,13 @@
           "source": "/learning-data-engineering",
           "target": "/eczachly-incs-bootcamp",
           "text": "eczachly inc's bootcamp"
+        }
+      ],
+      "/education-is-changing": [
+        {
+          "source": "/",
+          "target": "/education-is-changing",
+          "text": "education is changing"
         }
       ],
       "/education-is-changing": [
@@ -7390,6 +7754,11 @@
         }
       ],
       "/fleeting-notes": [
+        {
+          "source": "/",
+          "target": "/fleeting-notes",
+          "text": "fleeting notes"
+        },
         {
           "source": "/permanent-notes",
           "target": "/fleeting-notes",
@@ -7579,6 +7948,11 @@
       ],
       "/getting-things-done-gtd": [
         {
+          "source": "/",
+          "target": "/getting-things-done-gtd",
+          "text": "getting things done (gtd)"
+        },
+        {
           "source": "/personal-knowledge-management-pkm",
           "target": "/getting-things-done-gtd",
           "text": "getting things done (gtd)"
@@ -7761,6 +8135,11 @@
       ],
       "/how-to-read-books": [
         {
+          "source": "/",
+          "target": "/how-to-read-books",
+          "text": "how to read books"
+        },
+        {
           "source": "/speed-reading",
           "target": "/how-to-read-books",
           "text": "how to read books"
@@ -7774,6 +8153,11 @@
         }
       ],
       "/how-to-write-well": [
+        {
+          "source": "/",
+          "target": "/how-to-write-well",
+          "text": "how to write well"
+        },
         {
           "source": "/writing",
           "target": "/how-to-write-well",
@@ -7942,6 +8326,11 @@
       ],
       "/journaling": [
         {
+          "source": "/",
+          "target": "/journaling",
+          "text": "journaling"
+        },
+        {
           "source": "/deep-life",
           "target": "/journaling",
           "text": "journaling"
@@ -8036,6 +8425,11 @@
       ],
       "/kubernetes": [
         {
+          "source": "/",
+          "target": "/kubernetes",
+          "text": "kubernetes"
+        },
+        {
           "source": "/data-engineering-approaches",
           "target": "/kubernetes",
           "text": "use a container-orchestration system"
@@ -8103,6 +8497,11 @@
       ],
       "/linking-your-thinking-lyt": [
         {
+          "source": "/",
+          "target": "/linking-your-thinking-lyt",
+          "text": "linking your thinking (lyt)"
+        },
+        {
           "source": "/digital-garden",
           "target": "/linking-your-thinking-lyt",
           "text": "linking your thinking (lyt)"
@@ -8133,6 +8532,11 @@
         }
       ],
       "/literature-notes": [
+        {
+          "source": "/",
+          "target": "/literature-notes",
+          "text": "literature notes"
+        },
         {
           "source": "/fleeting-notes",
           "target": "/literature-notes",
@@ -8182,6 +8586,11 @@
         }
       ],
       "/location-independent-lifestyle": [
+        {
+          "source": "/",
+          "target": "/location-independent-lifestyle",
+          "text": "location independent lifestyle"
+        },
         {
           "source": "/computer-desk-setup-todays-office",
           "target": "/location-independent-lifestyle",
@@ -8249,6 +8658,11 @@
       ],
       "/managed-data-stacks": [
         {
+          "source": "/",
+          "target": "/managed-data-stacks",
+          "text": "managed data stacks"
+        },
+        {
           "source": "/kubernetes",
           "target": "/managed-data-stacks",
           "text": "managed data stacks"
@@ -8279,6 +8693,13 @@
           "source": "/evidence",
           "target": "/manuel-odendahl",
           "text": "manuel odendahl"
+        }
+      ],
+      "/map-of-content-moc": [
+        {
+          "source": "/",
+          "target": "/map-of-content-moc",
+          "text": "map of content (moc)"
         }
       ],
       "/marc-lamberti": [
@@ -8552,6 +8973,11 @@
         }
       ],
       "/minimalism": [
+        {
+          "source": "/",
+          "target": "/minimalism",
+          "text": "minimalism"
+        },
         {
           "source": "/personal-knowledge-management-workflow-for-a-deeper-life",
           "target": "/minimalism",
@@ -8973,6 +9399,11 @@
       ],
       "/on-writing": [
         {
+          "source": "/",
+          "target": "/on-writing",
+          "text": "on writing"
+        },
+        {
           "source": "/out-teach-your-competition",
           "target": "/on-writing",
           "text": "on writing"
@@ -9088,6 +9519,20 @@
           "source": "/future-of-blogging",
           "target": "/open-subscription-platforms",
           "text": "open subscription platforms"
+        }
+      ],
+      "/open-source-data-engineering-projects": [
+        {
+          "source": "/",
+          "target": "/open-source-data-engineering-projects",
+          "text": "open-source data engineering projects"
+        }
+      ],
+      "/open-source-obsidian-publish-alternatives": [
+        {
+          "source": "/",
+          "target": "/open-source-obsidian-publish-alternatives",
+          "text": "open-source obsidian publish alternatives"
         }
       ],
       "/openai-gpt-3": [
@@ -9220,6 +9665,11 @@
       ],
       "/permanent-notes": [
         {
+          "source": "/",
+          "target": "/permanent-notes",
+          "text": "permanent notes"
+        },
+        {
           "source": "/digital-garden",
           "target": "/permanent-notes",
           "text": "permanent notes"
@@ -9256,6 +9706,11 @@
         }
       ],
       "/personal-knowledge-management-pkm": [
+        {
+          "source": "/",
+          "target": "/personal-knowledge-management-pkm",
+          "text": "personal knowledge management (pkm)"
+        },
         {
           "source": "/deep-life",
           "target": "/personal-knowledge-management-pkm",
@@ -9460,6 +9915,11 @@
       ],
       "/productivity": [
         {
+          "source": "/",
+          "target": "/productivity",
+          "text": "productivity"
+        },
+        {
           "source": "/creativity-vs-productivity",
           "target": "/productivity",
           "text": "productivity"
@@ -9488,6 +9948,11 @@
       ],
       "/public-second-brain-with-quartz": [
         {
+          "source": "/",
+          "target": "/public-second-brain-with-quartz",
+          "text": "public second brain with quartz"
+        },
+        {
           "source": "/future-of-blogging",
           "target": "/public-second-brain-with-quartz",
           "text": "public second brain with quartz"
@@ -9509,6 +9974,11 @@
         }
       ],
       "/python": [
+        {
+          "source": "/",
+          "target": "/python",
+          "text": "python"
+        },
         {
           "source": "/ballista-arrow",
           "target": "/python",
@@ -9542,9 +10012,21 @@
       ],
       "/python-and-functional-programming": [
         {
+          "source": "/",
+          "target": "/python-and-functional-programming",
+          "text": "python and functional programming"
+        },
+        {
           "source": "/python",
           "target": "/python-and-functional-programming",
           "text": "python and functional programming"
+        }
+      ],
+      "/python-args-and-kwargs": [
+        {
+          "source": "/",
+          "target": "/python-args-and-kwargs",
+          "text": "python *args and **kwargs"
         }
       ],
       "/quartz-publish-obsidian-vault": [
@@ -9602,6 +10084,11 @@
       ],
       "/reading-books-for-a-happy-life": [
         {
+          "source": "/",
+          "target": "/reading-books-for-a-happy-life",
+          "text": "reading books for a happy life"
+        },
+        {
           "source": "/deep-life",
           "target": "/reading-books-for-a-happy-life",
           "text": "reading books for a happy life"
@@ -9610,6 +10097,13 @@
           "source": "/how-to-read-books",
           "target": "/reading-books-for-a-happy-life",
           "text": "reading books for a happy life"
+        }
+      ],
+      "/readwise": [
+        {
+          "source": "/",
+          "target": "/readwise",
+          "text": "readwise"
         }
       ],
       "/record-blog-post-as-audio": [
@@ -9701,6 +10195,11 @@
       ],
       "/routines-such-as-sports-or-meditation": [
         {
+          "source": "/",
+          "target": "/routines-such-as-sports-or-meditation",
+          "text": "routines such as sports or meditation"
+        },
+        {
           "source": "/deep-life",
           "target": "/routines-such-as-sports-or-meditation",
           "text": "routines such as sports or meditation"
@@ -9745,6 +10244,13 @@
           "source": "/smart-note-taking",
           "target": "/s%c3%b6nke-ahrens",
           "text": "sönke ahrens"
+        }
+      ],
+      "/select-insights-bundling-with-microsoft-fabric-and-orchestration": [
+        {
+          "source": "/newsletter",
+          "target": "/select-insights-bundling-with-microsoft-fabric-and-orchestration",
+          "text": "select insights - bundling with microsoft fabric and orchestration"
         }
       ],
       "/sql": [
@@ -9794,6 +10300,11 @@
         }
       ],
       "/second-brain": [
+        {
+          "source": "/",
+          "target": "/second-brain",
+          "text": "second brain"
+        },
         {
           "source": "/annual-work-reflection-2022-social",
           "target": "/second-brain",
@@ -9970,6 +10481,11 @@
       ],
       "/smart-note-taking": [
         {
+          "source": "/",
+          "target": "/smart-note-taking",
+          "text": "smart note taking"
+        },
+        {
           "source": "/future-of-blogging",
           "target": "/smart-note-taking",
           "text": "smart note taking"
@@ -10043,6 +10559,11 @@
       ],
       "/speed-reading": [
         {
+          "source": "/",
+          "target": "/speed-reading",
+          "text": "speed reading"
+        },
+        {
           "source": "/how-to-read-books",
           "target": "/speed-reading",
           "text": "speed reading"
@@ -10078,6 +10599,11 @@
       ],
       "/static-site-generators-ssg": [
         {
+          "source": "/",
+          "target": "/static-site-generators-ssg",
+          "text": "static site generators (ssg)"
+        },
+        {
           "source": "/create-a-book-on-markdown",
           "target": "/static-site-generators-ssg",
           "text": "static site generators (ssg)"
@@ -10106,6 +10632,11 @@
         }
       ],
       "/stoic": [
+        {
+          "source": "/",
+          "target": "/stoic",
+          "text": "stoic"
+        },
         {
           "source": "/april-newsletter-2023",
           "target": "/stoic",
@@ -10534,12 +11065,22 @@
       ],
       "/two-minutes-rules": [
         {
+          "source": "/",
+          "target": "/two-minutes-rules",
+          "text": "two minutes rules"
+        },
+        {
           "source": "/deep-work",
           "target": "/two-minutes-rules",
           "text": "two minutes rules"
         }
       ],
       "/ultradian-rhythm": [
+        {
+          "source": "/",
+          "target": "/ultradian-rhythm",
+          "text": "ultradian rhythm"
+        },
         {
           "source": "/writers-block",
           "target": "/ultradian-rhythm",
@@ -10648,6 +11189,11 @@
       ],
       "/vim": [
         {
+          "source": "/",
+          "target": "/vim",
+          "text": "vim"
+        },
+        {
           "source": "/april-newsletter-2023",
           "target": "/vim",
           "text": "vim"
@@ -10721,6 +11267,11 @@
       ],
       "/what-makes-a-happy-life": [
         {
+          "source": "/",
+          "target": "/what-makes-a-happy-life",
+          "text": "what makes a happy life"
+        },
+        {
           "source": "/deep-life",
           "target": "/what-makes-a-happy-life",
           "text": "what makes a happy life"
@@ -10792,6 +11343,11 @@
       ],
       "/writers-block": [
         {
+          "source": "/",
+          "target": "/writers-block",
+          "text": "writers block"
+        },
+        {
           "source": "/creativity-vs-productivity",
           "target": "/writers-block",
           "text": "writers block"
@@ -10803,6 +11359,11 @@
         }
       ],
       "/writing": [
+        {
+          "source": "/",
+          "target": "/writing",
+          "text": "writing"
+        },
         {
           "source": "/april-newsletter-2023",
           "target": "/writing",
@@ -10859,6 +11420,11 @@
         }
       ],
       "/writing-effectively": [
+        {
+          "source": "/",
+          "target": "/writing-effectively",
+          "text": "writing effectively"
+        },
         {
           "source": "/the-writing-is-the-thinking",
           "target": "/writing-effectively",
@@ -10974,6 +11540,16 @@
         }
       ],
       "/zettelkasten": [
+        {
+          "source": "/",
+          "target": "/zettelkasten",
+          "text": "zettelkasten"
+        },
+        {
+          "source": "/",
+          "target": "/zettelkasten",
+          "text": "zettelkasten"
+        },
         {
           "source": "/fleeting-notes",
           "target": "/zettelkasten",
@@ -11356,6 +11932,271 @@
     }
   },
   "links": [
+    {
+      "source": "/",
+      "target": "/second-brain",
+      "text": "second brain"
+    },
+    {
+      "source": "/",
+      "target": "/zettelkasten",
+      "text": "zettelkasten"
+    },
+    {
+      "source": "/",
+      "target": "/digital-garden",
+      "text": "digital garden"
+    },
+    {
+      "source": "/",
+      "target": "/map-of-content-moc",
+      "text": "map of content (moc)"
+    },
+    {
+      "source": "/",
+      "target": "/personal-knowledge-management-pkm",
+      "text": "personal knowledge management (pkm)"
+    },
+    {
+      "source": "/",
+      "target": "/smart-note-taking",
+      "text": "smart note taking"
+    },
+    {
+      "source": "/",
+      "target": "/zettelkasten",
+      "text": "zettelkasten"
+    },
+    {
+      "source": "/",
+      "target": "/linking-your-thinking-lyt",
+      "text": "linking your thinking (lyt)"
+    },
+    {
+      "source": "/",
+      "target": "/literature-notes",
+      "text": "literature notes"
+    },
+    {
+      "source": "/",
+      "target": "/fleeting-notes",
+      "text": "fleeting notes"
+    },
+    {
+      "source": "/",
+      "target": "/permanent-notes",
+      "text": "permanent notes"
+    },
+    {
+      "source": "/",
+      "target": "/deep-life",
+      "text": "deep life"
+    },
+    {
+      "source": "/",
+      "target": "/digital-minimalism",
+      "text": "digital minimalism"
+    },
+    {
+      "source": "/",
+      "target": "/deep-work",
+      "text": "deep work"
+    },
+    {
+      "source": "/",
+      "target": "/what-makes-a-happy-life",
+      "text": "what makes a happy life"
+    },
+    {
+      "source": "/",
+      "target": "/ultradian-rhythm",
+      "text": "ultradian rhythm"
+    },
+    {
+      "source": "/",
+      "target": "/routines-such-as-sports-or-meditation",
+      "text": "routines such as sports or meditation"
+    },
+    {
+      "source": "/",
+      "target": "/journaling",
+      "text": "journaling"
+    },
+    {
+      "source": "/",
+      "target": "/stoic",
+      "text": "stoic"
+    },
+    {
+      "source": "/",
+      "target": "/writing",
+      "text": "writing"
+    },
+    {
+      "source": "/",
+      "target": "/on-writing",
+      "text": "on writing"
+    },
+    {
+      "source": "/",
+      "target": "/how-to-write-well",
+      "text": "how to write well"
+    },
+    {
+      "source": "/",
+      "target": "/writing-effectively",
+      "text": "writing effectively"
+    },
+    {
+      "source": "/",
+      "target": "/writers-block",
+      "text": "writers block"
+    },
+    {
+      "source": "/",
+      "target": "/how-to-read-books",
+      "text": "how to read books"
+    },
+    {
+      "source": "/",
+      "target": "/speed-reading",
+      "text": "speed reading"
+    },
+    {
+      "source": "/",
+      "target": "/reading-books-for-a-happy-life",
+      "text": "reading books for a happy life"
+    },
+    {
+      "source": "/",
+      "target": "/readwise",
+      "text": "readwise"
+    },
+    {
+      "source": "/",
+      "target": "/data-engineering",
+      "text": "data engineering"
+    },
+    {
+      "source": "/",
+      "target": "/data-engineering-approaches",
+      "text": "data engineering approaches"
+    },
+    {
+      "source": "/",
+      "target": "/data-orchestrators",
+      "text": "data orchestrators"
+    },
+    {
+      "source": "/",
+      "target": "/datafusion",
+      "text": "datafusion"
+    },
+    {
+      "source": "/",
+      "target": "/ballista-arrow",
+      "text": "ballista (arrow)"
+    },
+    {
+      "source": "/",
+      "target": "/etl-is-changing",
+      "text": "etl is changing"
+    },
+    {
+      "source": "/",
+      "target": "/data-modelling-is-changing",
+      "text": "data modelling is changing"
+    },
+    {
+      "source": "/",
+      "target": "/kubernetes",
+      "text": "kubernetes"
+    },
+    {
+      "source": "/",
+      "target": "/managed-data-stacks",
+      "text": "managed data stacks"
+    },
+    {
+      "source": "/",
+      "target": "/open-source-data-engineering-projects",
+      "text": "open-source data engineering projects"
+    },
+    {
+      "source": "/",
+      "target": "/productivity",
+      "text": "productivity"
+    },
+    {
+      "source": "/",
+      "target": "/getting-things-done-gtd",
+      "text": "getting things done (gtd)"
+    },
+    {
+      "source": "/",
+      "target": "/two-minutes-rules",
+      "text": "two minutes rules"
+    },
+    {
+      "source": "/",
+      "target": "/creativity-vs-productivity",
+      "text": "creativity vs productivity"
+    },
+    {
+      "source": "/",
+      "target": "/digital-garden",
+      "text": "digital garden"
+    },
+    {
+      "source": "/",
+      "target": "/public-second-brain-with-quartz",
+      "text": "public second brain with quartz"
+    },
+    {
+      "source": "/",
+      "target": "/open-source-obsidian-publish-alternatives",
+      "text": "open-source obsidian publish alternatives"
+    },
+    {
+      "source": "/",
+      "target": "/static-site-generators-ssg",
+      "text": "static site generators (ssg)"
+    },
+    {
+      "source": "/",
+      "target": "/python",
+      "text": "python"
+    },
+    {
+      "source": "/",
+      "target": "/python-and-functional-programming",
+      "text": "python and functional programming"
+    },
+    {
+      "source": "/",
+      "target": "/python-args-and-kwargs",
+      "text": "python *args and **kwargs"
+    },
+    {
+      "source": "/",
+      "target": "/minimalism",
+      "text": "minimalism"
+    },
+    {
+      "source": "/",
+      "target": "/location-independent-lifestyle",
+      "text": "location independent lifestyle"
+    },
+    {
+      "source": "/",
+      "target": "/education-is-changing",
+      "text": "education is changing"
+    },
+    {
+      "source": "/",
+      "target": "/vim",
+      "text": "vim"
+    },
     {
       "source": "/admonition-call-outs",
       "target": "/gohugo",
@@ -13785,6 +14626,16 @@
       "source": "/new-tabs-in-obsidian-with-version-1.0",
       "target": "/2022-10-15",
       "text": "2022-10-15"
+    },
+    {
+      "source": "/newsletter",
+      "target": "/select-insights-bundling-with-microsoft-fabric-and-orchestration",
+      "text": "select insights - bundling with microsoft fabric and orchestration"
+    },
+    {
+      "source": "/newsletter",
+      "target": "/april-newsletter-2023",
+      "text": "april newsletter 2023"
     },
     {
       "source": "/niklas-luhmann",
