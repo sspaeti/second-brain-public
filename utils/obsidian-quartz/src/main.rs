@@ -49,7 +49,7 @@ fn visit_dirs(dir: &Path, public_folder: &str, public_brain_image_path: &str, im
                 ////DEBUG:
                 ////skip if file is not "Folder Structure PARA.md"
                 //if let Some(file_name) = path.file_name() {
-                //    if file_name != "_index.md" {
+                //    if file_name != "Data Orchestrators.md" {
                 //        continue;
                 //    }
                 //}
