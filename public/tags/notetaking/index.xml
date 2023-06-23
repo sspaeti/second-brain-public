@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>notetaking on </title>
+    <link>https://www.ssp.sh/brain/tags/notetaking/</link>
+    <description>Recent content in notetaking on </description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 07 Jun 2023 12:34:36 +0000</lastBuildDate><atom:link href="https://www.ssp.sh/brain/tags/notetaking/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Obsidian</title>
+      <link>https://www.ssp.sh/brain/obsidian/</link>
+      <pubDate>Wed, 07 Jun 2023 12:34:36 +0000</pubDate>
+      
+      <guid>https://www.ssp.sh/brain/obsidian/</guid>
+      <description>Obsidian Obsidian is a [[Second Brain]] and note taking app. It is a powerful and extensible knowledge base that works on top of your local folder of plain text files.</description>
+    </item>
+    
+    <item>
+      <title>Second Brain</title>
+      <link>https://www.ssp.sh/brain/second-brain/</link>
+      <pubDate>Fri, 02 Dec 2022 08:04:35 +0000</pubDate>
+      
+      <guid>https://www.ssp.sh/brain/second-brain/</guid>
+      <description>After mastering the process of [[Smart Note Taking]], the next step is to put it into a sustainable system. The best format I found was the [[Second Brain]].</description>
+    </item>
+    
+    <item>
+      <title>Sönke Ahrens</title>
+      <link>https://www.ssp.sh/brain/so%CC%88nke-ahrens/</link>
+      <pubDate>Tue, 30 Aug 2022 05:57:50 +0000</pubDate>
+      
+      <guid>https://www.ssp.sh/brain/so%CC%88nke-ahrens/</guid>
+      <description>Author or [[Smart Note Taking (Sönke Ahrens)]] first to lumens [[Zettelkasten]] system and the benefit of not collecting notes, but using them interlinked Origin: [[Smart Note Taking (Sönke Ahrens)]]</description>
+    </item>
+    
+  </channel>
+</rss>

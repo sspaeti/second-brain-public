@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>dataengineering on </title>
+    <link>https://www.ssp.sh/brain/tags/dataengineering/</link>
+    <description>Recent content in dataengineering on </description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 19 Jun 2023 08:58:26 +0000</lastBuildDate><atom:link href="https://www.ssp.sh/brain/tags/dataengineering/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Data Engineering</title>
+      <link>https://www.ssp.sh/brain/data-engineering/</link>
+      <pubDate>Mon, 19 Jun 2023 08:58:26 +0000</pubDate>
+      
+      <guid>https://www.ssp.sh/brain/data-engineering/</guid>
+      <description>Data engineering is a term that has shifted over the years from a Database Admins (DBA), ETL Developer, and Business Intelligence Specialist and merged with Software Engineers to a [[Data Engineer]] with the growth of data made his title.</description>
+    </item>
+    
+  </channel>
+</rss>

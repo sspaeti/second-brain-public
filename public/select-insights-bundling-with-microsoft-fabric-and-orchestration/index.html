@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+
+<head>
+  
+  <meta charset="UTF-8" />
+  <meta
+    name="description"
+    content="Hello friends,
+A quick note before we start: I changed the name of this newsletter to &ldquo;SELECT Insights&rdquo; and changed the structure slightly."
+  />
+  <meta property="og:title" content="SELECT Insights - Bundling with Microsoft Fabric and Orchestration (#2)">
+  <meta property="og:image" content="https://ssp.sh/brain/second-brain.jpeg">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.ssp.sh/brain/select-insights-bundling-with-microsoft-fabric-and-orchestration/">
+  <meta property="og:width" content="1002">
+  <meta property="og:height" content="1002">
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@sspaeti" />
+  <meta name="twitter:title" content="SELECT Insights - Bundling with Microsoft Fabric and Orchestration (#2)" />
+  <meta name="twitter:description" content="Hello friends,
+A quick note before we start: I changed the name of this newsletter to &ldquo;SELECT Insights&rdquo; and changed the structure slightly." />
+  <meta name="twitter:image" content="https://ssp.sh/brain/second-brain.jpeg">
+  <title>
+    SELECT Insights - Bundling with Microsoft Fabric and Orchestration (#2)
+  </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  
+  
+  
+  
+  
+  <link rel="shortcut icon" type="image/png"  href="https://www.ssp.sh/brain//icon.png" />
+  
+
+  
+  <link rel="canonical" href="https://www.ssp.sh/brain/select-insights-bundling-with-microsoft-fabric-and-orchestration/">
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    
+    
+  
+  
+  <link href="https://www.ssp.sh/brain/styles.5a5a9e69c3df09f5662f9e8ee2be7538.min.css" rel="stylesheet" />
+
+  
+  <link href="https://www.ssp.sh/brain/styles/_light_syntax.86a48a52faebeaaf42158b72922b1c90.min.css" rel="stylesheet" id="theme-link">
+   
+  
+  
+  
+  
+  <script src="https://www.ssp.sh/brain/js/darkmode.dc5c17394b67d8455f6a24dd2c3bf120.min.js"></script>
+  
+  
+  
+  <script src="https://www.ssp.sh/brain/js/util.9825137f5e7825e8553c68ce39ac9e44.min.js"></script>
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.css" integrity="sha384-R4558gYOUz8mP9YWpZJjofhk+zx0AS11p36HnD2ZKj/6JR5z27gSSULCNHIRReVs" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.js" integrity="sha384-z1fJDqw8ZApjGO3/unPWUPsIymfsJmyrDVWC8Tv/a1HeOtGmkwNd/7xUS0Xcnvsx" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"></script>
+
+
+    
+  <script src="https://unpkg.com/@floating-ui/core@0.7.3"></script>
+  <script src="https://unpkg.com/@floating-ui/dom@0.5.4"></script>
+  
+  <script src="https://www.ssp.sh/brain/js/popover.abe6a51cc7138c5dff00f151dd627ad1.min.js"></script>
+
+  
+  
+  
+  <script src="https://www.ssp.sh/brain/js/code-title.b35124ad8db0ba37162b886afb711cbc.min.js"></script>
+  
+
+  
+  
+  <script src="https://www.ssp.sh/brain/js/clipboard.c20857734e53a3fb733b7443879efa61.min.js"></script>
+  
+
+  
+  
+  <script src="https://www.ssp.sh/brain/js/callouts.7723cac461d613d118ee8bb8216b9838.min.js"></script>
+  
+
+  
+   
+  <script>
+    const BASE_URL = "https://www.ssp.sh/brain/"
+    const fetchData = Promise.all([
+          fetch("https:\/\/www.ssp.sh\/brain\/indices\/linkIndex.78cf9691f4d9cb66c3b8f302d8c60d2a.min.json")
+            .then(data => data.json())
+            .then(data => ({
+              index: data.index,
+              links: data.links,
+            })),
+          fetch("https:\/\/www.ssp.sh\/brain\/indices\/contentIndex.9b3c6109e864d0755b8eb80929a06e14.min.json")
+            .then(data => data.json()),
+        ])
+        .then(([{index, links}, content]) => ({
+          index,
+          links,
+          content,
+        }))
+
+      const render = () => {
+      
+
+      const siteBaseURL = new URL(BASE_URL);
+      const pathBase = siteBaseURL.pathname;
+      const pathWindow = window.location.pathname;
+      const isHome = pathBase == pathWindow;
+
+      addCopyButtons();
+      
+
+      addTitleToCodeBlocks();
+      
+
+      addCollapsibleCallouts();
+      
+     
+      
+      initPopover(
+        "https://www.ssp.sh/brain",
+         true ,
+         true 
+      )
+      
+
+      
+      const footer = document.getElementById("footer")
+      if (footer) {
+        const container = document.getElementById("graph-container")
+        
+        if (!container) return requestAnimationFrame(render)
+        
+        container.textContent = ""
+
+        const drawGlobal = isHome &&  false ;
+        drawGraph(
+            "https://www.ssp.sh/brain",
+            drawGlobal,
+            [{"/moc":"#4388cc"}],
+            drawGlobal ? {"centerForce":1,"depth":-1,"enableDrag":true,"enableLegend":false,"enableZoom":true,"fontSize":0.5,"linkDistance":1,"opacityScale":3,"repelForce":1,"scale":1.4} : {"centerForce":2,"depth":1,"enableDrag":true,"enableLegend":false,"enableZoom":true,"fontSize":0.6,"linkDistance":1,"opacityScale":4,"repelForce":5,"scale":1.5}
+          );
+
+        }
+      
+    }
+
+    const init = (doc = document) => {
+      
+      addCopyButtons();
+      
+
+      addTitleToCodeBlocks();
+      renderMathInElement(doc.body, {
+        delimiters: [
+          {left: '$$', right: '$$', display: true},
+          {left: '$', right: '$', display: false},
+        ],
+        throwOnError : false
+      });
+      
+    };
+  </script>
+  
+  
+  <script type="module">
+    import { attachSPARouting } from "https:\/\/www.ssp.sh\/brain\/js\/router.9d4974281069e9ebb189f642ae1e3ca2.min.js"
+    attachSPARouting(init, render)
+  </script>
+  
+      <script data-goatcounter="https://sspaeti.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+    
+
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+</head>
+
+
+<body>
+<div id="search-container">
+  <div id="search-space">
+    <input autocomplete="off" id="search-bar" name="search" type="text" aria-label="Search"
+      placeholder="Search for something..." dir="">
+    <div id="results-container">
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flexsearch@0.7.21/dist/flexsearch.bundle.js"
+  integrity="sha256-i3A0NZGkhsKjVMzFxv3ksk0DZh3aXqu0l49Bbh0MdjE=" crossorigin="anonymous" defer></script>
+
+<script defer src="https://www.ssp.sh/brain/js/full-text-search.24827f874defbbc6d529926cbfcfb493.min.js"></script>
+
+
+
+<div class="singlePage">
+    
+    <article>
+    <header>
+    
+    <h1 id="page-title"><a href="https://www.ssp.sh/brain/">🧠 Second Brain</a></h1>
+    <div class="spacer"></div>
+    <div id="search-icon">
+      <p>Search</p>
+      <svg tabindex="0" aria-labelledby="title desc" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title id="title">Search Icon</title><desc id="desc">Icon to open search</desc><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"/><circle cx="8" cy="8" r="7"/></g></svg>
+    </div>
+    <div class='darkmode'>
+    <input class='toggle' id='darkmode-toggle' type='checkbox' tabindex="-1">
+    <label id="toggle-label-light" for='darkmode-toggle' tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="dayIcon" x="0px" y="0px" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35;" xml:space="preserve">
+            <title>Light Mode</title>
+            <path d="M6,17.5C6,16.672,5.328,16,4.5,16h-3C0.672,16,0,16.672,0,17.5    S0.672,19,1.5,19h3C5.328,19,6,18.328,6,17.5z M7.5,26c-0.414,0-0.789,0.168-1.061,0.439l-2,2C4.168,28.711,4,29.086,4,29.5    C4,30.328,4.671,31,5.5,31c0.414,0,0.789-0.168,1.06-0.44l2-2C8.832,28.289,9,27.914,9,27.5C9,26.672,8.329,26,7.5,26z M17.5,6    C18.329,6,19,5.328,19,4.5v-3C19,0.672,18.329,0,17.5,0S16,0.672,16,1.5v3C16,5.328,16.671,6,17.5,6z M27.5,9    c0.414,0,0.789-0.168,1.06-0.439l2-2C30.832,6.289,31,5.914,31,5.5C31,4.672,30.329,4,29.5,4c-0.414,0-0.789,0.168-1.061,0.44    l-2,2C26.168,6.711,26,7.086,26,7.5C26,8.328,26.671,9,27.5,9z M6.439,8.561C6.711,8.832,7.086,9,7.5,9C8.328,9,9,8.328,9,7.5    c0-0.414-0.168-0.789-0.439-1.061l-2-2C6.289,4.168,5.914,4,5.5,4C4.672,4,4,4.672,4,5.5c0,0.414,0.168,0.789,0.439,1.06    L6.439,8.561z M33.5,16h-3c-0.828,0-1.5,0.672-1.5,1.5s0.672,1.5,1.5,1.5h3c0.828,0,1.5-0.672,1.5-1.5S34.328,16,33.5,16z     M28.561,26.439C28.289,26.168,27.914,26,27.5,26c-0.828,0-1.5,0.672-1.5,1.5c0,0.414,0.168,0.789,0.439,1.06l2,2    C28.711,30.832,29.086,31,29.5,31c0.828,0,1.5-0.672,1.5-1.5c0-0.414-0.168-0.789-0.439-1.061L28.561,26.439z M17.5,29    c-0.829,0-1.5,0.672-1.5,1.5v3c0,0.828,0.671,1.5,1.5,1.5s1.5-0.672,1.5-1.5v-3C19,29.672,18.329,29,17.5,29z M17.5,7    C11.71,7,7,11.71,7,17.5S11.71,28,17.5,28S28,23.29,28,17.5S23.29,7,17.5,7z M17.5,25c-4.136,0-7.5-3.364-7.5-7.5    c0-4.136,3.364-7.5,7.5-7.5c4.136,0,7.5,3.364,7.5,7.5C25,21.636,21.636,25,17.5,25z" />
+        </svg>
+    </label>
+    <label id="toggle-label-dark" for='darkmode-toggle' tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="nightIcon" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background='new 0 0 100 100'" xml:space="preserve">
+            <title>Dark Mode</title>
+            <path d="M96.76,66.458c-0.853-0.852-2.15-1.064-3.23-0.534c-6.063,2.991-12.858,4.571-19.655,4.571  C62.022,70.495,50.88,65.88,42.5,57.5C29.043,44.043,25.658,23.536,34.076,6.47c0.532-1.08,0.318-2.379-0.534-3.23  c-0.851-0.852-2.15-1.064-3.23-0.534c-4.918,2.427-9.375,5.619-13.246,9.491c-9.447,9.447-14.65,22.008-14.65,35.369  c0,13.36,5.203,25.921,14.65,35.368s22.008,14.65,35.368,14.65c13.361,0,25.921-5.203,35.369-14.65  c3.872-3.871,7.064-8.328,9.491-13.246C97.826,68.608,97.611,67.309,96.76,66.458z" />
+        </svg>
+    </label>
+</div>
+
+    <div class='newsletter'>
+    <input class='toggle' id='newsletter-toggle' type='checkbox' tabindex="-1">
+    <label id="toggle-label-newsletter" for='newsletter-toggle' tabindex="-1"></label>
+    <a href="/brain/newsletter/">
+        
+        
+        <div id="newsletterLight">
+            <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 122.88 118.1"><title>newsletter</title><path d="M115.17,33.29a3.8,3.8,0,0,1,2.49-.92,4.19,4.19,0,0,1,2.14.62,5.82,5.82,0,0,1,1.32,1.12,7.37,7.37,0,0,1,1.76,4.44v73.64a5.87,5.87,0,0,1-1.73,4.16h0A5.9,5.9,0,0,1,117,118.1H5.91a5.91,5.91,0,0,1-4.17-1.73h0A5.9,5.9,0,0,1,0,112.19V38.55a7.41,7.41,0,0,1,1.8-4.5A5.52,5.52,0,0,1,3.12,33a4.05,4.05,0,0,1,2.1-.6,3.68,3.68,0,0,1,2,.59l.2.17v-26a7.1,7.1,0,0,1,2.08-5h0a7.1,7.1,0,0,1,5-2.08h93.54a7.08,7.08,0,0,1,5,2.08,2.25,2.25,0,0,1,.21.24,7,7,0,0,1,1.87,4.77v26.2ZM70.85,43a3,3,0,0,1,0-6H83.64a3,3,0,0,1,0,6ZM39,43a3,3,0,0,1,0-6H51.77a3,3,0,0,1,0,6ZM54.2,60a3,3,0,0,1,0-6.05H68.42a3,3,0,0,1,0,6.05ZM27.86,26.07a3,3,0,0,1,0-6.05H42.29a3,3,0,0,1,0,6.05Zm52.48,0a3,3,0,0,1,0-6.05H94.77a3,3,0,0,1,0,6.05Zm-24.11,0a3,3,0,0,1,0-6.05h10a3,3,0,0,1,0,6.05ZM13.71,38.65,48.64,69.86l.15.14L60.84,80.76l48.08-42V7.09a.89.89,0,0,0-.17-.51l-.08-.08a.84.84,0,0,0-.59-.25H14.54A.84.84,0,0,0,14,6.5a.83.83,0,0,0-.24.59V38.65ZM114.56,41.4a3.09,3.09,0,0,1-1,.87L79.85,71.72l37.31,32.7h0V39.12l-2.6,2.28ZM58.92,86.68,46.81,75.86l-41.09,36v.33a.17.17,0,0,0,0,.13h0a.17.17,0,0,0,.13,0H117a.17.17,0,0,0,.13,0h0a.17.17,0,0,0,0-.13V112L75.52,75.5,62.7,86.7h0a2.85,2.85,0,0,1-3.78,0ZM42.52,72,5.72,39.15v65.13L42.52,72Z"/></svg>
+        </div>
+
+        
+        
+        <div id="newsletterDark">
+            <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 122.88 118.1"><title>newsletter</title><path d="M115.17,33.29a3.8,3.8,0,0,1,2.49-.92,4.19,4.19,0,0,1,2.14.62,5.82,5.82,0,0,1,1.32,1.12,7.37,7.37,0,0,1,1.76,4.44v73.64a5.87,5.87,0,0,1-1.73,4.16h0A5.9,5.9,0,0,1,117,118.1H5.91a5.91,5.91,0,0,1-4.17-1.73h0A5.9,5.9,0,0,1,0,112.19V38.55a7.41,7.41,0,0,1,1.8-4.5A5.52,5.52,0,0,1,3.12,33a4.05,4.05,0,0,1,2.1-.6,3.68,3.68,0,0,1,2,.59l.2.17v-26a7.1,7.1,0,0,1,2.08-5h0a7.1,7.1,0,0,1,5-2.08h93.54a7.08,7.08,0,0,1,5,2.08,2.25,2.25,0,0,1,.21.24,7,7,0,0,1,1.87,4.77v26.2ZM70.85,43a3,3,0,0,1,0-6H83.64a3,3,0,0,1,0,6ZM39,43a3,3,0,0,1,0-6H51.77a3,3,0,0,1,0,6ZM54.2,60a3,3,0,0,1,0-6.05H68.42a3,3,0,0,1,0,6.05ZM27.86,26.07a3,3,0,0,1,0-6.05H42.29a3,3,0,0,1,0,6.05Zm52.48,0a3,3,0,0,1,0-6.05H94.77a3,3,0,0,1,0,6.05Zm-24.11,0a3,3,0,0,1,0-6.05h10a3,3,0,0,1,0,6.05ZM13.71,38.65,48.64,69.86l.15.14L60.84,80.76l48.08-42V7.09a.89.89,0,0,0-.17-.51l-.08-.08a.84.84,0,0,0-.59-.25H14.54A.84.84,0,0,0,14,6.5a.83.83,0,0,0-.24.59V38.65ZM114.56,41.4a3.09,3.09,0,0,1-1,.87L79.85,71.72l37.31,32.7h0V39.12l-2.6,2.28ZM58.92,86.68,46.81,75.86l-41.09,36v.33a.17.17,0,0,0,0,.13h0a.17.17,0,0,0,.13,0H117a.17.17,0,0,0,.13,0h0a.17.17,0,0,0,0-.13V112L75.52,75.5,62.7,86.7h0a2.85,2.85,0,0,1-3.78,0ZM42.52,72,5.72,39.15v65.13L42.52,72Z"/></svg>
+        </div>
+    </a>
+</div>
+
+</header>
+
+
+      <h1>SELECT Insights - Bundling with Microsoft Fabric and Orchestration (#2)</h1>
+      <p class="meta">
+          Last updated 
+Jun 7, 2023
+
+ 
+          
+      </p>
+      <ul class="tags">
+          
+          <li><a href="https://www.ssp.sh/brain/tags/newsletter/">Newsletter</a></li>
+          
+      </ul>
+      
+
+<aside class="mainTOC">
+    <details open >
+        <summary>Table of Contents</summary>
+        <nav id="TableOfContents">
+  <ol>
+    <li><a href="#select-orchestration---dead-or-alive-4-min-read">SELECT Orchestration - Dead or Alive? [4 min read]</a>
+      <ol>
+        <li><a href="#the-data-orchestration-challenge">The Data Orchestration Challenge</a></li>
+        <li><a href="#is-the-orchestrator-dead-or-alive">Is the Orchestrator Dead or Alive?</a></li>
+      </ol>
+    </li>
+    <li><a href="#update-engineering---latest-updates-in-data-engineering-tools-and-techniques-5-min-read">UPDATE Engineering - Latest Updates in Data Engineering Tools and Techniques [5 min read]</a></li>
+    <li><a href="#join-perspectives-2-min-read">JOIN Perspectives [2 min read]</a></li>
+    <li><a href="#fetch-socials---conversations-stirring-up-the-digital-world-1-min-read">FETCH Socials - Conversations Stirring Up The Digital World [1 min read]</a></li>
+    <li><a href="#scan-books---through-the-lens-of-written-papers-1-min-read">SCAN Books - Through The Lens of Written Papers [1 min read]</a></li>
+    <li><a href="#thanks">Thanks!</a></li>
+  </ol>
+</nav>
+    </details>
+</aside>
+
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+    
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        
+        
+        
+      
+    
+  
+
+  
+  
+  
+  
+    
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        
+        
+        
+      
+    
+  
+
+  
+  
+  
+  
+    
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        
+        
+        
+      
+    
+  
+
+  
+  
+  
+  
+    
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        
+        
+        
+      
+    
+  
+
+  
+  
+  
+  
+    
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        
+        
+        
+      
+    
+  
+
+  
+  
+  
+  
+    
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        
+        
+        
+      
+    
+  
+
+  
+  
+  
+  
+    
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        
+        
+        
+      
+    
+  
+
+  
+  
+  
+  
+    
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        
+        
+        
+      
+    
+  
+
+  
+  
+  
+  
+    
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        
+        
+        
+      
+    
+  
+
+  
+  
+  
+  
+    
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        
+        
+        
+      
+    
+  
+
+  
+  
+  
+  
+    
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        
+        
+      
+    
+  
+
+  
+  
+  
+  
+    
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        
+        
+      
+    
+  
+
+  
+  
+  
+  
+    
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        
+        
+      
+    
+  
+
+  
+  
+  
+  
+    
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        
+        
+        
+      
+    
+  
+
+  
+  
+  
+  
+    
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        
+        
+      
+    
+  
+
+  
+  
+  
+  
+    
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        
+        
+      
+    
+  
+
+  
+  
+  
+  
+    
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        
+        
+      
+    
+  
+
+  
+  
+  
+  
+    
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        
+        
+      
+    
+  
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+
+<p>Hello friends,</p>
+<p><em>A quick note before we start: I changed the name of this newsletter to &ldquo;SELECT Insights&rdquo; and changed the structure slightly. I plan to follow this structure for the upcoming editions. If you want to know more, I have more details on 
+
+<a href="https://newsletter.ssp.sh/" rel="noopener">newsletter.ssp.sh</a>. — And on another exciting side note, I also move the domain from 
+
+<a href="https://sspaeti.com" rel="noopener">sspaeti.com</a> to 
+
+<a href="https://ssp.sh" rel="noopener">ssp.sh</a>. I hope you like it; more on the history in this 
+
+<a href="https://twitter.com/sspaeti/status/1661741201580769284" rel="noopener">Tweet</a>. But now, let&rsquo;s get into this month&rsquo;s newsletter.</em></p>
+<p>This week&rsquo;s SELECT Topic is <a href="/brain/data-orchestrators" rel="noopener" class="internal-link" data-src="/brain/data-orchestrators">Data Orchestrators</a>. Data Orchestration is a topic we must recognize, given the recent events and trends in the data ecosystem.</p>
+<a href="#select-orchestration---dead-or-alive-4-min-read"><h2 id="select-orchestration---dead-or-alive-4-min-read"><span class="hanchor" ariaLabel="Anchor"># </span>SELECT Orchestration - Dead or Alive? [4 min read]</h2></a>
+<p><em>I kick things off with a thought-provoking topic, ranging from the intricacies of data engineering to the fascinating charm of everyday life experiences.</em></p>
+<p>This is interesting from two standpoints. On one side, Dagster, through their parent company Elementl, 
+
+<a href="https://dagster.io/blog/elementl-series-b" rel="noopener">raised $33 million in Series B funding</a>. And on the other hand, Microsoft announced its new product launch with a big bang, called <a href="/brain/microsoft-fabric" rel="noopener" class="internal-link" data-src="/brain/microsoft-fabric">Microsoft Fabric</a>.  Why is this interesting, you might as? Because on the one hand, Microsft is bundling the whole Azure data stack into a single SaaS service, essentially bundling it into PowerBI.</p>
+<p>On the other hand, Dagster is bundling the 
+
+<a href="https://glossary.airbyte.com/term/open-data-stack" rel="noopener">Open Data Stack</a> into a single <strong>control pane</strong>.</p>
+<a href="#the-data-orchestration-challenge"><h3 id="the-data-orchestration-challenge"><span class="hanchor" ariaLabel="Anchor"># </span>The Data Orchestration Challenge</h3></a>
+<p>Data orchestration is increasingly vital as the hub of the 
+
+<a href="https://glossary.airbyte.com/term/data-engineering-lifecycle/" rel="noopener">Data Engineering Lifecycle</a>. It combines the core aspects of data integration, transformation, and analytics in a cohesive, manageable workflow. The demand for more sophisticated orchestration tools is growing, as highlighted in the great 
+
+<a href="https://www.finishslime.com/c/data-orchestrator-101" rel="noopener">summary of data orchestration articles</a> I recently read.</p>
+<p>However, I&rsquo;ve observed a concerning trend - the unbundling of the orchestrator across various tools. Instead of allowing the orchestrator to do its job effectively, we are diverting away from this ideology, fragmenting the process across different devices and platforms. This is not the direction we should be heading.</p>
+<p>Still, there is a lot of hype for now, but the good news. Microsoft, for instance, offers excellent no-code and <a href="/brain/closed-source-solutions-all-in-one" rel="noopener" class="internal-link" data-src="/brain/closed-source-solutions-all-in-one">Closed-Source Solutions (All-In-One)</a> solutions to kickstart data engineering tasks. They are betting strongly on open standards with open-source 
+
+<a href="https://glossary.airbyte.com/term/data-lake-table-format" rel="noopener">Data Lake Table Formats</a> Delta.io and Spark for computation.</p>
+<p>What they still need to include, though, is an open-source orchestrator. They have some closed-source solutions, but they remind me more about the bad times of SSIS, with lots of missing efficiencies.</p>
+<p>On the flip side, the Open Data Stack, which integrates the core needs of the data engineering lifecycle, could be our trustworthy, bundled solution.</p>
+<a href="#is-the-orchestrator-dead-or-alive"><h3 id="is-the-orchestrator-dead-or-alive"><span class="hanchor" ariaLabel="Anchor"># </span>Is the Orchestrator Dead or Alive?</h3></a>
+<p>This brings me to the 
+
+<a href="https://stkbailey.substack.com/p/symposium-invitation-is-the-orchestrator" rel="noopener">Symposium: Is the orchestrator dead or alive</a>? This engaging series, initiated by Stephen Bailey, invites authors from different fields to discuss the role of the orchestrator in today&rsquo;s data ecosystem. Some takeaways:</p>
+<ol>
+<li><strong>The need for speed and simplicity:</strong> The current data orchestrators should be more quick. They need to onboard use cases faster and justify displacing or running managed services through it.</li>
+<li><strong>Data ingestion:</strong> This is a process that an orchestrator must own.</li>
+<li><strong>Actions, not meta-narratives:</strong> GitHub Actions thrives by focusing on running things rather than what it should be.</li>
+<li><strong>Integration:</strong> The most helpful orchestrator is one plugged into everything.</li>
+<li><strong>Control vs. chaos:</strong> The orchestrator embraces chaos but of a certain kind: ordered chaos, not wasteful chaos.</li>
+</ol>
+<p>Finally, I want to address the 
+
+<a href="https://medium.pimpaudben.fr/data-engineer-is-a-transitional-job-ed0074c89646" rel="noopener">contention that Data Engineering is a transitional job</a>. Data engineering is not a job but a field. It&rsquo;s too broad to be confined to one role. Collaboration between BI engineers, DBAs, DevOps, data scientists, and more is necessary to leverage data effectively. After all, as we know, everyone needs data.</p>
+<p>Feel free to dive deeper into the data orchestration discussion at Stephen Bailey&rsquo;s 
+
+<a href="https://stkbailey.substack.com/s/symposia" rel="noopener">Symposium</a>. Also, check out the latest orchestration comparison by Christophe Blefari - 
+
+<a href="https://www.linkedin.com/events/airflowalternativesonlinemeetup7041351388609576960/comments/" rel="noopener">Airflow alternatives Mage and Kestra</a>, and
+
+<a href="https://www.linkedin.com/events/7044560795581526017/comments/" rel="noopener"> Prefect and Dagster</a>.</p>
+<a href="#update-engineering---latest-updates-in-data-engineering-tools-and-techniques-5-min-read"><h2 id="update-engineering---latest-updates-in-data-engineering-tools-and-techniques-5-min-read"><span class="hanchor" ariaLabel="Anchor"># </span>UPDATE Engineering - Latest Updates in Data Engineering Tools and Techniques [5 min read]</h2></a>
+<p><em>In this bustling realm of data engineering, let&rsquo;s take a look at the recent updates that caught my attention:</em></p>
+<ul>
+<li><strong>State of the Modern Data Engineering and the Future</strong>
+<ul>
+<li>LakeFS presented a comprehensive report, <strong>The State of Data Engineering 2023</strong>. I highly recommend it to stay on top of the current data engineering landscape. 
+
+<a href="https://lakefs.io/blog/the-state-of-data-engineering-2023/" rel="noopener">Read more</a></li>
+<li>Andreessen Horowitz&rsquo; overview of <strong>The Modern Transactional Stack</strong> is an excellent guide to understanding the evolution and potential of transactional systems. 
+
+<a href="https://a16z.com/2023/04/14/the-modern-transactional-stack/" rel="noopener">Read more</a></li>
+<li>Airbyte announced the biggest data engineering survey in state-of-data. 
+
+<a href="https://state-of-data.com/" rel="noopener">Read more</a></li>
+<li>Pedram Navid shares thoughts on <strong>The Future of Data</strong>. Also, consider checking out some Reddit thoughts on the evolution and trends of data engineering in 2022/23. 
+
+<a href="https://databased.pedramnavid.com/p/the-future-of-data" rel="noopener">Read more</a>, 
+
+<a href="https://www.reddit.com/r/dataengineering/comments/13lpd6v/evolution_and_trends_of_data_engineering_202223/" rel="noopener">Reddit discussion</a></li>
+<li>Evolution and Trends of Data Engineering 2022/23. 
+
+<a href="https://www.reddit.com/r/dataengineering/comments/13lpd6v/evolution_and_trends_of_data_engineering_202223/?utm_source=share&amp;utm_medium=web2x&amp;context=3" rel="noopener">Read more</a></li>
+</ul>
+</li>
+<li><strong>Data Modeling</strong>, the unsung hero of data engineering, got a spotlight in the recent piece by Airbyte. Don&rsquo;t miss this read if you want to appreciate the fine art of designing your database schema. 
+
+<a href="https://airbyte.com/blog/data-modeling-unsung-hero-data-engineering-architecture-pattern-tools/" rel="noopener">Read more</a></li>
+<li>Curious about <strong>&ldquo;Casual data engineering&rdquo;</strong>? Tobi Lütke&rsquo;s take on building a &ldquo;poor man&rsquo;s Data Lake in the cloud&rdquo; using Delta Lake with DuckDB is an intriguing read. 
+
+<a href="https://tobilg.com/casual-data-engineering-or-a-poor-mans-data-lake-in-the-cloud-part-i" rel="noopener">Read more</a></li>
+<li>A leaked Google document surfaced with some daring words: <strong>&ldquo;We Have No Moat, And Neither Does OpenAI&rdquo;</strong>. Simon Willison shared this treasure trove on Twitter, suggesting that it&rsquo;s worth every bit of our attention. 
+
+<a href="https://www.semianalysis.com/p/google-we-have-no-moat-and-neither" rel="noopener">Read more</a></li>
+<li>The dbt Developer Blog showcased how to build a <strong>Kimball dimensional model</strong> with dbt. It&rsquo;s a fundamental tutorial for anyone looking to embrace the Kimball methodology. 
+
+<a href="https://docs.getdbt.com/blog/kimball-dimensional-model" rel="noopener">Read more</a></li>
+<li>The tech community has been raving about <strong>Microsoft Fabric</strong>. To fully grasp the potential and implications of this release, here are some insightful articles:
+<ul>
+<li>
+
+<a href="https://www.advancinganalytics.co.uk/blog/2023/5/17/what-is-microsoft-fabric" rel="noopener">What is Microsoft Fabric?</a></li>
+<li>
+
+<a href="https://datamonkeysite.com/2023/05/27/first-impression-of-microsoft-fabric/" rel="noopener">First impression of Microsoft Fabric</a></li>
+<li>
+
+<a href="https://data-mozart.com/killing-me-softly-has-microsoft-fabric-just-overwritten-synapse-analytics/" rel="noopener">Killing me softly - Has Microsoft Fabric just &ldquo;overwritten&rdquo; Synapse Analytics?</a></li>
+</ul>
+</li>
+<li>ChatGPT just became a <strong>data scientist&rsquo;s ally</strong>. With support for Postgres and Supabase, it&rsquo;s taking another leap into our daily data routines. A must-try for data enthusiasts! 
+
+<a href="https://supabase.com/blog/chatgpt-plugins-support-postgres" rel="noopener">Read more</a></li>
+<li><strong>Super Tables</strong>: The road to building reliable and discoverable data products.  It&rsquo;s an older concept that competes with Materialized views, OBT, and even says enables data mesh. 
+
+<a href="https://engineering.linkedin.com/blog/2022/super-tables--the-road-to-building-reliable-and-discoverable-dat" rel="noopener">Read More</a>, 
+
+<a href="https://www.linkedin.com/posts/cliffleungus_super-tables-the-road-to-building-reliable-activity-6980949608818499584-yns0?utm_source=share&amp;utm_medium=member_desktop" rel="noopener">Discuss</a></li>
+<li>Dive into the future of data analysis with <strong>Pandas AI</strong>, an innovative approach to data manipulation. Also, explore &lsquo;Sketch&rsquo;, an initiative to integrate an LLM into Pandas. 
+
+<a href="https://medium.com/@fareedkhandev/pandas-ai-the-future-of-data-analysis-8f0be9b5ab6f" rel="noopener">Read more</a>, 
+
+<a href="https://github.com/approximatelabs/sketch" rel="noopener">Sketch Github</a></li>
+<li>Christopher White shares insights about scaling Postgres in his blog titled <strong>More Memory, More Problems</strong>. The blog gives a detailed look at memory-related issues that come with scaling Postgres. 
+
+<a href="https://medium.com/the-prefect-blog/more-memory-more-problems-b182d7807e3c" rel="noopener">Read more</a></li>
+<li>Kai Waehner&rsquo;s take on why <strong>Kappa Architecture</strong> is becoming mainstream and replacing Lambda is worth a read. 
+
+<a href="https://www.kai-waehner.de/blog/2021/09/23/real-time-kappa-architecture-mainstream-replacing-batch-lambda/" rel="noopener">Read more</a></li>
+<li>Are you interested in a cost-effective solution for <strong>Change Data Capture</strong> that provides near real-time data pipeline management? Check out how Kestra and Debezium are integrated to capture database changes without Kafka Connect. 
+
+<a href="https://kestra.io/blogs/2022-04-05-debezium-without-kafka-connect#the-impressive-real-time-data-delivery-of-debezium" rel="noopener">Read more</a></li>
+</ul>
+<a href="#join-perspectives-2-min-read"><h2 id="join-perspectives-2-min-read"><span class="hanchor" ariaLabel="Anchor"># </span>JOIN Perspectives [2 min read]</h2></a>
+<p><em>Where nerdy pursuits like blogging, neovim, dotfiles, and coding intersect with life&rsquo;s subtle nuances and diverse worldviews.</em></p>
+<ul>
+<li>I am exploring the <strong><a href="/brain/future-of-blogging" rel="noopener" class="internal-link" data-src="/brain/future-of-blogging">Future of Blogging</a></strong> and leaning heavily towards Markdown. With platforms like Substack and <a href="/brain/plaintext-files" rel="noopener" class="internal-link" data-src="/brain/plaintext-files">Plaintext Files</a>, the landscape of blogging is undoubtedly changing, bringing simplicity and control back to the writer. See the difference between <a href="/brain/markdown-vs-rich-text" rel="noopener" class="internal-link" data-src="/brain/markdown-vs-rich-text">Markdown vs Rich Text</a>. In case you want to build your own blogging site, check out <a href="/brain/public-second-brain-with-quartz" rel="noopener" class="internal-link" data-src="/brain/public-second-brain-with-quartz">Public Second Brain with Quartz</a>.</li>
+<li>A thought-provoking article from <strong>Basecamp</strong>, suggested that group chat might not be the most effective communication tool for teams. This got me pondering. Could this actually be the best way to totally stress out your team? Take a look and form your opinion: 
+
+<a href="https://basecamp.com/guides/group-chat-problems" rel="noopener">Group Chat: The Best Way to Totally Stress Out Your Team</a>.</li>
+<li>Liking <a href="/brain/markdown" rel="noopener" class="internal-link" data-src="/brain/markdown">Markdown</a>? Lucky you, there is a markdown solution that does business intelligence, called <a href="/brain/evidence" rel="noopener" class="internal-link" data-src="/brain/evidence">Evidence</a>.  
+
+<a href="https://news.ycombinator.com/item?id=35645464" rel="noopener">Hackernews</a>,  
+
+<a href="https://archiew.substack.com/p/weekly-business-reviews" rel="noopener">Read more</a></li>
+<li>Cool features of <a href="/brain/arc-browser" rel="noopener" class="internal-link" data-src="/brain/arc-browser">Arc Browser</a> called Zap, let&rsquo;s you remove annoying parts of the website. I showcased before and after for YouTube, Reddit, and Twitter.</li>
+<li>I stumbled upon this enlightening perspective, <strong>&ldquo;Write to Yourself and Yourself Alone&rdquo;</strong>. There&rsquo;s something invigorating about the idea of writing for oneself, instead of a perceived audience. It’s like a breath of fresh air, reminding us to stay genuine and authentic in our writing. 
+
+<a href="https://www.otherlife.co/sibi/" rel="noopener">Read more here</a>.</li>
+<li>Do you have a soft spot for Markdown too? If yes, there&rsquo;s something exciting to share! <strong>Evidence</strong> has brought together the best of both worlds – <strong>SQL with Markdown</strong>. Business Intelligence is getting a markdown makeover! Follow the buzz on 
+
+<a href="https://news.ycombinator.com/item?id=35645464" rel="noopener">Hackernews</a> or explore more in their 
+
+<a href="https://archiew.substack.com/p/weekly-business-reviews" rel="noopener">latest newsletter</a>.</li>
+</ul>
+<a href="#fetch-socials---conversations-stirring-up-the-digital-world-1-min-read"><h2 id="fetch-socials---conversations-stirring-up-the-digital-world-1-min-read"><span class="hanchor" ariaLabel="Anchor"># </span>FETCH Socials - Conversations Stirring Up The Digital World [1 min read]</h2></a>
+<p><em>This is the space where I share intriguing conversations, trending topics, and powerful ideas from around the social media landscape.</em></p>
+<ul>
+<li>A fascinating discussion on LinkedIn about <strong>Rust, Ballista, Ray SQL, and Data Fusion with Andy Grove</strong> is a great place to gain insights about these trending technologies. 
+
+<a href="https://www.linkedin.com/posts/deltalake_d3l2-discussing-rust-ballista-ray-sql-ugcPost-7069402089906429955-f6Hz" rel="noopener">LinkedIn</a></li>
+<li>Are you interested in reading and writing Delta without Spark? Here&rsquo;s how <strong>Delta-RS and DuckDB</strong> have made it possible. A significant advancement in data engineering, making data handling more efficient. 
+
+<a href="https://betterprogramming.pub/delta-rs-duckdb-read-and-write-delta-without-spark-c4d3db580b25" rel="noopener">Read more</a>, 
+
+<a href="https://twitter.com/DeltaLakeOSS/status/1661869253757214728" rel="noopener">Discuss on Twitter</a></li>
+<li>Interesting Data Engineering Podcasts. 
+
+<a href="https://www.reddit.com/r/dataengineering/comments/13lppxu/any_data_engineering_podcasts/?utm_source=share&amp;utm_medium=web2x&amp;context=3" rel="noopener">Reddit</a></li>
+<li>DBT lays off 15% of their staff. 
+
+<a href="https://www.reddit.com/r/dataengineering/comments/13l9ur0/dbt_lays_off_15_of_their_staff/?utm_source=share&amp;utm_medium=web2x&amp;context=3" rel="noopener">Reddit</a></li>
+<li>So watched a few videos about Fabric, and started to cry a little&hellip; 
+
+<a href="https://www.reddit.com/r/dataengineering/comments/13umeek/so_i_watched_a_few_videos_about_fabric_and/?utm_source=share&amp;utm_medium=web2x&amp;context=3" rel="noopener">Reddit</a></li>
+<li>Why I left Rust. Some drama in the Rust community. 
+
+<a href="https://news.ycombinator.com/item?id=36101501" rel="noopener">Hacker News</a></li>
+</ul>
+<a href="#scan-books---through-the-lens-of-written-papers-1-min-read"><h2 id="scan-books---through-the-lens-of-written-papers-1-min-read"><span class="hanchor" ariaLabel="Anchor"># </span>SCAN Books - Through The Lens of Written Papers [1 min read]</h2></a>
+<p><em>Every book opens up a new world of insights and perspectives. Here, I&rsquo;ll share some of my recent reads across a spectrum of topics. Let&rsquo;s explore these new horizons together!</em></p>
+<ul>
+<li><strong>
+
+<a href="https://www.goodreads.com/book/show/42291479-the-extended-mind" rel="noopener">The Extended Mind</a></strong> by Annie Murphy Paul – An exploration of the intriguing ways our environment influences our thinking processes.
+<ul>
+<li>Discover the surprising ways in which experts think beyond their brains, how harder thinking often leads to fewer results and the controversy over brain-training games and smart pills.</li>
+<li>Explore how we can use tools beyond the brain, such as the Body Scan technique and meditation, to tap into our intuition and sensations, and learn about the significance of the amygdala in our responses to stress.</li>
+<li>Question the nature of intuition and its relationship to extensive training, all in the context of <a class="internal-link broken">Thinking, Fast and Slow - Daniel Kahneman</a>concepts of System 1 and System 2.</li>
+</ul>
+</li>
+<li><strong>
+
+<a href="https://www.goodreads.com/book/show/43062156-all-the-wrong-moves" rel="noopener">All the Wrong Moves</a></strong> by Sasha Chapin – A captivating narrative where the world of chess serves as a backdrop for introspection and self-discovery.
+<ul>
+<li>A story that shows how the love of chess can fully dominates one&rsquo;s life. As it&rsquo;s the most beautiful and worst thing in life at the same time.</li>
+</ul>
+</li>
+</ul>
+<a href="#thanks"><h2 id="thanks"><span class="hanchor" ariaLabel="Anchor"># </span>Thanks!</h2></a>
+<p>If you are still reading, thanks so much. I hope you enjoyed this update! It turned out longer than I expected (as always). Let me know what you want more or less; happy to take feedback to improve the topics and style to your liking.</p>
+<p>Until next time, happy reading and exploring!<br>
+Simon</p>
+<!-- Notes
+Notes: SELECT Orchestration - Dead or Alive? [4 min read]  - To bundle or not to bundle
+
+*I kick things off with a thought-provoking topic, ranging from the intricacies of data engineering to the fascinating charm of everyday life experiences.*
+
+(another topic could also be microsoft announcement with fabric, and the way back to bundling - very connected with orechestration) -  in fact, the very thing that Microsoft don't have, is a good orchestrator. They have <a class="internal-link broken">No Code</a> solutions, that are great to get started, but worse when you go deep. It's just another way of SSIS again.
+
+ON the other hand we have Dagster, who just [raised 33$ Mio series B funding](https://dagster.io/blog/elementl-series-b).
+-  [Elementl Raises $33 Million in Series B Funding to Accelerate Data Orchestration and Unleash Advanced Data Use Cases | Dagster Blog](https://dagster.io/blog/elementl-series-b)
+- Orchestration
+	- awesome summary of all data orchestration articles: [Data Orchestrators 101: Everything You Need To Know To Get Started | The Finish Slime](https://www.finishslime.com/c/data-orchestrator-101)  
+
+- I don't think so, that [Data Engineer is a Transitional Job](https://medium.pimpaudben.fr/data-engineer-is-a-transitional-job-ed0074c89646). It's more that data engineering is not a job, but a field. It's actually too big for one role. But as everyone needs data, BI engineer, DBAs, devops, data scientists and all people will collaborate on it.
+	- Good pointers by [Dagster and the Decade of Data Engineering](https://dagster.io/blog/decade-of-data-engineering). And  how [MLOps is Mostly Data Engineering](https://www.cpard.xyz/posts/mlops_is_mostly_data_engineering/).
+
+- the discussion of orchestrator symposium
+
+
+The next topic I'd like to highlight from last week and month is the [data orchestrator](https://glossary.airbyte.com/term/data-orchestrator/) and the [Symposium: Is the orchestrator dead or alive](https://stkbailey.substack.com/p/symposium-invitation-is-the-orchestrator)? Stephen started with a series of authors from different fields. 
+
+With the explosion of the data ecosystem, we started this newsletter because **orchestration will get more of a central piece** of the data stack. But unfortunately, we've started to unbundle the orchestrator in each tool, like "the catalog-as-orchestrator, the warehouse-as-orchestrator, the sql-formatter-as-orchestrator." Instead of having the orchestrator do its job to orchestrate our data and tools, we divert from that ideology. 
+
+"Orchestrator to become one of the few services we trust." I'd go one more step and say the [Open Data Stack](https://glossary.airbyte.com/term/open-data-stack/) will be the bundled solution we trust, containing the real need of the [Data Engineering Lifecycle](https://glossary.airbyte.com/term/data-engineering-lifecycle/) with its core data integration, transformation, orchestration, and analytics.
+
+Some inspiring highlights from some of the articles of the Symposium series:
+
+* Simplicity and speed are where current data orchestrators fail. The orchestrator is losing today because it needs to be faster to onboard the use cases the engineers want, and it needs to be more complex to justify displacing or running managed services through it. It needs to do both.
+* Data ingestion: one process an orchestrator _must_ own.
+* GitHub Actions thrives because it eschews any meta-narrative around what it s_hould_ be used. It's just Actions. It runs things. GitHub Actions runs code; it's a primitive way of orchestrator.
+* The orchestrator that's useful is the one plugged into everything.
+* Existing tools are moving towards a less controlled model, but more is needed. Stephen says that Astronomer's push-button deployments, Dagster's declarative scheduling, Prefect's UI-driven flow registry, Datahub's stream-based metadata ingestion, Atlan's Zapier-like metadata actions.
+
+Stephen asks the all-important question: "**Chaos or control?**" and says, "It boils down to activity or graphs." The orchestrator embraces chaos, but only of a certain kind: ordered chaos, not wasteful chaos. It reminds me strongly of the monolith vs. microservices discussion; I don't know why :).
+
+Read many exciting pieces around Orchestration at Stephen Bailey's[ Symposium](https://stkbailey.substack.com/s/symposia) with two recent excellent reads (but all of them are): [28 Dags Later](https://stkbailey.substack.com/p/28-dags-later) and [Data Materialization is a Convergence Problem](https://stkbailey.substack.com/p/data-materialization-is-a-convergence). Also, check the latest orchestration comparison by Christophe Blefari, [Airflow alternatives Mage and Kestra](https://www.linkedin.com/events/airflowalternativesonlinemeetup7041351388609576960/comments/), and[ Prefect and Dagster](https://www.linkedin.com/events/7044560795581526017/comments/). These meetups provide an overview of the current state of data orchestration tools, giving you valuable insights into the pros and cons of each solution.
+
+---
+UPDATE Engineering - Latest Updates in Data Engineering Tools and Techniques [5 min read]
+
+*In this section, I'll share the latest in data engineering tools, techniques, and coding snippets, ensuring you stay abreast of the exciting shifts in this landscape.*
+
+
+- Last article on Data Modeling: [Data Modeling: The Unsung Hero of Data Engineering: Architecture Pattern, Tools and the Future (Part 3) | Airbyte](https://airbyte.com/blog/data-modeling-unsung-hero-data-engineering-architecture-pattern-tools/)
+- [Casual data engineering, or: A poor man's Data Lake in the cloud](https://tobilg.com/casual-data-engineering-or-a-poor-mans-data-lake-in-the-cloud-part-i): Delta Lake with DuckDB
+	- added to #1
+- [The Modern Transactional Stack | Andreessen Horowitz](https://a16z.com/2023/04/14/the-modern-transactional-stack/)
+- leaked google docs: [Google "We Have No Moat, And Neither Does OpenAI"](https://www.semianalysis.com/p/google-we-have-no-moat-and-neither)
+	- source: [Simon Willison on Twitter: "Here's the full leaked document, absolutely worth reading it all https://t.co/QkueZZzNiL" / Twitter](https://twitter.com/simonw/status/1654158744912003076)
+- [Building a Kimball dimensional model with dbt | dbt Developer Blog](https://docs.getdbt.com/blog/kimball-dimensional-model)
+- [How we evolved our query architecture with DuckDB](https://blog.count.co/how-we-evolved-our-query-architecture-with-duckdb/)
+- [New capabilities to manage data reliability at scale | Synq](https://www.synq.io/blog/data-reliability-platform)
+- [The dbt Semantic Layer: what’s next](https://www.getdbt.com/blog/dbt-semantic-layer-whats-next/)
+- Read more on [Super Tables: The road to building reliable and discoverable data products | LinkedIn Engineering](https://engineering.linkedin.com/blog/2022/super-tables--the-road-to-building-reliable-and-discoverable-dat)
+	- an older concept that competes with Materialized views, OBT and even says enables data mesh (everyone says these these days)
+	- discuss more on [Cliff Leung on LinkedIn: Super Tables: The road to building reliable and discoverable data products | 11 comments](https://www.linkedin.com/posts/cliffleungus_super-tables-the-road-to-building-reliable-activity-6980949608818499584-yns0?utm_source=share&utm_medium=member_desktop)
+- 1,000+ AI new tools were released this month by generative AI: [Steve Nouri on LinkedIn: AI tools | 21 comments](https://www.linkedin.com/posts/stevenouri_ai-tools-ugcPost-7062699759483961344-5ii1?utm_source=share&utm_medium=member_desktop)A
+- AI
+	- ChatGPT can read databases now: [ChatGPT plugins now support Postgres & Supabase](https://supabase.com/blog/chatgpt-plugins-support-postgres)
+	- Stack Overflow is ChatGPT Casualty: Traffic Down 14% in March. No more angry comments when the questions was asked wrongly, no more duplicated flag on question.
+		- [Stack Overflow is ChatGPT Casualty: Traffic Down 14% in March : r/programming](https://www.reddit.com/r/programming/comments/13eqchn/stack_overflow_is_chatgpt_casualty_traffic_down/)
+		- [Stack Overflow is ChatGPT Casualty: Traffic Down 14% in March | Similarweb](https://www.similarweb.com/blog/insights/ai-news/stack-overflow-chatgpt/)
+- Looking for a cost-effective and efficient solution for Change Data Capture (#cdc ) that offers near real-time data pipeline management?: [Integrating Kestra and Debezium to capture database changes without Kafka Connect | Kestra](https://kestra.io/blogs/2022-04-05-debezium-without-kafka-connect#the-impressive-real-time-data-delivery-of-debezium)
+- Interesting talk with Joe Reis: [Beyond Data Engineering ft. Joe Reis - YouTube](https://youtu.be/yPX2-XSpzdQ)
+- Hightouch partnered with Google: [Tweet / Twitter](https://twitter.com/kashgupta_/status/1658239950255534084?s=46&t=rG7tN5XtkIkgD7eFsHar6g)
+- [Pandas AI — The Future of Data Analysis | by Fareed Khan | May, 2023 | Medium](https://medium.com/@fareedkhandev/pandas-ai-the-future-of-data-analysis-8f0be9b5ab6f)
+	- Sketch is another take on integrating an LLM into Pandas:
+		- https://github.com/approximatelabs/sketch
+	- more comments on [Pandas AI – The Future of Data Analysis | Hacker News](https://news.ycombinator.com/item?id=35973265)
+- Scalling postgres: [More Memory, More Problems. The single Postgres setting that almost… | by Christopher White | The Prefect Blog | May, 2023 | Medium](https://medium.com/the-prefect-blog/more-memory-more-problems-b182d7807e3c)
+- dbt layoffs [dbt Labs Update: a Message from CEO Tristan Handy](https://www.getdbt.com/blog/dbt-labs-update-a-message-from-ceo-tristan-handy/)
+- Pedram on [The Future of Data - by Pedram Navid - Pedram's Data Based](https://databased.pedramnavid.com/p/the-future-of-data)
+	- on the same notes I wrote on reddit some thoughts: [Evolution and Trends of Data Engineering 2022/23 : r/dataengineering](https://www.reddit.com/r/dataengineering/comments/13lpd6v/evolution_and_trends_of_data_engineering_202223/) see <a class="internal-link broken">Data Engineering- Trends and Predictions for 2023</a>
+- <a href="/brain/microsoft-fabric" rel="noopener" class="internal-link" data-src="/brain/microsoft-fabric">Microsoft Fabric</a> announcement (reference blog on my note from advancing analytics)
+	- If you want to read more, there are fantastic blogs by <a class="internal-link broken">Advancing Analytics</a>, first [What is Microsoft Fabric?](https://www.advancinganalytics.co.uk/blog/2023/5/17/what-is-microsoft-fabric) and then [10 Amazing Features](https://www.advancinganalytics.co.uk/blog/2023/5/22/-do-not-publish-me-10-amazing-features-of-microsoft-fabric)
+	- Also <a class="internal-link broken">James Serra</a>, Data & AI Solution Architect at Microsoft has a announcement blog [Build announcement: Microsoft Fabric | James Serra's Blog](https://www.jamesserra.com/archive/2023/05/build-announcement-microsoft-fabric/).
+	 - and a truly deep dive by <a class="internal-link broken">Mimoune Djouallah</a> on [First impression of Microsoft Fabric](https://datamonkeysite.com/2023/05/27/first-impression-of-microsoft-fabric/).
+	- [Killing me softly - Has Microsoft Fabric just "overwritten" Synapse Analytics? - Data Mozart](https://data-mozart.com/killing-me-softly-has-microsoft-fabric-just-overwritten-synapse-analytics/)
+	- The good and bad from Microsoft Fabric:  [Issue #14: Microsoft takes aim at the Modern Data Stack (Again)](https://thedataplatform.substack.com/p/issue-14-microsoft-takes-aim-at-the)
+- State of Data Engineering
+	- LakeFS: [The State of Data Engineering 2023](https://lakefs.io/blog/the-state-of-data-engineering-2023/): It takes a lot of work to keep up with the latest data engineering. 
+	- Airbyte: [State of Data](https://state-of-data.com/) to keep up with yearly trends. Check out the exciting results from 886 participants, concluding the largest data engineering survey.
+- [Kappa Architecture is Mainstream Replacing Lambda - Kai Waehner](https://www.kai-waehner.de/blog/2021/09/23/real-time-kappa-architecture-mainstream-replacing-batch-lambda/)
+- [Delta-RS and DuckDB — Read and Write Delta Without Spark](https://betterprogramming.pub/delta-rs-duckdb-read-and-write-delta-without-spark-c4d3db580b25)
+	- [Tweet / Twitter](https://twitter.com/DeltaLakeOSS/status/1661869253757214728)
+- ballista, datafusion, rust: all the goodies [Delta Lake on LinkedIn: D3L2: Discussing Rust, Ballista, Ray SQL, Data Fusion with Andy Grove](https://www.linkedin.com/posts/deltalake_d3l2-discussing-rust-ballista-ray-sql-ugcPost-7069402089906429955-f6Hz)
+-->
+<hr>
+<p>References:<br>
+Created <a class="internal-link broken">2023-05-25</a></p>
+
+
+      
+
+
+
+
+<div class="page-end" id="footer">
+    <div>
+        <script
+  src="https://cdn.jsdelivr.net/npm/d3@6.7.0/dist/d3.min.js"
+  integrity="sha256-+7jaYCp29O1JusNWHaYtgUn6EhuP0VaFuswhNV06MyI="
+  crossorigin="anonymous"
+></script>
+<h3>Interactive Graph</h3>
+<div id="graph-container"></div>
+<style>
+  :root {
+    --g-node: var(--secondary);
+    --g-node-active: var(--primary);
+    --g-node-inactive: var(--visited);
+    --g-link: var(--outlinegray);
+    --g-link-active: #5a7282;
+  }
+</style>
+
+<script src="https://www.ssp.sh/brain/js/graph.abd4bc2af3869a96524d7d23b76152c7.js"></script>
+
+    </div>
+</div>
+
+
+
+
+
+
+<div id="contact_buttons">
+    <footer>
+        
+        
+        
+        <ul>
+            
+            <li><a href="https://www.ssp.sh/brain/">Home</a></li>
+            
+            <li><a href="https://www.ssp.sh/">Blog</a></li><li><a href="https://twitter.com/sspaeti">Twitter</a></li><li><a href="https://github.com/sspaeti">Github</a></li></ul>
+    </footer>
+</div>
+
+
+    </article>
+    <div class="backlinks-container">
+        <h3>Backlinks</h3>
+<ul class="backlinks">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+      
+      
+      
+    
+      
+      
+      <li>
+        <a href="/brain/newsletter/" data-ctx="select insights - bundling with microsoft fabric and orchestration" data-src="/newsletter" class="internal-link">Newsletter SELECT Insights</a>
+      </li>
+      
+      
+      
+</ul>
+
+    </div>   
+</div>
+</body>
+
+</html>
