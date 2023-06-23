@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on </title>
+    <link>https://www.ssp.sh/brain/tags/</link>
+    <description>Recent content in Tags on </description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 19 Jun 2023 09:02:41 +0000</lastBuildDate><atom:link href="https://www.ssp.sh/brain/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>publish</title>
+      <link>https://www.ssp.sh/brain/tags/publish/</link>
+      <pubDate>Mon, 19 Jun 2023 09:02:41 +0000</pubDate>
+      
+      <guid>https://www.ssp.sh/brain/tags/publish/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>dataengineering</title>
+      <link>https://www.ssp.sh/brain/tags/dataengineering/</link>
+      <pubDate>Mon, 19 Jun 2023 08:58:26 +0000</pubDate>
+      
+      <guid>https://www.ssp.sh/brain/tags/dataengineering/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>newsletter</title>
+      <link>https://www.ssp.sh/brain/tags/newsletter/</link>
+      <pubDate>Wed, 07 Jun 2023 17:10:19 +0000</pubDate>
+      
+      <guid>https://www.ssp.sh/brain/tags/newsletter/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>notetaking</title>
+      <link>https://www.ssp.sh/brain/tags/notetaking/</link>
+      <pubDate>Wed, 07 Jun 2023 12:34:36 +0000</pubDate>
+      
+      <guid>https://www.ssp.sh/brain/tags/notetaking/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>productivity</title>
+      <link>https://www.ssp.sh/brain/tags/productivity/</link>
+      <pubDate>Wed, 07 Jun 2023 12:34:36 +0000</pubDate>
+      
+      <guid>https://www.ssp.sh/brain/tags/productivity/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>secondbrain</title>
+      <link>https://www.ssp.sh/brain/tags/secondbrain/</link>
+      <pubDate>Wed, 07 Jun 2023 12:34:36 +0000</pubDate>
+      
+      <guid>https://www.ssp.sh/brain/tags/secondbrain/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>emoji</title>
+      <link>https://www.ssp.sh/brain/tags/emoji/</link>
+      <pubDate>Sat, 27 May 2023 07:06:42 +0000</pubDate>
+      
+      <guid>https://www.ssp.sh/brain/tags/emoji/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>socials</title>
+      <link>https://www.ssp.sh/brain/tags/socials/</link>
+      <pubDate>Tue, 03 Jan 2023 08:52:15 +0000</pubDate>
+      
+      <guid>https://www.ssp.sh/brain/tags/socials/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>programming</title>
+      <link>https://www.ssp.sh/brain/tags/programming/</link>
+      <pubDate>Sat, 24 Sep 2022 08:44:20 +0000</pubDate>
+      
+      <guid>https://www.ssp.sh/brain/tags/programming/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>
