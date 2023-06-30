@@ -1,0 +1,3 @@
+RewriteEngine On
+RewriteCond %{HTTP_HOST} ^ssp\.sh$
+RewriteRule ^(.*)$ https://www.ssp.sh/brain/$1 [R=301,L]
