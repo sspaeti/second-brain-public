@@ -18,10 +18,8 @@ enableSemanticSearch: false
 enableGoatCounter: true
 goatCounterUser: "sspaeti" #add your GoatCounter here, see https://www.goatcounter.com/help/start
 operandApiKey: "REPLACE-WITH-YOUR-OPERAND-API-KEY"
-description:
-  This is the public version of my SecondBrain
-page_title:
-  "🧠 Second Brain"
+description: "A digital sanctuary where my thoughts, ideas, and insights are organized as a Zettelkasten. Delve into various topics and (hopefully) learn and be inspired from it."
+page_title: "🧠 Second Brain"
 links:
   - link_name: Twitter
     link: https://twitter.com/sspaeti
