@@ -8,3 +8,12 @@ content/.obsidian
 assets/indices/linkIndex.json
 assets/indices/contentIndex.json
 linkmap
+
+#new quartz v4
+.gitignore
+node_modules
+prof
+tsconfig.tsbuildinfo
+.obsidian
+.quartz-cache
+private/
