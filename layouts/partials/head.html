@@ -207,13 +207,6 @@
       {{ partial "goat-counter.html" (dict "goatCounterUser" $data.goatCounterUser) }}
     {{end}}
 
-  <!--  Mermaid -->
-  {{ if .Page.Store.Get "hasMermaid" }}
-    <script type="module">
-      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
-      mermaid.initialize({ startOnLoad: true });
-    </script>
-  {{ end }}
   <!-- Replaced with GoatCounter -->
   <!-- <!-1- Google tag (gtag.js) -1-> -->
   <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-PH3D1NNYSE"></script> -->
