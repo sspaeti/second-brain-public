@@ -190,8 +190,27 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
                 existing_frontmatter.insert("tags".to_string(), serde_yaml::Value::Sequence(tags_value));
             }
 
-            frontmatter = serde_yaml::to_string(&existing_frontmatter).unwrap();
-            frontmatter = format!("---\ntitle: \"{}\"\nlastmod: '{}'\nenableToc: \"{}\"\n{}\n---\n", title, last_modified_str, enabletoc, frontmatter);
+            // Sorting the keys of the existing frontmatter
+            let mut frontmatter_items: Vec<(&String, &serde_yaml::Value)> = existing_frontmatter.iter().collect();
+            frontmatter_items.sort_by(|a, b| a.0.cmp(b.0));
+
+            // Building the sorted frontmatter string
+            let mut sorted_frontmatter = String::from("---\n");
+            for (key, value) in frontmatter_items {
+                let value_str = match value {
+                    serde_yaml::Value::String(s) => s.clone(),
+                    serde_yaml::Value::Sequence(seq) => seq.iter()
+                        .filter_map(|v| if let serde_yaml::Value::String(s) = v { Some(s.clone()) } else { None })
+                        .collect::<Vec<_>>()
+                        .join(", "),
+                    _ => serde_yaml::to_string(value).unwrap_or_default(),
+                };
+                sorted_frontmatter.push_str(&format!("{}: {}\n", key, value_str));
+            }
+            sorted_frontmatter.push_str("---\n");
+
+            // Use sorted_frontmatter for writing to the file
+            frontmatter = format!("---\ntitle: \"{}\"\nlastmod: '{}'\nenableToc: \"{}\"\n{}\n---\n", title, last_modified_str, enabletoc, sorted_frontmatter);
             // println!("Merged frontmatter: {}", frontmatter);
         }
         
