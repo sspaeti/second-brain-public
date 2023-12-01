@@ -164,37 +164,34 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
             last_modified_str = existing_frontmatter.get("lastmod").and_then(|v| v.as_str()).filter(|s| !s.is_empty()).unwrap_or(&last_modified_str).to_string();
             existing_frontmatter.remove("lastmod");
 
-            let mut tags: Vec<String> = vec![];
+            // Update existing frontmatter with new values
+            existing_frontmatter.insert("title".to_string(), serde_yaml::Value::String(title.clone()));
+            existing_frontmatter.insert("lastmod".to_string(), serde_yaml::Value::String(last_modified_str.clone()));
+            existing_frontmatter.insert("enableToc".to_string(), serde_yaml::Value::String(enabletoc.clone()));
 
-            // If tags exist in the front matter, get them and convert them to Vec<String>.
-            if let Some(serde_yaml::Value::Sequence(seq)) = existing_frontmatter.get("tags") {
-                tags = seq.iter().filter_map(|v| match v {
-                    serde_yaml::Value::String(s) => Some(s.clone()),
-                    _ => None,
-                }).collect();
-            }
-
-            // If there are additional frontmatter_tags, add them to the tags vector.
+            // Handling tags
+            let mut new_tags: Vec<String> = vec![];
             if !frontmatter_tags.is_empty() {
-                let new_tags: Vec<String> = frontmatter_tags
+                new_tags = frontmatter_tags
                     .lines()
                     .map(|line| line.trim_start_matches("- ").to_string())
                     .collect();
-                tags.extend(new_tags);
             }
-
-            // If there are any tags (either from the existing front matter or new ones), convert them into a 
-            // serde_yaml::Value::Sequence and insert it back into the front matter.
-            if !tags.is_empty() {
-                let tags_value: Vec<serde_yaml::Value> = tags.iter().map(|tag| serde_yaml::Value::String(tag.clone())).collect();
+            if let Some(serde_yaml::Value::Sequence(existing_tags)) = existing_frontmatter.get_mut("tags") {
+                for tag in new_tags {
+                    if !existing_tags.contains(&serde_yaml::Value::String(tag.clone())) {
+                        existing_tags.push(serde_yaml::Value::String(tag));
+                    }
+                }
+            } else {
+                let tags_value: Vec<serde_yaml::Value> = new_tags.iter().map(|tag| serde_yaml::Value::String(tag.clone())).collect();
                 existing_frontmatter.insert("tags".to_string(), serde_yaml::Value::Sequence(tags_value));
             }
 
-            // Sorting the keys of the existing frontmatter
+            // Sorting and reconstructing frontmatter
             let mut frontmatter_items: Vec<(&String, &serde_yaml::Value)> = existing_frontmatter.iter().collect();
             frontmatter_items.sort_by(|a, b| a.0.cmp(b.0));
 
-            // Building the sorted frontmatter string
             let mut sorted_frontmatter = String::from("---\n");
             for (key, value) in frontmatter_items {
                 let value_str = match value {
@@ -210,31 +207,34 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
             sorted_frontmatter.push_str("---\n");
 
             // Use sorted_frontmatter for writing to the file
-            frontmatter = format!("---\ntitle: \"{}\"\nlastmod: '{}'\nenableToc: \"{}\"\n{}\n---\n", title, last_modified_str, enabletoc, sorted_frontmatter);
+            frontmatter = sorted_frontmatter;
+            // Use sorted_frontmatter for writing to the file
+            // frontmatter = format!("---\ntitle: \"{}\"\nlastmod: '{}'\nenableToc: \"{}\"\n{}\n---\n", title, last_modified_str, enabletoc, sorted_frontmatter);
             // println!("Merged frontmatter: {}", frontmatter);
         }
-        
-        // destination should be lower-case (spaces will be handled by hugo with `urlize`)
+        // Writing to the file
         let file_name = path.file_name().unwrap().to_str().unwrap().to_lowercase();
         let dest_path = format!("{}/{}", public_folder, file_name);
         println!("Writing to file: {}", dest_path);
         let mut file = fs::File::create(&dest_path)?;
         file.write_all(frontmatter.as_bytes())?;
-        
-        let mut line_number = 0;
-        for line in lines.iter() {
-            line_number += 1;
 
-            if found_title {
-                found_title = false;
+        let mut is_first_heading = true; // Flag to identify the first heading
+        for (index, line) in lines.iter().enumerate() {
+            // Skip lines that were part of the original frontmatter
+            if index < line_end_frontmatter {
                 continue;
             }
 
-            //ignore existing frontmatter (new merged added above)
-            if line_number > line_end_frontmatter {
-                file.write_all(line.as_bytes())?;
-                file.write_all(b"\n")?;
-            } 
+            // Skip the first H1 heading line
+            if is_first_heading && line.starts_with("#") {
+                is_first_heading = false;
+                continue;
+            }
+
+            // Write the line to the file
+            file.write_all(line.as_bytes())?;
+            file.write_all(b"\n")?;
         }
     }
     Ok(())
