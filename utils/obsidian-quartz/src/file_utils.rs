@@ -25,6 +25,7 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
     let mut line_end_frontmatter = 0;
     let mut existing_frontmatter: HashMap<String, Value> = HashMap::new();
     let mut frontmatter_string = String::new();
+    let mut enabletoc_value = String::new(); // To store the existing enableToc value
 
     let re = Regex::new(r"\s*!\[\[(.*?(?:png|jpg|gif))\]\](.*)").unwrap();
 
@@ -71,6 +72,11 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
                         eprintln!("Failed to parse frontmatter: {}", err);
                         eprintln!("Frontmatter content was:\n{}", frontmatter_string);
                     }
+                }
+                if let Some(enabletoc) = existing_frontmatter.get("enableToc").and_then(|v| v.as_str()) {
+                    enabletoc_value = enabletoc.to_string();
+                } else {
+                    enabletoc_value = "".to_string(); // Default to empty if not present
                 }
                 // break;
             }
@@ -145,6 +151,11 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
             }
         }
 
+        // If enabletoc_value is not empty, update it in existing_frontmatter
+        if !enabletoc_value.is_empty() {
+            existing_frontmatter.insert("enableToc".to_string(), serde_yaml::Value::String(enabletoc_value.clone()));
+        }
+
         if existing_frontmatter.is_empty() { 
             // Create frontmatter
             frontmatter = format!("---\nlastmod: '{}'\ntitle: \"{}\"\ntags:\n{}\n---\n", last_modified_str, title, frontmatter_tags);
@@ -165,27 +176,26 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
             existing_frontmatter.remove("lastmod");
 
             // Update existing frontmatter with new values
-            existing_frontmatter.insert("title".to_string(), serde_yaml::Value::String(title.clone()));
+            existing_frontmatter.insert("title".to_string(), serde_yaml::Value::String(format!("\"{}\"", title)));
             existing_frontmatter.insert("lastmod".to_string(), serde_yaml::Value::String(last_modified_str.clone()));
             existing_frontmatter.insert("enableToc".to_string(), serde_yaml::Value::String(enabletoc.clone()));
-
+            
             // Handling tags
-            let mut new_tags: Vec<String> = vec![];
+            let mut new_tags: Vec<serde_yaml::Value> = vec![];
             if !frontmatter_tags.is_empty() {
                 new_tags = frontmatter_tags
                     .lines()
-                    .map(|line| line.trim_start_matches("- ").to_string())
+                    .map(|line| serde_yaml::Value::String(line.trim_start_matches("- ").to_string()))
                     .collect();
             }
             if let Some(serde_yaml::Value::Sequence(existing_tags)) = existing_frontmatter.get_mut("tags") {
                 for tag in new_tags {
-                    if !existing_tags.contains(&serde_yaml::Value::String(tag.clone())) {
-                        existing_tags.push(serde_yaml::Value::String(tag));
+                    if !existing_tags.contains(&tag) {
+                        existing_tags.push(tag);
                     }
                 }
             } else {
-                let tags_value: Vec<serde_yaml::Value> = new_tags.iter().map(|tag| serde_yaml::Value::String(tag.clone())).collect();
-                existing_frontmatter.insert("tags".to_string(), serde_yaml::Value::Sequence(tags_value));
+                existing_frontmatter.insert("tags".to_string(), serde_yaml::Value::Sequence(new_tags));
             }
 
             // Sorting and reconstructing frontmatter
