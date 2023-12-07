@@ -28,7 +28,12 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
     let mut enabletoc_value = String::new(); // To store the existing enableToc value
 
     let re = Regex::new(r"\s*!\[\[(.*?(?:png|jpg|gif))\]\](.*)").unwrap();
-
+    
+    // Ugly fix as enableToc not working: Check if the file name is _index.md right after obtaining the file name
+    let file_name_only = path.file_name()
+                    .and_then(|f| f.to_str())
+                    .map(|s| s.to_lowercase())
+                    .unwrap_or_else(|| String::new());
 
     // HashMap to store images to copy
     let mut images_to_copy: Vec<String> = Vec::new();
@@ -73,7 +78,10 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
                         eprintln!("Frontmatter content was:\n{}", frontmatter_string);
                     }
                 }
-                if let Some(enabletoc) = existing_frontmatter.get("enableToc").and_then(|v| v.as_str()) {
+                if file_name_only == "_index.md" {
+                    enabletoc_value = "false".to_string(); // Set to false for _index.md
+                }
+                else if let Some(enabletoc) = existing_frontmatter.get("enableToc").and_then(|v| v.as_str()) {
                     enabletoc_value = enabletoc.to_string();
                 } else {
                     enabletoc_value = "".to_string(); // Default to empty if not present
@@ -167,7 +175,7 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
             title = existing_frontmatter.get("title").and_then(|v| v.as_str()).filter(|s| !s.is_empty()).unwrap_or(&title).to_string();
             existing_frontmatter.remove("title");
 
-            let enabletoc = existing_frontmatter.get("enabletoc").and_then(|v| v.as_str()).filter(|s| !s.is_empty()).unwrap_or("").to_string();
+            let enabletoc = existing_frontmatter.get("enableToc").and_then(|v| v.as_str()).filter(|s| !s.is_empty()).unwrap_or("").to_string();
             if !enabletoc.is_empty() {
                 existing_frontmatter.remove("enableToc");
             }
