@@ -3,6 +3,7 @@ languageCode = "en-us"
 googleAnalytics = ""
 relativeURLs = false
 disablePathToLower = true
+disableAliases = true #as blanks are not handled and e.g. "OLAP Cubes" will create two aliases OLAP and Cubes and break the actual note "olap"
 # ignoreFiles = [
 #     "/content/templates/*",
 #     "/content/private/*",
