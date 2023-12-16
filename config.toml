@@ -1,4 +1,4 @@
-baseURL = "https://www.ssp.sh/brain/"
+baseURL = "https://www.ssp.sh/brain/"  #keep www. here, otherwise search (cmd+k) and others will not work. Website has been hard coded in `header.html`, as otherwise CORS prevented to load correctly with this url.
 languageCode = "en-us"
 googleAnalytics = ""
 relativeURLs = false
