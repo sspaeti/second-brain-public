@@ -166,7 +166,8 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
 
         if existing_frontmatter.is_empty() { 
             // Create frontmatter
-            frontmatter = format!("---\nlastmod: '{}'\ntitle: \"{}\"\ntags:\n{}\n---\n", last_modified_str, title, frontmatter_tags);
+            // frontmatter = format!("---\nlastmod: '{}'\ntitle: \"{}\"\ntags:\n{}\n---\n", last_modified_str, title, frontmatter_tags);
+            frontmatter = format!("---\nlastmod: '{}'\ntitle: \"{}\"\n---\n", last_modified_str, title);
         }
         else {
             // Merge frontmatter
