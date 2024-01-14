@@ -2,6 +2,7 @@ from pandoc.types import *
 
 
 link_index_path = "assets/indices/linkIndex.json"
+content_index = "assets/indices/contentIndex.json"
 
 
 def convert_to_lower_case(file_path: str):
@@ -14,3 +15,4 @@ def convert_to_lower_case(file_path: str):
 
 if __name__ == "__main__":
     convert_to_lower_case(link_index_path)
+    # convert_to_lower_case(content_index)

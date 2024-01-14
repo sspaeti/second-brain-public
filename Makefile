@@ -31,7 +31,8 @@ prepare: ## prepare commands
 	hugo-obsidian -input=content -output=/Users/sspaeti/Documents/git/sspaeti.com/second-brain-public/assets/indices -index=true -root=. 
 	# obsidian-quartz convert_to_lower_case #change linkIndex to lowercase for proper linking
 	python utils/lower_case.py #change linkIndex to lowercase for proper linking
-	# TODO: somehow the index is not correctly shown. E.g open source projects engineeing project does not show backlink to poeple od data engineering...if make prepare-python is used, it works.......
+	# TODO: somehow the index is not correctly shown. E.g open source projects engineeing project does not show backlink to poeple od data engineering...if make prepare-python is used, it works.......[
+	# or "Continuous Notes" only has one backlink, eventhoug in Obsidian it has many more, even public ones
 
 run: ## run hugo from a clean state
 	hugo --gc && hugo server --enableGitInfo --minify
