@@ -197,15 +197,17 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
                     .map(|line| serde_yaml::Value::String(line.trim_start_matches("- ").to_string()))
                     .collect();
             }
-            if let Some(serde_yaml::Value::Sequence(existing_tags)) = existing_frontmatter.get_mut("tags") {
-                for tag in new_tags {
-                    if !existing_tags.contains(&tag) {
-                        existing_tags.push(tag);
-                    }
-                }
-            } else {
-                existing_frontmatter.insert("tags".to_string(), serde_yaml::Value::Sequence(new_tags));
-            }
+            ////ignore writing tags as for now, as handling emojis (I guess) does not work properly
+            ///with latest version.
+            // if let Some(serde_yaml::Value::Sequence(existing_tags)) = existing_frontmatter.get_mut("tags") {
+            //     for tag in new_tags {
+            //         if !existing_tags.contains(&tag) {
+            //             existing_tags.push(tag);
+            //         }
+            //     }
+            // } else {
+            //     existing_frontmatter.insert("tags".to_string(), serde_yaml::Value::Sequence(new_tags));
+            // }
 
             // Sorting and reconstructing frontmatter
             let mut frontmatter_items: Vec<(&String, &serde_yaml::Value)> = existing_frontmatter.iter().collect();

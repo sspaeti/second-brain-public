@@ -33,6 +33,7 @@ prepare: ## prepare commands
 	python utils/lower_case.py #change linkIndex to lowercase for proper linking
 	# TODO: somehow the index is not correctly shown. E.g open source projects engineeing project does not show backlink to poeple od data engineering...if make prepare-python is used, it works.......[
 	# or "Continuous Notes" only has one backlink, eventhoug in Obsidian it has many more, even public ones
+	# # Workaround: If I rename the file in Obsidian, and rename it back to its origin. It will correctly create backlinks again. Not sure where the problem is. The linkindex.json seems to look good already with all paths included.
 
 run: ## run hugo from a clean state
 	hugo --gc && hugo server --enableGitInfo --minify
