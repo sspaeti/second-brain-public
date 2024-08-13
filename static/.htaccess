@@ -1,3 +1,10 @@
 RewriteEngine On
+
+# Redirect renamed brain articles to new URL
+# List all renames below manually
+RewriteRule ^onetable/?$ https://www.ssp.sh/brain/xtable [R=301,L]
+RewriteRule ^data-engineering-blogs/?$ https://www.ssp.sh/brain/data-engineering-blogs-newsletters [R=301,L]
+
+# redirect old article URL to new
 RewriteCond %{HTTP_HOST} ^ssp\.sh$
 RewriteRule ^(.*)$ https://www.ssp.sh/brain/$1 [R=301,L]
