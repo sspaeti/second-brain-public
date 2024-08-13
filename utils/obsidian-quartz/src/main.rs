@@ -44,6 +44,12 @@ fn visit_dirs(dir: &Path, public_folder: &str, public_brain_image_path: &str, im
             let entry = entry?;
             let path = entry.path();
             if path.is_dir() {
+                // ignore symlinked folder that could contain #publish that breaks the build
+                if path.ends_with("Book") || path.ends_with("Blog") {
+                    println!("Visiting directory: {}", path.display());
+                    continue;
+                }
+                
                 visit_dirs(&path, public_folder, public_brain_image_path, images_map)?;
             } else {
                 ////DEBUG:
