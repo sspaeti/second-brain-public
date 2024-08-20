@@ -81,7 +81,7 @@ fn build_images_map(dir: &Path, images_map: &mut HashMap<String, PathBuf>) -> st
                 build_images_map(&path, images_map)?;
             } else {
                 if let Some(extension) = path.extension() {
-                    if extension == "png" || extension == "jpg" || extension == "gif" {
+                    if extension == "png" || extension == "jpg" || extension == "gif" || extension == "webp" {
                         if let Some(file_name) = path.file_name() {
                             images_map.insert(file_name.to_str().unwrap().to_string(), path.clone());
                         }

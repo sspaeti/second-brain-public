@@ -27,7 +27,7 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
     let mut frontmatter_string = String::new();
     let mut enabletoc_value = String::new(); // To store the existing enableToc value
 
-    let re = Regex::new(r"\s*!\[\[(.*?(?:png|jpg|gif))\]\](.*)").unwrap();
+    let re = Regex::new(r"\s*!\[\[(.*?(?:png|jpg|gif|webp))\]\](.*)").unwrap();
     
     // Ugly fix as enableToc not working: Check if the file name is _index.md right after obtaining the file name
     let file_name_only = path.file_name()
