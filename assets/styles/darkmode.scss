@@ -1,7 +1,7 @@
 .darkmode {
   float: right;
   padding: 1em;
-  min-width: 30px;
+  min-width: 35px;
   position: relative;
 
   @media all and (max-width: 450px) {
@@ -22,6 +22,9 @@
     margin: 0 7px;
     fill: var(--gray);
     transition: opacity 0.1s ease;
+    //scale the SVG
+    // transform: scale(0.7); /* Adjust as needed */
+    // transform-origin: center;
   }
 }
 
@@ -67,4 +70,30 @@
   & > #nightIcon {
     opacity: 0;
   }
+}
+
+// for navigation: blog and vault
+.icon-links {
+    display: flex;
+    align-items: center;
+}
+
+.blog-link,
+.vault-link {
+    margin-right: 10px;
+}
+
+.icon-links a {
+    padding: 0 3px 10px 3px;
+    color: inherit;
+    text-decoration: none;
+    min-height: 32px;
+    margin-top: 2px;
+    display: flex;
+    align-items: flex-end;
+}
+
+.icon-emoji {
+    font-size: 21px;
+    line-height: 1;
 }
