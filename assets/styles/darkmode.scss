@@ -1,7 +1,7 @@
 .darkmode {
   float: right;
-  padding: 1em;
-  min-width: 15px;
+  padding: 0.8em;
+  min-width: 25px;
   position: relative;
 
   @media all and (max-width: 450px) {
@@ -30,6 +30,7 @@
 
 .newsletter {
   float: right;
+  // padding: 1em;
   min-width: 30px;
   position: relative;
 
@@ -79,7 +80,8 @@
 }
 
 .blog-link,
-.vault-link {
+.vault-link,
+.newsletter-link {
     margin-right: 10px;
 }
 
