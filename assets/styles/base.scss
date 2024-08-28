@@ -419,13 +419,20 @@ header {
     display: flex;
     align-items: center;
     cursor: pointer;
+
     & > p {
       display: inline;
-      padding: 0 1.5em 0 2em;
+      padding: 0 0.2em 0 1em; /* Default padding for mobile */
       word-wrap: normal;
     }
-  }
 
+    /* Media query for desktop views */
+    @media screen and (min-width: 768px) {
+      & > p {
+        padding: 0 1.5em 0 2em; /* Padding for desktop */
+      }
+    }
+  }
   & svg {
     cursor: pointer;
     width: 18px;
