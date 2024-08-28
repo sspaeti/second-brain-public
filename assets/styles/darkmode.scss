@@ -1,11 +1,11 @@
 .darkmode {
+  min-width: 30px;
   float: right;
-  padding: 0.8em;
-  min-width: 25px;
+  padding: 0.5em;
   position: relative;
 
   @media all and (max-width: 450px) {
-    padding: 1em;
+    padding: 0.7em;
   }
 
   & > .toggle {
@@ -22,9 +22,6 @@
     margin: 0 7px;
     fill: var(--gray);
     transition: opacity 0.1s ease;
-    //scale the SVG
-    // transform: scale(0.7); /* Adjust as needed */
-    // transform-origin: center;
   }
 }
 
