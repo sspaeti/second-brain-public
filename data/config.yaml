@@ -18,7 +18,8 @@ enableSemanticSearch: false
 enableGoatCounter: true
 goatCounterUser: "sspaeti" #add your GoatCounter here, see https://www.goatcounter.com/help/start
 operandApiKey: "REPLACE-WITH-YOUR-OPERAND-API-KEY"
-description: "A digital sanctuary where my thoughts, ideas, and insights are organized as a Zettelkasten. Delve into various topics and (hopefully) learn and be inspired from it."
+# description: "A digital sanctuary where my thoughts, ideas, and insights are organized as a Zettelkasten. Delve into various topics and (hopefully) learn and be inspired from it."
+description: "A crafted digital vault of curated knowledge where insights and ideas connect and compound, modeled after a Zettelkasten to inspire learning and discovery."
 page_title: "🧠 Second Brain"
 links:
   - link_name: Twitter
