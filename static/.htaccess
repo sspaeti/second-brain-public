@@ -4,6 +4,7 @@ RewriteEngine On
 # List all renames below manually
 RewriteRule ^onetable/?$ https://www.ssp.sh/brain/xtable [R=301,L]
 RewriteRule ^data-engineering-blogs/?$ https://www.ssp.sh/brain/data-engineering-blogs-newsletters [R=301,L]
+RewriteRule ^big-cloud-vendors/?$ https://www.ssp.sh/brain/cloud-data-provider [R=301,L]
 
 # redirect old article URL to new
 RewriteCond %{HTTP_HOST} ^ssp\.sh$
