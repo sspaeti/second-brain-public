@@ -206,6 +206,9 @@
     {{if $data.enableGoatCounter | default false}}
       {{ partial "goat-counter.html" (dict "goatCounterUser" $data.goatCounterUser) }}
     {{end}}
+  <!-- Webmentions -->
+  {{ partial "webmentions" . }}
+  <script src="/brain/webmention.js" async></script>
 
   <!-- Replaced with GoatCounter -->
   <!-- <!-1- Google tag (gtag.js) -1-> -->

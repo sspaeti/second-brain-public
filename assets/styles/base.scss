@@ -665,3 +665,75 @@ header {
   }
 }
 
+
+/* Webmention.css from PlaidWeb */
+#webmentions {
+    margin: 0;
+    position: relative;
+    z-index: 100;
+    line-height: 1.2em;
+}
+
+#webmentions .comments {
+    max-height: 20em;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    font-size: 80%;
+}
+
+#webmentions h3 {
+    padding: 2px;
+}
+
+#webmentions .reacts img {
+    margin: 3px -1ex 1px 0;
+}
+
+#webmentions img.missing {
+    background: white;
+    border: dashed black 1px;
+}
+
+#webmentions ul {
+    list-style-type: none;
+    padding-left: 10px;
+    padding-top: 5px;
+}
+
+#webmentions li {
+    text-indent: -1em;
+    padding-left: 1em;
+}
+
+#webmentions a.reaction {
+    position: relative;
+    text-decoration: none;
+    text-shadow: 0px 0px 3px white;
+    margin-right: 0;
+    letter-spacing: -1ex;
+    margin-right: 1ex;
+}
+
+#webmentions a.reaction img {
+    max-height: 1.3em;
+    width: auto;
+    margin-right: -1ex;
+    border-radius: 25%;
+}
+
+#webmentions a.reaction sub {
+    font-size: 50%;
+}
+
+#webmentions .comments li {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+#webmentions .comments li .text {
+    color: #555;
+    font-style: italic;
+    text-decoration: none;
+}
+
