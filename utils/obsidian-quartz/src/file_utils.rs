@@ -164,7 +164,7 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
             } else {
                 // Only update frontmatter if we successfully generated a new image
                 existing_frontmatter.insert("ogimage".to_string(), 
-                    Value::String(format!("{}.svg", file_stem)));
+                    Value::String(format!("{}.webp", file_stem)));
                 existing_frontmatter.insert("ogwidth".to_string(), 
                     Value::Number(serde_yaml::Number::from(OG_WIDTH)));
                 existing_frontmatter.insert("ogheight".to_string(), 

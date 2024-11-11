@@ -1,6 +1,7 @@
 use std::fs;
-use std::path::Path;
+use std::process::Command;
 use std::error::Error;
+use std::path::Path;
 use regex::Regex;
 
 pub struct ImageConfig {
@@ -13,7 +14,30 @@ pub struct ImageConfig {
 pub fn generate_og_image(config: &ImageConfig) -> Result<(), Box<dyn Error>> {
     let words: Vec<String> = split_title(&config.title);
     let svg = create_svg(&words, config.width, config.height)?;
-    fs::write(&config.output_path, svg)?;
+    
+    // First save the SVG to a temporary file
+    let temp_svg_path = config.output_path.clone();
+    fs::write(&temp_svg_path, svg)?;
+    
+    // Convert to WebP using modern ImageMagick command
+    let output_path = temp_svg_path.replace(".svg", ".webp");
+    
+    let status = Command::new("magick")
+        .arg(&temp_svg_path)
+        // .arg("-quality")
+        // .arg("90")  // for JPG quality
+        // .arg("-resize")
+        // .arg("1200x630!") // force exact size
+        .arg(&output_path)
+        .status()?;
+
+    if !status.success() {
+        return Err("ImageMagick conversion failed".into());
+    }
+    
+    // Optionally remove the temporary SVG file
+    fs::remove_file(temp_svg_path)?;
+    
     Ok(())
 }
 
