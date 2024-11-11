@@ -12,6 +12,13 @@ pub struct ImageConfig {
 }
 
 pub fn generate_og_image(config: &ImageConfig) -> Result<(), Box<dyn Error>> {
+    // Check if WebP file already exists
+    let output_path = config.output_path.replace(".svg", ".webp");
+    if Path::new(&output_path).exists() {
+        // println!("WebP file already exists: {}", output_path);
+        return Ok(());
+    }
+    
     let words: Vec<String> = split_title(&config.title);
     let svg = create_svg(&words, config.width, config.height)?;
     
@@ -20,14 +27,8 @@ pub fn generate_og_image(config: &ImageConfig) -> Result<(), Box<dyn Error>> {
     fs::write(&temp_svg_path, svg)?;
     
     // Convert to WebP using modern ImageMagick command
-    let output_path = temp_svg_path.replace(".svg", ".webp");
-    
     let status = Command::new("magick")
         .arg(&temp_svg_path)
-        // .arg("-quality")
-        // .arg("90")  // for JPG quality
-        // .arg("-resize")
-        // .arg("1200x630!") // force exact size
         .arg(&output_path)
         .status()?;
 
