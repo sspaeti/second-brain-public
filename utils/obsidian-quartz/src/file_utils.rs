@@ -10,7 +10,10 @@ use std::collections::HashMap;
 
 use serde_yaml::Value;
 
+use crate::svg_generator::{ImageConfig, generate_og_image, extract_title_from_md};
+
 pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &str, images_map: &HashMap<String, PathBuf>) -> std::io::Result<()> {
+
     // println!("Opening file: {}", path.display());
     let file = fs::File::open(path)?;
     let reader = BufReader::new(file);
@@ -133,6 +136,38 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
     
     // If we found a publish tag, process the file
     if found_publish {
+        // Create static/feature directory if it doesn't exist
+        let feature_dir = Path::new("static/feature");
+        if !feature_dir.exists() {
+            fs::create_dir_all(feature_dir)?;
+        }
+
+        // Only generate new SVG and update frontmatter if ogimage doesn't exist
+        if !existing_frontmatter.contains_key("ogimage") {
+            let file_stem = path.file_stem()
+                .and_then(|s| s.to_str())
+                .unwrap_or("default");
+            
+            let image_config = ImageConfig {
+                title: title.clone(),
+                width: 1024,
+                height: 761,
+                output_path: format!("static/feature/{}.svg", file_stem),
+            };
+            
+            if let Err(e) = generate_og_image(&image_config) {
+                eprintln!("Failed to generate OG image for {}: {}", path.display(), e);
+            } else {
+                // Only update frontmatter if we successfully generated a new image
+                existing_frontmatter.insert("ogimage".to_string(), 
+                    Value::String(format!("{}.svg", file_stem)));
+                existing_frontmatter.insert("ogwidth".to_string(), 
+                    Value::Number(serde_yaml::Number::from(1024)));
+                existing_frontmatter.insert("ogheight".to_string(), 
+                    Value::Number(serde_yaml::Number::from(761)));
+            }
+        }
+
         // println!("Found publish tag");
         // Copy images here
         for image_name in &images_to_copy {

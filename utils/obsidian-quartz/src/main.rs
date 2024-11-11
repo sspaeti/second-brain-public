@@ -10,6 +10,10 @@ use file_utils::process_file;
 mod handle_link_index;
 use handle_link_index::convert_to_lower_case;
 
+mod svg_generator;
+use svg_generator::{ImageConfig, generate_og_image, extract_title_from_md};
+
+
 fn main() -> Result<(), Box<dyn Error>> {
    let args: Vec<String> = env::args().collect();
     
