@@ -14,6 +14,9 @@ use crate::svg_generator::{ImageConfig, generate_og_image, extract_title_from_md
 
 pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &str, images_map: &HashMap<String, PathBuf>) -> std::io::Result<()> {
 
+    const OG_WIDTH: u32 = 1200;
+    const OG_HEIGHT: u32 = 628;
+
     // println!("Opening file: {}", path.display());
     let file = fs::File::open(path)?;
     let reader = BufReader::new(file);
@@ -151,8 +154,8 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
             
             let image_config = ImageConfig {
                 title: title.clone(),
-                width: 1024,
-                height: 761,
+                width: OG_WIDTH,
+                height: OG_HEIGHT,
                 output_path: format!("static/feature/{}.svg", file_stem),
             };
             
@@ -163,9 +166,9 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
                 existing_frontmatter.insert("ogimage".to_string(), 
                     Value::String(format!("{}.svg", file_stem)));
                 existing_frontmatter.insert("ogwidth".to_string(), 
-                    Value::Number(serde_yaml::Number::from(1024)));
+                    Value::Number(serde_yaml::Number::from(OG_WIDTH)));
                 existing_frontmatter.insert("ogheight".to_string(), 
-                    Value::Number(serde_yaml::Number::from(761)));
+                    Value::Number(serde_yaml::Number::from(OG_HEIGHT)));
             }
         }
 

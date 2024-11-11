@@ -51,56 +51,93 @@ fn split_title(title: &str) -> Vec<String> {
 }
 
 fn create_svg(words: &[String], width: u32, height: u32) -> Result<String, Box<dyn Error>> {
+    // Twitter/LinkedIn Card aspect ratio is typically 1.91:1
+    // Twitter: 1200x628px
+    // LinkedIn: 1104x576px
     let background_color = "#000000";
     let text_color = "#FFFFFF";
-    let accent_color = "#D4AF37"; // Gold color from your current theme
+    let accent_color = "#D4AF37";
     
     let mut svg = format!(
         r#"<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 628">
+    <!-- Background -->
     <rect width="100%" height="100%" fill="{background_color}"/>
-    <rect x="40" y="40" width="calc(100% - 80)" height="calc(100% - 80)" 
-          stroke="{accent_color}" stroke-width="2" fill="none"/>
     
-    <!-- Header -->
-    <text x="60" y="100" fill="{accent_color}" font-family="Arial" font-size="24" font-weight="bold">
+    <!-- Decorative Grid - Adjusted for wider format -->
+    <g stroke="{accent_color}" stroke-width="0.5" opacity="0.2">
+        <line x1="0" y1="157" x2="1200" y2="157"/>
+        <line x1="0" y1="314" x2="1200" y2="314"/>
+        <line x1="0" y1="471" x2="1200" y2="471"/>
+        <line x1="300" y1="0" x2="300" y2="628"/>
+        <line x1="600" y1="0" x2="600" y2="628"/>
+        <line x1="900" y1="0" x2="900" y2="628"/>
+    </g>
+
+    <!-- Hexagonal Network - Scaled and centered -->
+    <g stroke="{accent_color}" stroke-width="2" fill="none">
+        <!-- Center Hexagon - Moved right for better balance -->
+        <path d="M 600 250 L 670 285 L 670 355 L 600 390 L 530 355 L 530 285 Z"/>
+        
+        <!-- Connected Hexagons - Adjusted positions -->
+        <path d="M 460 155 L 530 190 L 530 260 L 460 295 L 390 260 L 390 190 Z" opacity="0.7"/>
+        <path d="M 740 155 L 810 190 L 810 260 L 740 295 L 670 260 L 670 190 Z" opacity="0.7"/>
+        <path d="M 460 385 L 530 420 L 530 490 L 460 525 L 390 490 L 390 420 Z" opacity="0.7"/>
+        <path d="M 740 385 L 810 420 L 810 490 L 740 525 L 670 490 L 670 420 Z" opacity="0.7"/>
+        
+        <!-- Connection Lines - Adjusted -->
+        <line x1="530" y1="285" x2="530" y2="355" opacity="0.5"/>
+        <line x1="670" y1="285" x2="670" y2="355" opacity="0.5"/>
+        <line x1="460" y1="295" x2="460" y2="385" opacity="0.5"/>
+        <line x1="740" y1="295" x2="740" y2="385" opacity="0.5"/>
+    </g>
+
+    <!-- Glowing Center - Adjusted position -->
+    <circle cx="600" cy="314" r="40" fill="{accent_color}" opacity="0.2">
+        <animate attributeName="opacity" values="0.1;0.3;0.1" dur="4s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- Header - Second Brain -->
+    <text x="600" y="100" fill="{accent_color}" font-family="Arial" font-size="32" font-weight="bold" text-anchor="middle">
         SECOND BRAIN
     </text>
 "#
     );
 
-    // Add main title words
-    let mut y_position = 180.0;
-    let line_height = 60.0;
-    let max_font_size = 48.0;
-    let min_font_size = 36.0;
+    // Add main title words - Optimized for social media card
+    let mut y_position = 200.0;
+    let line_height = 80.0;
+    let words_count = words.len() as f32;
+    
+    // Dynamically adjust font size based on title length
+    let title_font_size = if words_count > 3.0 {
+        72.0
+    } else if words_count > 2.0 {
+        84.0
+    } else {
+        96.0
+    };
 
-    for (i, word) in words.iter().enumerate() {
-        let font_size = if words.len() > 3 {
-            min_font_size
-        } else {
-            max_font_size
-        };
-
+    for word in words.iter() {
         svg.push_str(&format!(
-            r#"    <text x="60" y="{}" fill="{text_color}" font-family="Arial" font-size="{}" font-weight="bold">{}</text>
+            r#"    <text x="600" y="{}" fill="{text_color}" font-family="Arial" font-size="{}" font-weight="bold" text-anchor="middle">{}</text>
 "#,
-            y_position, font_size, word
+            y_position, title_font_size, word
         ));
         y_position += line_height;
     }
 
-    // Add footer
+    // Add footer - Adjusted position
     svg.push_str(&format!(
-        r#"    <text x="60" y="{}" fill="{accent_color}" font-family="Arial" font-size="20">
+        r#"    <text x="600" y="560" fill="{accent_color}" font-family="Arial" font-size="28" text-anchor="middle" letter-spacing="2">
         A Digital Vault of Knowledge
     </text>
-</svg>"#,
-        height - 60
+</svg>"#
     ));
 
     Ok(svg)
 }
+
 
 // Function to extract title from frontmatter
 pub fn extract_title_from_md(file_path: &Path) -> Result<String, Box<dyn Error>> {
