@@ -27,6 +27,7 @@ prepare-python: ## prepare commands
 prepare: ## prepare commands
 	find /Users/sspaeti/Documents/git/sspaeti.com/second-brain-public/content -type f -not -name ".git" -delete
 	obsidian-quartz #copy all notes from my secondbrain with hashtag #publish to /content
+	cp static/second-brain.jpeg static/feature #the one in feature is used for _index note
 	rm -rf public
 	hugo-obsidian -input=content -output=/Users/sspaeti/Documents/git/sspaeti.com/second-brain-public/assets/indices -index=true -root=. 
 	# obsidian-quartz convert_to_lower_case #change linkIndex to lowercase for proper linking
