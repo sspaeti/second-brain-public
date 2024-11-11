@@ -93,7 +93,7 @@ fn create_svg(words: &[String], width: u32, height: u32) -> Result<String, Box<d
     // Add footer
     svg.push_str(&format!(
         r#"    <text x="60" y="{}" fill="{accent_color}" font-family="Arial" font-size="20">
-        A digital vault of knowledge
+        A Digital Vault of Knowledge
     </text>
 </svg>"#,
         height - 60

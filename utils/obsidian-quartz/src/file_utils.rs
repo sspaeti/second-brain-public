@@ -146,7 +146,8 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
         if !existing_frontmatter.contains_key("ogimage") {
             let file_stem = path.file_stem()
                 .and_then(|s| s.to_str())
-                .unwrap_or("default");
+                .map(|s| s.to_lowercase().replace(" ", "-"))  // Convert to lowercase and replace spaces
+                .unwrap_or("default".to_string());
             
             let image_config = ImageConfig {
                 title: title.clone(),
