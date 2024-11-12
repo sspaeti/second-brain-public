@@ -10,7 +10,7 @@
   />
   <meta property="og:title" content="{{ .Title }}">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="{{ if .Params.Ogimage }}https://www.ssp.sh/brain/feature/{{ .Params.Ogimage }}{{ else }}https://www.ssp.sh/brain/feature/second-brain.jpeg{{ end }}">
+  <meta property="og:image" content="{{ if .Params.Ogimage }}https://www.ssp.sh/brain/_img/feature/{{ .Params.Ogimage }}{{ else }}https://www.ssp.sh/brain/_img/feature/second-brain.jpeg{{ end }}">
   <meta property="og:width" content="{{ if .Params.Ogwidth }}{{ .Params.Ogwidth }}{{ else }}1024{{ end }}"> <!--this and below need to be changed to second-brain.jpeg-->
   <meta property="og:height" content="{{ if .Params.Ogheight }}{{ .Params.Ogheight }}{{ else }}763{{ end }}">
   <meta property="og:url" content="{{ .Permalink }}">
@@ -18,7 +18,7 @@
   <meta name="twitter:site" content="@sspaeti" />
   <meta name="twitter:title" content="{{ .Title }}" />
   <meta name="twitter:description" content="{{if .IsHome}}{{$data.description | default $.Site.Data.config.description}}{{else}}{{.Summary}}{{end}}" />
-  <meta property="twitter:image" content="{{ if .Params.Ogimage }}https://www.ssp.sh/brain/feature/{{ .Params.Ogimage }}{{ else }}https://www.ssp.sh/brain/feature/second-brain.jpeg{{ end }}">
+  <meta property="twitter:image" content="{{ if .Params.Ogimage }}https://www.ssp.sh/brain/_img/feature/{{ .Params.Ogimage }}{{ else }}https://www.ssp.sh/brain/_img/feature/second-brain.jpeg{{ end }}">
   <title>
     {{ if .Title }}{{ .Title }}{{ else }}{{ $data.page_title | default $.Site.Data.config.page_title }}{{
     end }}
