@@ -140,7 +140,7 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
     // If we found a publish tag, process the file
     if found_publish {
         // Create static/feature directory if it doesn't exist
-        let feature_dir = Path::new("static/feature");
+        let feature_dir = Path::new("static/feature/gen");
         if !feature_dir.exists() {
             fs::create_dir_all(feature_dir)?;
         }
@@ -156,7 +156,7 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
                 title: title.clone(),
                 width: OG_WIDTH,
                 height: OG_HEIGHT,
-                output_path: format!("static/feature/{}.svg", file_stem),
+                output_path: format!("static/feature/gen/{}.svg", file_stem),
             };
             
             if let Err(e) = generate_og_image(&image_config) {
