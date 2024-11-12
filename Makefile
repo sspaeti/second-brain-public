@@ -17,7 +17,7 @@ update-force: ## Forcefully pull all changes and don't ask to patch
 	git checkout upstream/hugo -- layouts .github Makefile assets/js assets/styles/base.scss assets/styles/darkmode.scss config.toml data
 
 prepare-python: ## prepare commands
-	find /Users/sspaeti/Documents/git/sspaeti.com/second-brain-public/content -type f -not -name ".git" -delete
+	find /Users/sspaeti/Documents/git/sspaeti.com/second-brain-public/content -type f -not -name ".git" -not -path "*/_img/*" -delete
 	python utils/find-publish-notes.py #copy all notes from my secondbrain with hashtag #publish to quartz
 	rm -rf public
 	hugo-obsidian -input=content -output=/Users/sspaeti/Documents/git/sspaeti.com/second-brain-public/assets/indices -index=true -root=. 
@@ -25,7 +25,7 @@ prepare-python: ## prepare commands
 
 # run with Rust: build with `cargo build --release`
 prepare: ## prepare commands
-	find /Users/sspaeti/Documents/git/sspaeti.com/second-brain-public/content -type f -not -name ".git" -delete
+	find /Users/sspaeti/Documents/git/sspaeti.com/second-brain-public/content -type f -not -name ".git" -not -path "*/_img/*" -delete
 	obsidian-quartz #copy all notes from my secondbrain with hashtag #publish to /content
 	cp static/second-brain.jpeg static/feature #the one in feature is used for _index note
 	rm -rf public
