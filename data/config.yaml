@@ -22,9 +22,11 @@ operandApiKey: "REPLACE-WITH-YOUR-OPERAND-API-KEY"
 description: "A crafted digital vault of curated knowledge where insights and ideas connect and compound, modeled after a Zettelkasten to inspire learning and discovery."
 page_title: "🧠 Second Brain"
 links:
-  - link_name: Twitter
-    link: https://twitter.com/sspaeti
+  - link_name: Bluesky
+    link: https://bsky.app/profile/ssp.sh
   - link_name: LinkedIn
     link: https://linkedin.com/in/sspaeti/
   - link_name: Github
     link: https://github.com/sspaeti
+  - link_name: Services
+    link: https://services.ssp.sh
