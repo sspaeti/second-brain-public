@@ -1,0 +1,2 @@
+{{ $search_url := print "https://bsky.app/search?q=domain%3A" "ssp.sh" .RelPermalink }}
+<a href="{{ $search_url | safeURL }}" target="_blank" rel="noopener noreferrer">Discuss</a>

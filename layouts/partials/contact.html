@@ -15,6 +15,7 @@
             {{- range $data.links | default $.Site.Data.config.links -}}
             <li><a href="{{.link}}">{{.link_name}}</a></li>
             {{- end -}}
+            <li>{{partial "discuss.html" .}}</li>
         </ul>
     </footer>
 </div>
