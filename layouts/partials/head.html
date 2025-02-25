@@ -46,17 +46,17 @@
   {{$sass := resources.Match "styles/[!_]*.scss" }}
   {{$css := slice }}
   {{range $sass}}
-  {{$scss := . | resources.ToCSS (dict "outputStyle" "compressed") }}
+  {{$scss := . | css.Sass (dict "outputStyle" "compressed") }}
   {{$css = $css | append $scss}}
   {{end}}
   {{if $data.enableCallouts | default $.Site.Data.config.enableCallouts}}
-    {{$scss := resources.Get "styles/_callouts.scss" | resources.ToCSS (dict "outputStyle" "compressed") }}
+    {{$scss := resources.Get "styles/_callouts.scss" | css.Sass (dict "outputStyle" "compressed") }}
     {{$css = $css | append $scss}}
   {{end}}
   {{$finalCss := $css | resources.Concat "styles.css" | resources.Fingerprint "md5" | resources.Minify  }}
   <link href="{{$finalCss.Permalink}}" rel="stylesheet" />
 
-  {{$lightSyntax := resources.Get "styles/_light_syntax.scss" | resources.ToCSS (dict "outputStyle" "compressed") | resources.Fingerprint "md5" | resources.Minify  }}
+  {{$lightSyntax := resources.Get "styles/_light_syntax.scss" | css.Sass (dict "outputStyle" "compressed") | resources.Fingerprint "md5" | resources.Minify  }}
   <link href="{{$lightSyntax.Permalink}}" rel="stylesheet" id="theme-link">
    <!-- Base scripts -->
   {{$scripts := (slice "js/darkmode.js" "js/util.js")}}

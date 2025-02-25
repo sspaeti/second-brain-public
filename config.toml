@@ -9,7 +9,6 @@ disableAliases = true #as blanks are not handled and e.g. "OLAP Cubes" will crea
 #     "/content/private/*",
 # ]
 summaryLength = 20
-paginate = 10
 enableGitInfo = true
 
 [markup]
