@@ -1,0 +1,78 @@
+// This script adds ?ref=ssp.sh to all external links on your website
+// Wait for window load to ensure all other scripts have had a chance to run
+window.addEventListener('load', function() {
+  // Get your website domain
+  const siteDomain = window.location.hostname;
+  
+  // Find all links on the page
+  const links = document.querySelectorAll('a');
+  
+  // Process each link
+  links.forEach(function(link) {
+    // Check if the link has an href attribute
+    if (link.href) {
+      try {
+        // Get the URL of the link
+        const linkUrl = new URL(link.href);
+        
+        // Check if the link is external (different hostname)
+        if (linkUrl.hostname !== siteDomain) {
+          // Only modify if the URL doesn't already have the ref parameter
+          if (!linkUrl.searchParams.has('ref')) {
+            // Store the hash part (including text fragments)
+            const hashPart = linkUrl.hash;
+            
+            // Remove the hash part temporarily
+            linkUrl.hash = '';
+            
+            // Add the ref parameter
+            linkUrl.searchParams.set('ref', 'ssp.sh');
+            
+            // Re-add the hash part
+            const urlWithRef = linkUrl.toString() + hashPart;
+            
+            // Update the link's href attribute
+            link.href = urlWithRef;
+          }
+        }
+      } catch (e) {
+        // Ignore invalid URLs
+        console.warn('Invalid URL found:', link.href);
+      }
+    }
+  });
+
+  // Add click event listener for dynamically added links
+  document.body.addEventListener('click', function(event) {
+    // Check if the clicked element is an anchor tag or contains one
+    const link = event.target.closest('a');
+    if (link && link.href) {
+      try {
+        const linkUrl = new URL(link.href);
+        
+        // Only process external links
+        if (linkUrl.hostname !== siteDomain && !linkUrl.searchParams.has('ref')) {
+          // Prevent the default action
+          event.preventDefault();
+          
+          // Store the hash part (including text fragments)
+          const hashPart = linkUrl.hash;
+          
+          // Remove the hash part temporarily
+          linkUrl.hash = '';
+          
+          // Add the ref parameter
+          linkUrl.searchParams.set('ref', 'ssp.sh');
+          
+          // Re-add the hash part
+          const urlWithRef = linkUrl.toString() + hashPart;
+          
+          // Navigate to the modified URL
+          window.open(urlWithRef, link.target || '_self');
+        }
+      } catch (e) {
+        // Let the browser handle invalid URLs
+      }
+    }
+  }, false);
+});

@@ -210,6 +210,9 @@
   {{ partial "webmentions" . }}
   <script src="/brain/webmention.js" async></script>
 
+  {{ $externalLinks := resources.Get "js/external-links.js" | resources.Fingerprint "md5" | resources.Minify }}
+  <script src="{{$externalLinks.Permalink}}"></script>
+
   <!-- Replaced with GoatCounter -->
   <!-- <!-1- Google tag (gtag.js) -1-> -->
   <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-PH3D1NNYSE"></script> -->
