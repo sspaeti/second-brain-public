@@ -206,6 +206,16 @@
     {{if $data.enableGoatCounter | default false}}
       {{ partial "goat-counter.html" (dict "goatCounterUser" $data.goatCounterUser) }}
     {{end}}
+  {{ if .Page.Store.Get "hasMermaid" }}
+  <script type="module" defer>
+    <!-- Before, I had it in single.html, below .Content as the render hook is not processed until .Content (in textprocessing.hmtl) is executed  -->
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ 
+      startOnLoad: true,
+      theme: 'neutral' 
+    });
+  </script>
+  {{ end }}
   <!-- Webmentions -->
   {{ partial "webmentions" . }}
   <script src="/brain/webmention.js" async></script>
