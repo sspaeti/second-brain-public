@@ -40,3 +40,388 @@
 //   --outlinegray: #343434 !important;
 // }
 
+
+
+/* START: custom-cards */
+
+// .knowledge-hub {
+//   max-width: 1200px;
+//   margin: 0 auto;
+//   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+// }
+
+// .hub-intro {
+//   text-align: center;
+//   margin-bottom: 3rem;
+//   padding: 2rem;
+//   background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+//   border-radius: 12px;
+//   backdrop-filter: blur(10px);
+//   border: 1px solid rgba(255,255,255,0.1);
+// }
+
+// .hub-intro h2 {
+//   font-size: 2.5rem;
+//   margin-bottom: 1rem;
+//   background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+//   -webkit-background-clip: text;
+//   background-clip: text;
+//   color: transparent;
+//   display: inline-block;
+// }
+
+// .hub-intro p {
+//   font-size: 1.2rem;
+//   max-width: 800px;
+//   margin: 0 auto;
+// }
+
+// .hub-intro .highlight {
+//   font-weight: bold;
+//   color: #4ecdc4;
+// }
+
+// .hub-categories {
+//   display: grid;
+//   grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+//   gap: 2rem;
+//   margin-bottom: 3rem;
+// }
+
+// .category-card {
+//   border-radius: 12px;
+//   overflow: hidden;
+//   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+//   transition: transform 0.3s ease, box-shadow 0.3s ease;
+//   background-color: #fff;
+//   display: flex;
+//   flex-direction: column;
+// }
+
+// .category-card:hover {
+//   transform: translateY(-5px);
+//   box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+// }
+
+// .category-header {
+//   padding: 1.5rem;
+//   display: flex;
+//   justify-content: space-between;
+//   align-items: center;
+//   border-bottom: 1px solid rgba(0,0,0,0.05);
+// }
+
+// .category-header[data-category="data-engineering"] {
+//   background: linear-gradient(135deg, #667eea, #764ba2);
+//   color: white;
+// }
+
+// .category-header[data-category="pkm"] {
+//   background: linear-gradient(135deg, #2193b0, #6dd5ed);
+//   color: white;
+// }
+
+// .category-header[data-category="deep-life"] {
+//   background: linear-gradient(135deg, #f857a6, #ff5858);
+//   color: white;
+// }
+
+// .category-header[data-category="writing-reading"] {
+//   background: linear-gradient(135deg, #11998e, #38ef7d);
+//   color: white;
+// }
+
+// .category-header h3 {
+//   font-size: 1.5rem;
+//   margin: 0;
+//   font-weight: 600;
+// }
+
+// .category-icon svg {
+//   fill: white;
+//   width: 24px;
+//   height: 24px;
+// }
+
+// .category-content {
+//   padding: 1.5rem;
+//   flex-grow: 1;
+//   display: flex;
+//   flex-direction: column;
+// }
+
+// .category-intro {
+//   margin-top: 0;
+//   margin-bottom: 1rem;
+//   font-size: 1.1rem;
+// }
+
+// .topic-cloud {
+//   display: flex;
+//   flex-wrap: wrap;
+//   gap: 0.5rem;
+//   margin-bottom: 1rem;
+// }
+
+// .topic-tag {
+//   padding: 0.4rem 0.8rem;
+//   background-color: rgba(0,0,0,0.05);
+//   border-radius: 20px;
+//   font-size: 0.9rem;
+//   transition: background-color 0.2s ease;
+//   text-decoration: none;
+//   color: #333;
+// }
+
+// .topic-tag:hover {
+//   background-color: rgba(0,0,0,0.1);
+// }
+
+// .topic-cards {
+//   display: grid;
+//   grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+//   gap: 0.8rem;
+// }
+
+// .topic-card {
+//   padding: 0.7rem;
+//   background-color: #f8f9fa;
+//   border-radius: 8px;
+//   text-align: center;
+//   text-decoration: none;
+//   color: #333;
+//   font-size: 0.85rem;
+//   transition: background-color 0.2s ease, transform 0.2s ease;
+//   border: 1px solid #eee;
+// }
+
+// .topic-card:hover {
+//   background-color: #e9ecef;
+//   transform: translateY(-2px);
+// }
+
+// .featured-topics {
+//   display: grid;
+//   grid-template-columns: repeat(3, 1fr);
+//   gap: 1rem;
+//   margin-bottom: 1.5rem;
+// }
+
+// .featured-topic {
+//   height: 100px;
+//   border-radius: 8px;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   text-decoration: none;
+//   color: white;
+//   font-weight: 600;
+//   padding: 1rem;
+//   text-align: center;
+//   transition: transform 0.2s ease;
+//   background-size: cover;
+//   position: relative;
+//   overflow: hidden;
+// }
+
+// .featured-topic::before {
+//   content: '';
+//   position: absolute;
+//   top: 0;
+//   left: 0;
+//   right: 0;
+//   bottom: 0;
+//   background: rgba(0,0,0,0.4);
+//   z-index: 1;
+// }
+
+// .featured-topic:nth-child(1) {
+//   background-image: url('/images/digital-minimalism.jpg');
+// }
+
+// .featured-topic:nth-child(2) {
+//   background-image: url('/images/deep-work.jpg');
+// }
+
+// .featured-topic:nth-child(3) {
+//   background-image: url('/images/happy-life.jpg');
+// }
+
+// .featured-topic:hover {
+//   transform: scale(1.03);
+// }
+
+// .topic-title {
+//   position: relative;
+//   z-index: 2;
+//   font-size: 1rem;
+// }
+
+// .topic-list {
+//   line-height: 1.8;
+//   color: #555;
+// }
+
+// .topic-list a {
+//   text-decoration: none;
+//   color: #0366d6;
+//   transition: color 0.2s ease;
+// }
+
+// .topic-list a:hover {
+//   color: #024ea4;
+//   text-decoration: underline;
+// }
+
+// .topic-columns {
+//   display: grid;
+//   grid-template-columns: repeat(2, 1fr);
+//   gap: 2rem;
+// }
+
+// .column h4 {
+//   margin-top: 0;
+//   margin-bottom: 1rem;
+//   color: #333;
+//   font-size: 1.1rem;
+//   padding-bottom: 0.5rem;
+//   border-bottom: 2px solid #f0f0f0;
+// }
+
+// .column ul {
+//   list-style-type: none;
+//   padding: 0;
+//   margin: 0;
+// }
+
+// .column ul li {
+//   margin-bottom: 0.5rem;
+// }
+
+// .column ul li a {
+//   text-decoration: none;
+//   color: #0366d6;
+//   transition: color 0.2s ease;
+// }
+
+// .column ul li a:hover {
+//   color: #024ea4;
+//   text-decoration: underline;
+// }
+
+// .hub-footer {
+//   text-align: center;
+//   margin-top: 2rem;
+//   padding: 2rem;
+//   background-color: #f8f9fa;
+//   border-radius: 12px;
+// }
+
+// .explore-actions {
+//   display: flex;
+//   justify-content: center;
+//   gap: 1rem;
+//   margin-top: 1.5rem;
+// }
+
+// .action-button {
+//   display: inline-flex;
+//   align-items: center;
+//   gap: 0.5rem;
+//   padding: 0.7rem 1.2rem;
+//   background-color: #0366d6;
+//   color: white;
+//   border-radius: 6px;
+//   text-decoration: none;
+//   font-weight: 500;
+//   transition: background-color 0.2s ease;
+// }
+
+// .action-button:hover {
+//   background-color: #024ea4;
+// }
+
+// .action-button svg {
+//   fill: white;
+// }
+
+// /* Dark mode adjustments */
+// @media (prefers-color-scheme: dark) {
+//   body {
+//     background-color: #121212;
+//     color: #e0e0e0;
+//   }
+  
+//   .category-card {
+//     background-color: #1e1e1e;
+//   }
+  
+//   .topic-card {
+//     background-color: #2a2a2a;
+//     border-color: #333;
+//     color: #e0e0e0;
+//   }
+  
+//   .topic-card:hover {
+//     background-color: #333;
+//   }
+  
+//   .topic-tag {
+//     background-color: rgba(255,255,255,0.1);
+//     color: #e0e0e0;
+//   }
+  
+//   .topic-tag:hover {
+//     background-color: rgba(255,255,255,0.15);
+//   }
+  
+//   .column h4 {
+//     color: #e0e0e0;
+//     border-bottom-color: #333;
+//   }
+  
+//   .column ul li a, .topic-list a {
+//     color: #58a6ff;
+//   }
+  
+//   .column ul li a:hover, .topic-list a:hover {
+//     color: #79beff;
+//   }
+  
+//   .hub-footer {
+//     background-color: #1e1e1e;
+//   }
+// }
+
+// /* Responsive adjustments */
+// @media (max-width: 1024px) {
+//   .hub-categories {
+//     grid-template-columns: 1fr;
+//   }
+  
+//   .featured-topics {
+//     grid-template-columns: 1fr;
+//   }
+  
+//   .topic-columns {
+//     grid-template-columns: 1fr;
+//     gap: 1rem;
+//   }
+// }
+
+// @media (max-width: 600px) {
+//   .topic-cards {
+//     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+//   }
+  
+//   .category-header h3 {
+//     font-size: 1.2rem;
+//   }
+  
+//   .hub-intro h2 {
+//     font-size: 2rem;
+//   }
+// }
+
+/* END: custom-cards */
+

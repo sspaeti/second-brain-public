@@ -1,0 +1,18 @@
+<!-- layouts/shortcodes/topic.html -->
+{{ $type := $.Parent.Get "type" | default "cloud" }}
+{{ $url := .Get "url" }}
+{{ $title := .Get "title" }}
+{{ $bg := .Get "bg" }}
+
+{{ if eq $type "cloud" }}
+<a href="{{ $url }}" class="topic-tag">{{ $title }}</a>
+{{ else if eq $type "cards" }}
+<a href="{{ $url }}" class="topic-card">{{ $title }}</a>
+{{ else if eq $type "featured" }}
+<a href="{{ $url }}" class="featured-topic" {{ if $bg }}style="background-image: url('{{ $bg }}');"{{ end }}>
+  <span class="topic-title">{{ $title }}</span>
+</a>
+{{ else }}
+<a href="{{ $url }}">{{ $title }}</a>
+{{ end }}
+

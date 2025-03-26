@@ -1,0 +1,33 @@
+<!-- layouts/shortcodes/category-card.html -->
+{{ $category := .Get "category" }}
+{{ $title := .Get "title" }}
+{{ $icon := .Get "icon" }}
+{{ $color := .Get "color" | default "#3b82f6" }}
+
+<div class="category-card">
+  <div class="category-header" style="background: linear-gradient(135deg, {{ $color }}, {{ index (split $color " ") 0 }}dd);">
+    <h3>{{ $title }}</h3>
+    <div class="category-icon">
+      {{ if eq $icon "data" }}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2h2v-2h-2zm2-1.645A3.502 3.502 0 0 0 12 6.5a3.501 3.501 0 0 0-3.433 2.813l1.962.393A1.5 1.5 0 1 1 12 11.5a1 1 0 0 0-1 1V14h2v-.645z" fill="currentColor"/></svg>
+      {{ else if eq $icon "pkm" }}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M20 22H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1zm-1-2V4H5v16h14zM8 7h8v2H8V7zm0 4h8v2H8v-2zm0 4h5v2H8v-2z" fill="currentColor"/></svg>
+      {{ else if eq $icon "life" }}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm-3-7H7v2h2v2h2v-2h2v-2h-2v-2h-2v2zm8-4h-6v2h6V9z" fill="currentColor"/></svg>
+      {{ else if eq $icon "writing" }}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M6.94 14.036c-.233.624-.43 1.2-.606 1.783.96-.697 2.101-1.139 3.418-1.304 2.513-.314 4.746-1.973 5.876-4.058l-1.456-1.455 1.413-1.415 1-1.001c.43-.43.915-1.224 1.428-2.368-5.593.867-9.018 4.292-11.074 9.818zM17 9.001L18 10c-1 3-4 6-8 6.5-2.669.334-4.336 2.167-5.002 5.5H3C4 16 6 2 21 2c-1 2.997-1.998 4.996-2.997 5.997L17 9.001z" fill="currentColor"/></svg>
+      {{ else if eq $icon "productivity" }}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M17 2h3a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3V0h2v2h6V0h2v2zm0 2v2h-2V4H9v2H7V4H5v16h14V4h-2zM7 8h10v2H7V8zm0 4h10v2H7v-2z" fill="currentColor"/></svg>
+      {{ else if eq $icon "code" }}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M16.95 8.464l1.414-1.414 4.95 4.95-4.95 4.95-1.414-1.414L20.485 12 16.95 8.464zm-9.9 0L3.515 12l3.535 3.536-1.414 1.414L.686 12l4.95-4.95L7.05 8.464z" fill="currentColor"/></svg>
+      {{ else if eq $icon "garden" }}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M6 3a7.002 7.002 0 0 1 6.913 5.895A6.479 6.479 0 0 1 17.5 7H22v2.5c0 3.59-2.91 6.5-6.5 6.5a6.48 6.48 0 0 1-3.839-1.256A7.001 7.001 0 0 1 6 21 7 7 0 0 1 6 3zm0 2a5 5 0 0 0 0 10c.933 0 1.805-.25 2.56-.69l.518-.33.378.485c.876.919 2.028 1.522 3.332 1.689l.212.016v-2.09l-.806-.399-.639-.695a7.004 7.004 0 0 1-.717-1.116l-.242-.452-.051-.099-.052-.096-.082-.141a5 5 0 1 0-4.413 2.318zm6.881-4.333a5 5 0 0 0-.722 8.013l.441.45.432.533-.494 1.968a4.5 4.5 0 0 0 4.5-4.5V7.01a7.002 7.002 0 0 1-4.157 3.658z" fill="currentColor"/></svg>
+      {{ else }}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z" fill="currentColor"/></svg>
+      {{ end }}
+    </div>
+  </div>
+  <div class="category-content">
+    {{ .Inner }}
+  </div>
+</div>

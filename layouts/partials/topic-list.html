@@ -1,0 +1,26 @@
+{{ $type := .Get "type" | default "cloud" }}
+{{ $columns := .Get "columns" | default "auto-fill" }}
+{{ $minWidth := .Get "minWidth" | default "130px" }}
+
+{{ if eq $type "cloud" }}
+<div class="topic-cloud">
+  {{ .Inner }}
+</div>
+{{ else if eq $type "cards" }}
+<div class="topic-cards" style="grid-template-columns: repeat({{ $columns }}, minmax({{ $minWidth }}, 1fr));">
+  {{ .Inner }}
+</div>
+{{ else if eq $type "columns" }}
+<div class="topic-columns" style="grid-template-columns: repeat({{ $columns }}, 1fr);">
+  {{ .Inner }}
+</div>
+{{ else if eq $type "featured" }}
+<div class="featured-topics">
+  {{ .Inner }}
+</div>
+{{ else }}
+<div class="topic-list">
+  {{ .Inner }}
+</div>
+{{ end }}
+

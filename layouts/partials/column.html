@@ -1,0 +1,11 @@
+<!-- layouts/shortcodes/column.html -->
+{{ $title := .Get "title" }}
+
+<div class="column">
+  {{ if $title }}
+  <h4>{{ $title }}</h4>
+  {{ end }}
+  {{ .Inner }}
+</div>
+
+
