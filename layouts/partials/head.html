@@ -67,8 +67,19 @@
   {{end}}
   {{partial "katex.html" .}}
     
-  <script src="https://unpkg.com/@floating-ui/core@0.7.3"></script>
-  <script src="https://unpkg.com/@floating-ui/dom@0.5.4"></script>
+  <!-- unpg.com had outages -->
+  <!-- <script src="https://unpkg.com/@floating-ui/core@0.7.3"></script> -->
+  <!-- <script src="https://unpkg.com/@floating-ui/dom@0.5.4"></script> -->
+  <!-- jsdelivr is a backup -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/@floating-ui/core@0.7.3"></script> -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/@floating-ui/dom@0.5.4"></script> -->
+  <!-- but I moved them locally now: -->
+  {{ $floatingUICore := resources.Get "js/floating-ui.core.umd.min.js" | resources.Fingerprint "md5" }}
+  {{ $floatingUIDOM := resources.Get "js/floating-ui.dom.umd.min.js" | resources.Fingerprint "md5" }}
+  <script src="{{ $floatingUICore.RelPermalink }}"></script>
+  <script src="{{ $floatingUIDOM.RelPermalink }}"></script>
+
+
   {{ $popover := resources.Get "js/popover.js" | resources.Fingerprint "md5" |
   resources.Minify }}
   <script src="{{$popover.Permalink}}"></script>
