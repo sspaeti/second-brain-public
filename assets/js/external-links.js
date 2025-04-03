@@ -3,6 +3,7 @@
 window.addEventListener('load', function() {
   // Get your website domain
   const siteDomain = window.location.hostname;
+  const ownDomain = 'ssp.sh';
   
   // Find all links on the page
   const links = document.querySelectorAll('a');
@@ -15,8 +16,8 @@ window.addEventListener('load', function() {
         // Get the URL of the link
         const linkUrl = new URL(link.href);
         
-        // Check if the link is external (different hostname)
-        if (linkUrl.hostname !== siteDomain) {
+        // Check if the link is external (different hostname) and not to our own domain
+        if (linkUrl.hostname !== siteDomain && linkUrl.hostname !== ownDomain) {
           // Only modify if the URL doesn't already have the ref parameter
           if (!linkUrl.searchParams.has('ref')) {
             // Store the hash part (including text fragments)
@@ -50,8 +51,8 @@ window.addEventListener('load', function() {
       try {
         const linkUrl = new URL(link.href);
         
-        // Only process external links
-        if (linkUrl.hostname !== siteDomain && !linkUrl.searchParams.has('ref')) {
+        // Only process external links that aren't to our own domain
+        if (linkUrl.hostname !== siteDomain && linkUrl.hostname !== ownDomain && !linkUrl.searchParams.has('ref')) {
           // Prevent the default action
           event.preventDefault();
           
