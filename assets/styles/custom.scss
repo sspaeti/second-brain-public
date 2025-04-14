@@ -283,5 +283,16 @@
   .title-text {
     display: none;
   }
+  
+  /* Make the brain icon larger and centered on mobile */
+  #page-title svg {
+    transform: translateX(0) !important;
+  }
+  
+  /* Center the title on mobile */
+  #page-title {
+    // display: flex;
+    justify-content: center;
+  }
 }
 
