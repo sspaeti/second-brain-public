@@ -8,9 +8,14 @@
     <!-- Begin actual content -->
     <article>
     {{partial "header.html" .}}
+
+      {{if not .Params.hideTitle}}
       {{if .Title}}<h1>{{ .Title }}</h1>{{end}}
+      {{end}}
       <p class="meta">
+          {{if not .Params.hideLastUpdate}}
           Last updated {{ partial "date-fmt.html" .}} 
+          {{end}}
           <!-- {{ partial "github.html" . }} -->
       </p>
       <ul class="tags">
