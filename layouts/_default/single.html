@@ -22,9 +22,11 @@
       {{partial "textprocessing.html" . }}
       {{partial "footer.html" .}}
     </article>
+    {{if not .Params.hideBacklinks}}
     <div class="backlinks-container">
         {{partial "backlinks.html" .}}
-    </div>   
+    </div>
+    {{end}}
 </div>
 {{ if .Page.Store.Get "hasMermaid" }}
 <script>
