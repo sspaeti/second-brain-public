@@ -4,11 +4,9 @@
     <!-- hard cod website here as CORS will not work as CORS correctly when www. is provided. But www. needed for Google Canonical link to be correctly -->
     <h1 id="page-title"><a href="https://brain.ssp.sh">
     {{ if hasPrefix .RelPermalink "/brain/data-engineering/" }}
-      {{ $dataEngIcon := resources.Get (printf "svg/%s" (( index $.Site.Data $config ).data_engineering_icon | default $.Site.Data.config.data_engineering_icon)) }}
-      <svg style="vertical-align: middle; width: 1.2em; height: 1.2em; margin-right: 0.2em; transform: translateX(-0.1em);">{{ $dataEngIcon.Content | safeHTML }}</svg><span class="title-text">DE Vault</span>
+      <svg style="vertical-align: middle; width: 1.2em; height: 1.2em; margin-right: 0.2em; transform: translateX(-0.1em);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 L18 6 L19 14 L15 20 L9 22 L5 19 L5 9 L9 4 Z" /><path d="M12 2 L9 4 L9 14 L12 20" /><path d="M18 6 L12 2 L9 14" /></svg><span class="title-text">DE Vault</span>
     {{ else }}
-      {{ $brainIcon := resources.Get (printf "svg/%s" (( index $.Site.Data $config ).brain_icon | default $.Site.Data.config.brain_icon)) }}
-      <svg style="vertical-align: middle; width: 1.2em; height: 1.2em; margin-right: 0.2em; transform: translateX(-0.1em);">{{ $brainIcon.Content | safeHTML }}</svg>{{ ( index $.Site.Data $config ).page_title | default $.Site.Data.config.page_title | safeHTML }}
+      {{ ( index $.Site.Data $config ).page_title | default $.Site.Data.config.page_title | safeHTML }}
     {{ end }}
 </a></h1>
     <div class="spacer"></div>
