@@ -278,3 +278,10 @@
 
 // END: _index.md entry page 
 
+/* Responsive styling for title text */
+@media (max-width: 768px) {
+  .title-text {
+    display: none;
+  }
+}
+

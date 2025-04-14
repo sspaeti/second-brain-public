@@ -21,7 +21,7 @@ operandApiKey: "REPLACE-WITH-YOUR-OPERAND-API-KEY"
 # description: "A digital sanctuary where my thoughts, ideas, and insights are organized as a Zettelkasten. Delve into various topics and (hopefully) learn and be inspired from it."
 description: "A crafted digital vault of curated knowledge where insights and ideas connect and compound, modeled after a Zettelkasten to inspire learning and discovery."
 # page_title: "🧠 Second Brain"
-page_title: '<svg style="vertical-align: middle; width: 1.2em; height: 1.2em; margin-right: 0.2em;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-5 0v-15A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 4A2.5 2.5 0 0 1 17 6.5v11a2.5 2.5 0 0 1-5 0v-11A2.5 2.5 0 0 1 14.5 4Z"></path><path d="M19.5 7A2.5 2.5 0 0 1 22 9.5v6a2.5 2.5 0 0 1-5 0v-6A2.5 2.5 0 0 1 19.5 7Z"></path><path d="M4.5 7A2.5 2.5 0 0 1 7 9.5v6a2.5 2.5 0 0 1-5 0v-6A2.5 2.5 0 0 1 4.5 7Z"></path></svg> Second Brain'
+page_title: '<svg style="vertical-align: middle; width: 1.2em; height: 1.2em; margin-right: 0.2em;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-5 0v-15A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 4A2.5 2.5 0 0 1 17 6.5v11a2.5 2.5 0 0 1-5 0v-11A2.5 2.5 0 0 1 14.5 4Z"></path><path d="M19.5 7A2.5 2.5 0 0 1 22 9.5v6a2.5 2.5 0 0 1-5 0v-6A2.5 2.5 0 0 1 19.5 7Z"></path><path d="M4.5 7A2.5 2.5 0 0 1 7 9.5v6a2.5 2.5 0 0 1-5 0v-6A2.5 2.5 0 0 1 4.5 7Z"></path></svg><span class="title-text"> Second Brain</span>'
 
 links:
   - link_name: Bluesky
