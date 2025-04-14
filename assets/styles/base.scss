@@ -287,6 +287,15 @@ sup > a {
   }
 }
 
+.header-title {
+  margin: 0;
+  font-size: 2em;
+  font-weight: 700;
+  & > a {
+    font-family: var(--font-header);
+  }
+}
+
 a {
   font-size: 1em;
   font-weight: 700;
@@ -402,7 +411,7 @@ header {
   align-items: center;
   margin: 1em 0 2em;
 
-  & > h1 {
+  & > h1, & > .header-title {
     font-size: 2em;
   }
 
