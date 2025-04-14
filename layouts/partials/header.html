@@ -5,7 +5,7 @@
     <div id="page-title" class="header-title"><a href="https://brain.ssp.sh">
     {{ if hasPrefix .RelPermalink "/brain/data-engineering/" }}
       {{ $dataEngIcon := resources.Get (printf "svg/%s" (( index $.Site.Data $config ).data_engineering_icon | default $.Site.Data.config.data_engineering_icon)) }}
-      <svg style="vertical-align: middle; width: 1.1em; height: 1.1em; margin-right: 0.2em; transform: translateX(-0.1em);">{{ $dataEngIcon.Content | safeHTML }}</svg><span class="title-text">DE Vault</span>
+      <svg style="vertical-align: middle; width: 1.1em; height: 1.1em; margin-right: 0.2em; transform: translateX(-0.1em);">{{ $dataEngIcon.Content | safeHTML }}</svg><span class="title-text">Second Brain</span>
     {{ else }}
       {{ $brainIcon := resources.Get (printf "svg/%s" (( index $.Site.Data $config ).brain_icon | default $.Site.Data.config.brain_icon)) }}
       <svg style="vertical-align: middle; width: 1.1em; height: 1.1em; margin-right: 0.2em; transform: translateX(-0.1em);">{{ $brainIcon.Content | safeHTML }}</svg>{{ ( index $.Site.Data $config ).page_title | default $.Site.Data.config.page_title | safeHTML }}
