@@ -74,25 +74,71 @@
 .icon-links {
     display: flex;
     align-items: center;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+    padding: 0 5px;
+    margin-right: 10px;
+    
+    &::-webkit-scrollbar {
+        display: none; /* Hide scrollbar for Chrome/Safari/Opera */
+    }
 }
 
-.blog-link,
-.vault-link,
-.newsletter-link {
-    margin-right: 10px;
+.nav-item {
+    margin-right: 12px;
+    white-space: nowrap;
+    
+    &:last-child {
+        margin-right: 0;
+    }
+
+    @media all and (max-width: 768px) {
+        margin-right: 8px;
+    }
 }
 
 .icon-links a {
-    padding: 0 3px 10px 3px;
-    color: inherit;
+    color: var(--gray) !important;
     text-decoration: none;
-    min-height: 32px;
-    margin-top: 2px;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
+    padding: 6px 0;
+    transition: color 0.2s ease, transform 0.2s ease;
+    
+    &:hover {
+        color: var(--secondary) !important;
+        transform: translateY(-2px);
+    }
+    
+    svg {
+        margin-right: 6px;
+        min-width: 20px;
+
+        @media all and (max-width: 768px) {
+            margin-right: 0;
+        }
+    }
 }
 
-.icon-emoji {
-    font-size: 21px;
-    line-height: 1;
+[saved-theme="dark"] .icon-links a {
+    color: var(--gray) !important;
+    
+    &:hover {
+        color: var(--secondary) !important;
+    }
+    
+    svg {
+        stroke: var(--gray);
+    }
+}
+
+.nav-text {
+    font-size: 14px;
+    font-weight: 500;
+    
+    @media all and (max-width: 768px) {
+        display: none;
+    }
 }
