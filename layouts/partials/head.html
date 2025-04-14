@@ -20,7 +20,7 @@
   <meta name="twitter:description" content="{{if .IsHome}}{{$data.description | default $.Site.Data.config.description}}{{else}}{{.Summary}}{{end}}" />
   <meta property="twitter:image" content="{{ if .Params.Ogimage }}https://www.ssp.sh/brain/_img/feature/{{ .Params.Ogimage }}{{ else }}https://www.ssp.sh/brain/_img/feature/second-brain.jpeg{{ end }}">
   <title>
-    {{ if .Title }}{{ .Title }}{{ else }}{{ $data.page_title | default $.Site.Data.config.page_title }}{{
+    {{ if .Title }}{{ .Title }}{{ else }}{{ $data.page_title | default $.Site.Data.config.page_title | plainify }}{{
     end }}
   </title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
