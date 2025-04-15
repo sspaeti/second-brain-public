@@ -7,6 +7,7 @@ RewriteRule ^data-engineering-blogs/?$ https://www.ssp.sh/brain/data-engineering
 RewriteRule ^big-cloud-vendors/?$ https://www.ssp.sh/brain/cloud-data-provider [R=301,L]
 RewriteRule ^learning-in-public/?$ https://www.ssp.sh/brain/learn-in-public [R=301,L]
 RewriteRule ^write-from-the-heart/?$ https://www.ssp.sh/brain/writing-from-the-heart [R=301,L]
+RewriteRule ^data-engineering-vault/?$ https://www.ssp.sh/brain/data-engineering [R=301,L]
 
 # redirect old article URL to new
 RewriteCond %{HTTP_HOST} ^ssp\.sh$
