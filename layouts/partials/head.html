@@ -151,6 +151,11 @@
         {{$data.enableLatex | default $.Site.Data.config.enableLatex}}
       )
       {{end}}
+      
+      // Initialize mermaid diagrams if they exist on the page
+      if (window.initMermaid) {
+        window.initMermaid();
+      }
 
       {{if $data.enableFooter | default $.Site.Data.config.enableFooter}}
       const footer = document.getElementById("footer")
@@ -191,6 +196,11 @@
         throwOnError : false
       });
       {{end}}
+      
+      // Initialize mermaid diagrams if they exist on the page
+      if (window.initMermaid) {
+        window.initMermaid();
+      }
     };
   </script>
   {{if $data.enableSPA | default $.Site.Data.config.enableSPA}}
@@ -217,16 +227,162 @@
     {{if $data.enableGoatCounter | default false}}
       {{ partial "goat-counter.html" (dict "goatCounterUser" $data.goatCounterUser) }}
     {{end}}
-  {{ if .Page.Store.Get "hasMermaid" }}
-  <script type="module" defer>
-    <!-- Before, I had it in single.html, below .Content as the render hook is not processed until .Content (in textprocessing.hmtl) is executed  -->
+  <!-- Always load Mermaid for any page to ensure it's available during SPA navigation -->
+  <script type="module">
+    // Mermaid is always loaded but only initialized when diagrams are present
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
-    mermaid.initialize({ 
-      startOnLoad: true,
-      theme: 'neutral' 
+    
+    // Get the current theme (light or dark)
+    function getCurrentTheme() {
+      const savedTheme = document.documentElement.getAttribute('saved-theme');
+      if (savedTheme) return savedTheme;
+      
+      // Fallback to system preference
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    
+    // Function to initialize or reinitialize mermaid diagrams
+    window.initMermaid = function() {
+      // Check if page has mermaid diagrams
+      if (document.querySelector('.mermaid')) {
+        console.log("Initializing mermaid diagrams");
+        
+        // Determine if dark mode is active
+        const isDark = getCurrentTheme() === 'dark';
+        console.log("Theme is:", isDark ? "dark" : "light");
+        
+        mermaid.initialize({ 
+          startOnLoad: false,
+          theme: isDark ? 'dark' : 'neutral',
+          darkMode: isDark,
+          htmlLabels: true,
+          themeVariables: isDark ? {
+            primaryColor: '#2b2b33',
+            primaryTextColor: '#f8f8f2',
+            primaryBorderColor: '#81A1C1',
+            lineColor: '#81A1C1',
+            secondaryColor: '#383844',
+            tertiaryColor: '#2E3440',
+            background: '#2E3440',
+            mainBkg: '#383844',
+            textColor: '#f8f8f2',
+            edgeLabelBackground: '#2b2b33',
+            nodeTextColor: '#f8f8f2'
+          } : {}
+        });
+        
+        // Manually render all diagrams - this is necessary after SPA navigation
+        setTimeout(() => {
+          document.querySelectorAll('.mermaid').forEach((element) => {
+            // Only render if not already rendered
+            if (!element.classList.contains('mermaid-processed')) {
+              try {
+                // Store original content for theme toggle reuse
+                const originalContent = element.textContent;
+                element.setAttribute('data-original-content', originalContent);
+                
+                // Render the diagram
+                mermaid.render(`mermaid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, originalContent)
+                  .then((result) => {
+                    element.innerHTML = result.svg;
+                    element.classList.add('mermaid-processed');
+                  });
+              } catch (error) {
+                console.error("Error rendering mermaid diagram:", error);
+              }
+            }
+          });
+        }, 0);
+      }
+    };
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      window.initMermaid();
+    });
+    
+    // Also initialize after SPA navigation
+    if (window.Million) {
+      // Use a MutationObserver to detect when the page content changes
+      const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          if (mutation.addedNodes.length > 0) {
+            // Check if any of the added nodes or their children contain a mermaid diagram
+            const hasMermaid = [...mutation.addedNodes].some(node => {
+              if (node.nodeType === Node.ELEMENT_NODE) {
+                return node.classList?.contains('mermaid') || 
+                       node.querySelector?.('.mermaid') !== null;
+              }
+              return false;
+            });
+            
+            if (hasMermaid) {
+              window.initMermaid();
+              break;
+            }
+          }
+        }
+      });
+      
+      // Start observing the document body
+      observer.observe(document.body, { childList: true, subtree: true });
+    }
+    
+    // Store the mermaid object globally so it can be accessed by other scripts
+    window.mermaidLibLoaded = true;
+    
+    // Watch for theme changes to update Mermaid diagrams
+    document.addEventListener('DOMContentLoaded', () => {
+      const darkModeToggle = document.querySelector('#darkmode-toggle');
+      if (darkModeToggle) {
+        darkModeToggle.addEventListener('change', () => {
+          // Need small delay for the theme attribute to be updated
+          setTimeout(() => {
+            // Clear existing diagrams by removing the processed class
+            document.querySelectorAll('.mermaid').forEach(el => {
+              if (el.classList.contains('mermaid-processed')) {
+                // Store the original content if not already stored
+                if (!el.getAttribute('data-original-content')) {
+                  const originalContent = el.getAttribute('data-content') || el.textContent;
+                  el.setAttribute('data-original-content', originalContent);
+                }
+                el.classList.remove('mermaid-processed');
+                // Reset to original content
+                const originalContent = el.getAttribute('data-original-content');
+                if (originalContent) {
+                  el.textContent = originalContent;
+                }
+              }
+            });
+            
+            // Re-render with new theme
+            window.initMermaid();
+          }, 100);
+        });
+      }
+    });
+    
+    // Also listen for system dark mode changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      // Only re-render if using system theme (no saved theme)
+      if (!document.documentElement.hasAttribute('saved-theme')) {
+        setTimeout(() => {
+          // Similar to above, reset and re-render diagrams
+          document.querySelectorAll('.mermaid').forEach(el => {
+            if (el.classList.contains('mermaid-processed')) {
+              el.classList.remove('mermaid-processed');
+              const originalContent = el.getAttribute('data-original-content');
+              if (originalContent) {
+                el.textContent = originalContent;
+              }
+            }
+          });
+          
+          window.initMermaid();
+        }, 100);
+      }
     });
   </script>
-  {{ end }}
   <!-- Webmentions -->
   {{ partial "webmentions" . }}
   <script src="/brain/webmention.js" async></script>
