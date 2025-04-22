@@ -8,6 +8,17 @@ window.addEventListener('load', function() {
   // Find all links on the page
   const links = document.querySelectorAll('a');
   
+  // Function to check if a hostname belongs to our domain
+  // This checks only the domain part (hostname), not the path
+  // For example, this will match ssp.sh, brain.ssp.sh, vault.ssp.sh, etc.
+  // regardless of what path follows (like ssp.sh/brain/article)
+  function isOwnDomain(hostname) {
+    return hostname === ownDomain || 
+           hostname.endsWith('.' + ownDomain) || 
+           hostname === 'localhost' || 
+           hostname.startsWith('localhost:');
+  }
+  
   // Process each link
   links.forEach(function(link) {
     // Check if the link has an href attribute
@@ -16,8 +27,8 @@ window.addEventListener('load', function() {
         // Get the URL of the link
         const linkUrl = new URL(link.href);
         
-        // Check if the link is external (different hostname) and not to our own domain
-        if (linkUrl.hostname !== siteDomain && linkUrl.hostname !== ownDomain) {
+        // Check if the link is external (different hostname) and not to our own domains
+        if (linkUrl.hostname !== siteDomain && !isOwnDomain(linkUrl.hostname)) {
           // Only modify if the URL doesn't already have the ref parameter
           if (!linkUrl.searchParams.has('ref')) {
             // Store the hash part (including text fragments)
@@ -51,8 +62,8 @@ window.addEventListener('load', function() {
       try {
         const linkUrl = new URL(link.href);
         
-        // Only process external links that aren't to our own domain
-        if (linkUrl.hostname !== siteDomain && linkUrl.hostname !== ownDomain && !linkUrl.searchParams.has('ref')) {
+        // Only process external links that aren't to our own domains
+        if (linkUrl.hostname !== siteDomain && !isOwnDomain(linkUrl.hostname) && !linkUrl.searchParams.has('ref')) {
           // Prevent the default action
           event.preventDefault();
           
