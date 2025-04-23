@@ -19,31 +19,56 @@ pub fn generate_og_image(config: &ImageConfig) -> Result<(), Box<dyn Error>> {
         return Ok(());
     }
     
+    // Sanitize the file paths to handle special characters
+    let safe_svg_path = config.output_path.clone();
+    
+    // Create the directory if it doesn't exist
+    if let Some(parent) = Path::new(&safe_svg_path).parent() {
+        if !parent.exists() {
+            fs::create_dir_all(parent)?;
+        }
+    }
+    
     let words: Vec<String> = split_title(&config.title);
     let svg = create_svg(&words, config.width, config.height)?;
     
     // First save the SVG to a temporary file
-    let temp_svg_path = config.output_path.clone();
-    fs::write(&temp_svg_path, svg)?;
+    fs::write(&safe_svg_path, svg)?;
     
-    // Convert to WebP using modern ImageMagick command
-    let status = Command::new("magick")
-        .arg(&temp_svg_path)
+    // Convert to WebP using modern ImageMagick command with improved error handling
+    let output = Command::new("magick")
+        .arg(&safe_svg_path)
         .arg(&output_path)
-        .status()?;
-
-    if !status.success() {
-        return Err("ImageMagick conversion failed".into());
+        .output();
+    
+    match output {
+        Ok(output) => {
+            if !output.status.success() {
+                let error_message = String::from_utf8_lossy(&output.stderr);
+                eprintln!("ImageMagick conversion error: {}", error_message);
+                return Err(format!("ImageMagick conversion failed: {}", error_message).into());
+            }
+        },
+        Err(e) => {
+            eprintln!("Failed to run ImageMagick: {}", e);
+            return Err(format!("Failed to run ImageMagick: {}", e).into());
+        }
     }
     
     // Optionally remove the temporary SVG file
-    fs::remove_file(temp_svg_path)?;
+    let _ = fs::remove_file(safe_svg_path); // Use let _ to ignore errors on cleanup
     
     Ok(())
 }
 
 fn split_title(title: &str) -> Vec<String> {
-    let clean_title = title.replace('"', "");
+    // Clean the title by replacing problematic characters
+    let clean_title = title
+        .replace('"', "") 
+        .replace('&', "and")  // Replace & with "and" to avoid XML parsing issues
+        .replace('<', "")     // Remove XML special chars
+        .replace('>', "");    
+        
     let words: Vec<String> = clean_title
         .split(|c: char| c.is_whitespace() || c == ':')
         .filter(|s| !s.is_empty())
@@ -144,10 +169,18 @@ fn create_svg(words: &[String], width: u32, height: u32) -> Result<String, Box<d
     };
 
     for word in words.iter() {
+        // Properly escape XML special characters for SVG
+        let escaped_word = word
+            .replace('&', "&amp;")
+            .replace('<', "&lt;")
+            .replace('>', "&gt;")
+            .replace('"', "&quot;")
+            .replace('\'', "&apos;");
+            
         svg.push_str(&format!(
             r#"    <text x="600" y="{}" fill="{text_color}" font-family="Arial" font-size="{}" font-weight="bold" text-anchor="middle">{}</text>
 "#,
-            y_position, title_font_size, word
+            y_position, title_font_size, escaped_word
         ));
         y_position += line_height;
     }
