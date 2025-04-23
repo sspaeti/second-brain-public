@@ -29,7 +29,7 @@ prepare: ## prepare commands
 	obsidian-quartz #copy all notes from my secondbrain with hashtag #publish to /content
 	cp static/second-brain.jpeg static/feature #the one in feature is used for _index note
 	rm -rf public
-	hugo-obsidian-dev -input=content -output=/Users/sspaeti/Documents/git/sspaeti.com/second-brain-public/assets/indices -index=true -root=. 
+	hugo-obsidian -input=content -output=/Users/sspaeti/Documents/git/sspaeti.com/second-brain-public/assets/indices -index=true -root=. 
 	# obsidian-quartz convert_to_lower_case #change linkIndex to lowercase for proper linking
 	python utils/lower_case.py #change linkIndex to lowercase for proper linking
 

@@ -11,6 +11,9 @@ The content/notes itself are not published in this repo, only on [ssp.sh/brain](
 ## Backlink and graph creation
 The tool used is `hugo-obsidian`, a small go programm written by Jacky. Here's the [source](https://github.com/jackyzha0/hugo-obsidian). But it is not maintained anymore (as there is now a [v4](https://github.com/jackyzha0/quartz/tree/v4) without it) and it had bugs and didn't show all my backlinks. That's why I forked it and fixed the backlinks. You can find it here: [sspaeti/hugo-obsidian](https://github.com/sspaeti/hugo-obsidian).
 
+## Move file from my Obsidian to this Quartz folder
+
+I use the utils in [obsidian-quartz](./utils/obsidian-quartz/README.md) script, written in Rust.
 
 ## Redirects of renamed files
 Find these in [.htaccess](static/.htaccess)
