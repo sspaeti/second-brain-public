@@ -12,6 +12,9 @@ use serde_yaml::Value;
 
 use crate::svg_generator::{ImageConfig, generate_og_image, extract_title_from_md};
 
+// Constant for emojis to exclude from tags
+pub const EXCLUDED_TAG_EMOJIS: [char; 5] = ['🗃', '🌻', '🗺', '🌍', '📬'];
+
 pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &str, images_map: &HashMap<String, PathBuf>) -> std::io::Result<()> {
 
     const OG_WIDTH: u32 = 1200;
@@ -118,7 +121,7 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
             // Extract tags, but filter out emoji-containing tags right away
             tags = tags_line.split(' ')
                 .map(|s| s.replace("#", "").to_string())
-                .filter(|s| !s.contains('🗃') && !s.contains('🌻') && !s.contains('🗺') && !s.contains('🌍') && !s.contains('📬'))
+                .filter(|s| !EXCLUDED_TAG_EMOJIS.iter().any(|emoji| s.contains(*emoji)))
                 .collect();
             lines.pop();
             continue;
@@ -252,11 +255,7 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
                 .filter(|v| {
                     if let serde_yaml::Value::String(s) = v {
                         !s.is_empty() && 
-                        !s.contains('🗃') && 
-                        !s.contains('🌻') && 
-                        !s.contains('🗺') && 
-                        !s.contains('🌍') &&
-                        !s.contains('📬') &&
+                        !EXCLUDED_TAG_EMOJIS.iter().any(|emoji| s.contains(*emoji)) &&
                         s != "publish"
                     } else {
                         false  // Only accept string tags
