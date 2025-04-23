@@ -115,11 +115,7 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
         // Look for tags line, extract tags, and remove it from the lines
         if line.starts_with("Tags:") {
             let tags_line = line[5..].trim();
-            // Extract tags, but filter out emoji-containing tags right away
-            tags = tags_line.split(' ')
-                .map(|s| s.replace("#", "").to_string())
-                .filter(|s| !s.contains('🗃') && !s.contains('🌻') && !s.contains('🗺') && !s.contains('🌍') && !s.contains('📬'))
-                .collect();
+            tags = tags_line.split(' ').map(|s| s.replace("#", "").to_string()).collect();
             lines.pop();
             continue;
         }
@@ -196,13 +192,10 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
 
         // Prepare tags for frontmatter
         let mut frontmatter_tags = String::new();
-        let filtered_tags: Vec<String> = tags.iter()
-            .filter(|tag| *tag != "publish" && !tag.is_empty())
-            .cloned()
-            .collect();
-            
-        for tag in filtered_tags.iter() {
-            frontmatter_tags.push_str(&format!("- {}\n", tag));
+        for tag in tags.iter() {
+            if tag != "publish" {
+                frontmatter_tags.push_str(&format!("- {}\n", tag));
+            }
         }
 
         // If enabletoc_value is not empty, update it in existing_frontmatter
@@ -243,78 +236,32 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
                     .map(|line| serde_yaml::Value::String(line.trim_start_matches("- ").to_string()))
                     .collect();
             }
-            // Handle tags from the existing frontmatter - always remove old tags key
-            existing_frontmatter.remove("tags");
-            
-            // Only proceed with tags if we have non-emoji, non-empty new tags
-            let filtered_new_tags: Vec<serde_yaml::Value> = new_tags
-                .into_iter()
-                .filter(|v| {
-                    if let serde_yaml::Value::String(s) = v {
-                        !s.is_empty() && 
-                        !s.contains('🗃') && 
-                        !s.contains('🌻') && 
-                        !s.contains('🗺') && 
-                        !s.contains('🌍') &&
-                        !s.contains('📬') &&
-                        s != "publish"
-                    } else {
-                        false  // Only accept string tags
-                    }
-                })
-                .collect();
-            
-            // Only insert tags key if we have actual content
-            if !filtered_new_tags.is_empty() {
-                let tag_count = filtered_new_tags.len();
-                existing_frontmatter.insert("tags".to_string(), serde_yaml::Value::Sequence(filtered_new_tags));
-                println!("Added {} non-empty tags", tag_count);
-            }
+            ////ignore writing tags as for now, as handling emojis (I guess) does not work properly
+            ///with latest version.
+            // if let Some(serde_yaml::Value::Sequence(existing_tags)) = existing_frontmatter.get_mut("tags") {
+            //     for tag in new_tags {
+            //         if !existing_tags.contains(&tag) {
+            //             existing_tags.push(tag);
+            //         }
+            //     }
+            // } else {
+            //     existing_frontmatter.insert("tags".to_string(), serde_yaml::Value::Sequence(new_tags));
+            // }
 
-            // Redundant check removed - we now handle empty tags earlier
-            
             // Sorting and reconstructing frontmatter
             let mut frontmatter_items: Vec<(&String, &serde_yaml::Value)> = existing_frontmatter.iter().collect();
             frontmatter_items.sort_by(|a, b| a.0.cmp(b.0));
 
             let mut sorted_frontmatter = String::from("---\n");
             for (key, value) in frontmatter_items {
-                // Generate the value string based on the type
-                // Special handling for tags key
-                if key == "tags" {
-                    if let serde_yaml::Value::Sequence(seq) = value {
-                        // Skip completely empty tag arrays
-                        if seq.is_empty() {
-                            continue;
-                        }
-                        
-                        // Format non-empty tag arrays
-                        sorted_frontmatter.push_str(&format!("{}: [{}]\n", key, 
-                            seq.iter()
-                               .filter_map(|v| {
-                                   if let serde_yaml::Value::String(s) = v {
-                                       if s.is_empty() { None } else { Some(s.clone()) }
-                                   } else { None }
-                               })
-                               .collect::<Vec<_>>()
-                               .join(", ")
-                        ));
-                        continue;
-                    }
-                }
-                
-                // Handle all other value types
                 let value_str = match value {
                     serde_yaml::Value::String(s) => s.clone(),
-                    serde_yaml::Value::Sequence(seq) => {
-                        seq.iter()
-                            .filter_map(|v| if let serde_yaml::Value::String(s) = v { Some(s.clone()) } else { None })
-                            .collect::<Vec<_>>()
-                            .join(", ")
-                    },
+                    serde_yaml::Value::Sequence(seq) => seq.iter()
+                        .filter_map(|v| if let serde_yaml::Value::String(s) = v { Some(s.clone()) } else { None })
+                        .collect::<Vec<_>>()
+                        .join(", "),
                     _ => serde_yaml::to_string(value).unwrap_or_default(),
                 };
-                
                 sorted_frontmatter.push_str(&format!("{}: {}\n", key, value_str));
             }
             sorted_frontmatter.push_str("---\n");
