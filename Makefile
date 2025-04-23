@@ -29,12 +29,17 @@ prepare: ## prepare commands
 	obsidian-quartz #copy all notes from my secondbrain with hashtag #publish to /content
 	cp static/second-brain.jpeg static/feature #the one in feature is used for _index note
 	rm -rf public
-	hugo-obsidian -input=content -output=/Users/sspaeti/Documents/git/sspaeti.com/second-brain-public/assets/indices -index=true -root=. 
+	hugo-obsidian-dev -input=content -output=/Users/sspaeti/Documents/git/sspaeti.com/second-brain-public/assets/indices -index=true -root=. 
 	# obsidian-quartz convert_to_lower_case #change linkIndex to lowercase for proper linking
 	python utils/lower_case.py #change linkIndex to lowercase for proper linking
-	# TODO: somehow the index is not correctly shown. E.g open source projects engineeing project does not show backlink to poeple od data engineering...if make prepare-python is used, it works.......[
-	# or "Continuous Notes" only has one backlink, eventhoug in Obsidian it has many more, even public ones
-	# # Workaround: If I rename the file in Obsidian, and rename it back to its origin. It will correctly create backlinks again. Not sure where the problem is. The linkindex.json seems to look good already with all paths included.
+
+#Test Backlinks where probelm occured. Fixed with latest `hugo-obsidian`
+# UPDATE 2025-04-23; Fixed with update on https://github.com/sspaeti/hugo-obsidian
+#somehow the index is not correctly shown: 
+# - open source projects engineeing project does not show backlink to poeple od data engineering...if make prepare-python is used, it works.......[
+# - "Continuous Notes" only has one backlink, eventhoug in Obsidian it has many more (feedback loop, digital garden)
+# - semantic layer does not show backlinks, only one, although there are 10 of them, as e.g. data virtualization is one of them.
+# Workaround: If I rename the file in Obsidian, and rename it back to its origin. It will correctly create backlinks again. Not sure where the problem is. The linkindex.json seems to look good already with all paths included.
 
 run: ## run hugo from a clean state
 	hugo --gc && hugo server --enableGitInfo --minify
