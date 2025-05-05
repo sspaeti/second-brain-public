@@ -32,6 +32,10 @@
         {{partial "backlinks.html" .}}
     </div>
     {{end}}
+    
+    {{if not .Params.hideWebmentions}}
+    <div id="webmentions"></div>
+    {{end}}
 </div>
 <!-- Initialize Mermaid for both page load and SPA navigation -->
 <script>
