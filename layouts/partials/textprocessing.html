@@ -88,4 +88,6 @@
   {{ $content = $content | replaceRE "blockquote class=callout" "blockquote" }}
 {{end}}
 
+<div class="e-content">
 {{ $content | safeHTML }}
+</div>

@@ -6,15 +6,16 @@
 {{partial "search.html" .}}
 <div class="singlePage">
     <!-- Begin actual content -->
-    <article>
+    <article class="h-entry">
     {{partial "header.html" .}}
 
       {{if not .Params.hideTitle}}
-      {{if .Title}}<h1>{{ .Title }}</h1>{{end}}
+      {{if .Title}}<h1 class="p-name">{{ .Title }}</h1>{{end}}
       {{end}}
       <p class="meta">
           {{if not .Params.hideLastUpdate}}
-          Last updated {{ partial "date-fmt.html" .}} 
+          Last updated <time class="dt-published" datetime="{{ .Lastmod.Format "2006-01-02T15:04:05-07:00" }}">{{ partial "date-fmt.html" .}}</time>
+          <span style="display: none;">by <a href="https://www.ssp.sh" class="p-author h-card">Simon Späti</a></span>
           {{end}}
           <!-- {{ partial "github.html" . }} -->
       </p>

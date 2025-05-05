@@ -37,9 +37,9 @@
   {{ end }}
 
   {{ if .Params.canonicalUrl }}
-  <link rel="canonical" href="{{ .Params.canonicalUrl }}">
+  <link rel="canonical" class="u-url" href="{{ .Params.canonicalUrl }}">
   {{ else }}
-  <link rel="canonical" href="{{ .Permalink }}">
+  <link rel="canonical" class="u-url" href="{{ .Permalink }}">
   {{ end }}
 
   <!-- CSS Stylesheets and Fonts -->
