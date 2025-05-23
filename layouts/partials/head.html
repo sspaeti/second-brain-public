@@ -1,6 +1,22 @@
 <!-- set data/config yaml file based on website language -->
 {{ $config := cond (eq $.Site.Language.Lang "en") "config" (printf "config.%s" $.Site.Language.Lang) }}
 {{ $data := index $.Site.Data $config }}
+<!-- find correct hero image path, either a manual created _img/feature (1. prio) or otherwise part of content with name of image (2.) -->
+{{ $ogImagePath := "" }}
+{{ if .Params.Ogimage }}
+  {{ $featurePath := printf "content/_img/feature/%s" .Params.Ogimage }}
+  {{ $rootPath := printf "content/%s" .Params.Ogimage }}
+  {{ if fileExists $featurePath }}
+    {{ $ogImagePath = printf "https://www.ssp.sh/brain/_img/feature/%s" .Params.Ogimage }}
+  {{ else if fileExists $rootPath }}
+    {{ $ogImagePath = printf "https://www.ssp.sh/brain/%s" .Params.Ogimage }}
+  {{ else }}
+    {{ $ogImagePath = "https://www.ssp.sh/brain/_img/feature/second-brain.jpeg" }}
+  {{ end }}
+{{ else }}
+  {{ $ogImagePath = "https://www.ssp.sh/brain/_img/feature/second-brain.jpeg" }}
+{{ end }}
+
 <head>
   <!-- Meta tags -->
   <meta charset="UTF-8" />
@@ -10,7 +26,7 @@
   />
   <meta property="og:title" content="{{ .Title }}">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="{{ if .Params.Ogimage }}https://www.ssp.sh/brain/_img/feature/{{ .Params.Ogimage }}{{ else }}https://www.ssp.sh/brain/_img/feature/second-brain.jpeg{{ end }}">
+  <meta property="og:image" content="{{ $ogImagePath }}">
   <meta property="og:width" content="{{ if .Params.Ogwidth }}{{ .Params.Ogwidth }}{{ else }}1024{{ end }}"> <!--this and below need to be changed to second-brain.jpeg-->
   <meta property="og:height" content="{{ if .Params.Ogheight }}{{ .Params.Ogheight }}{{ else }}763{{ end }}">
   <meta property="og:url" content="{{ .Permalink }}">
@@ -18,7 +34,7 @@
   <meta name="twitter:site" content="@sspaeti" />
   <meta name="twitter:title" content="{{ .Title }}" />
   <meta name="twitter:description" content="{{if .IsHome}}{{$data.description | default $.Site.Data.config.description}}{{else}}{{.Summary}}{{end}}" />
-  <meta property="twitter:image" content="{{ if .Params.Ogimage }}https://www.ssp.sh/brain/_img/feature/{{ .Params.Ogimage }}{{ else }}https://www.ssp.sh/brain/_img/feature/second-brain.jpeg{{ end }}">
+  <meta property="twitter:image" content="{{ $ogImagePath }}">
   <title>
     {{ if .Title }}{{ .Title }}{{ else }}{{ $data.page_title | default $.Site.Data.config.page_title | plainify }}{{
     end }}
