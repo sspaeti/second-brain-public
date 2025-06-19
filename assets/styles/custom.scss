@@ -511,3 +511,271 @@
 }
 
 //END: Webmention
+
+// START: Data Engineering Toolkit styles
+
+/* Toolkit page container */
+.toolkit-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: var(--light);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  
+  @media (max-width: 768px) {
+    padding: 20px;
+    border-radius: 12px;
+    margin: 0 10px;
+  }
+}
+
+/* Toolkit header styles */
+.toolkit-header {
+  text-align: center;
+  margin-bottom: 40px;
+  
+  h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    color: var(--dark);
+    
+    @media (max-width: 768px) {
+      font-size: 2rem;
+    }
+  }
+  
+  p {
+    font-size: 1.1em;
+    color: var(--gray);
+    max-width: 800px;
+    margin: 0 auto;
+    
+    @media (max-width: 768px) {
+      font-size: 1rem;
+      padding: 0 10px;
+    }
+  }
+}
+
+/* Stats grid for toolkit */
+.toolkit-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin: 30px 0;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin: 20px 0;
+  }
+  
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.toolkit-stat-card {
+  background: var(--lightgray);
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  border: 1px solid var(--outlinegray);
+  
+  @media (max-width: 768px) {
+    padding: 15px;
+  }
+}
+
+.toolkit-stat-number {
+  font-size: 2em;
+  font-weight: bold;
+  color: var(--secondary);
+  
+  @media (max-width: 768px) {
+    font-size: 1.5em;
+  }
+}
+
+.toolkit-stat-label {
+  color: var(--gray);
+  font-size: 0.9em;
+  margin-top: 5px;
+  
+  @media (max-width: 768px) {
+    font-size: 0.8em;
+  }
+}
+
+/* Knowledge grid for toolkit categories */
+.toolkit-knowledge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+  margin-bottom: 40px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+  
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+}
+
+.toolkit-knowledge-category {
+  background: var(--lightgray);
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  border-left: 5px solid;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  
+  @media (max-width: 768px) {
+    padding: 20px;
+    border-radius: 12px;
+  }
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+  }
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1));
+    border-radius: 50%;
+    transform: translate(30px, -30px);
+  }
+}
+
+/* Category color schemes */
+.toolkit-core-tech { border-left-color: #4CAF50; }
+.toolkit-devops { border-left-color: #2196F3; }
+.toolkit-python { border-left-color: #FF9800; }
+.toolkit-data-skills { border-left-color: #9C27B0; }
+.toolkit-project-setup { border-left-color: #F44336; }
+.toolkit-analytics { border-left-color: #00BCD4; }
+.toolkit-utilities { border-left-color: #795548; }
+.toolkit-ai-workflows { border-left-color: #E91E63; }
+.toolkit-system-fundamentals { border-left-color: #607D8B; }
+.toolkit-development-env { border-left-color: #FF5722; }
+.toolkit-data-quality { border-left-color: #673AB7; }
+
+.toolkit-category-title {
+  color: var(--gray);
+  font-size: 1.4em;
+  font-weight: bold;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  
+  @media (max-width: 768px) {
+    font-size: 1.2em;
+  }
+}
+
+.toolkit-category-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 0.8em;
+  
+  @media (max-width: 768px) {
+    width: 25px;
+    height: 25px;
+    font-size: 0.7em;
+  }
+}
+
+/* Category icon colors */
+.toolkit-core-tech .toolkit-category-icon { background: #4CAF50; }
+.toolkit-devops .toolkit-category-icon { background: #2196F3; }
+.toolkit-python .toolkit-category-icon { background: #FF9800; }
+.toolkit-data-skills .toolkit-category-icon { background: #9C27B0; }
+.toolkit-project-setup .toolkit-category-icon { background: #F44336; }
+.toolkit-analytics .toolkit-category-icon { background: #00BCD4; }
+.toolkit-utilities .toolkit-category-icon { background: #795548; }
+.toolkit-ai-workflows .toolkit-category-icon { background: #E91E63; }
+.toolkit-system-fundamentals .toolkit-category-icon { background: #607D8B; }
+.toolkit-development-env .toolkit-category-icon { background: #FF5722; }
+.toolkit-data-quality .toolkit-category-icon { background: #673AB7; }
+
+.toolkit-tech-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.toolkit-tech-item {
+  background: var(--light);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85em;
+  font-weight: 500;
+  color: var(--gray);
+  border: 1px solid var(--outlinegray);
+  transition: all 0.2s ease;
+  
+  @media (max-width: 768px) {
+    font-size: 0.8em;
+    padding: 5px 10px;
+  }
+  
+  &:hover {
+    background: var(--secondary);
+    color: white;
+    transform: scale(1.05);
+  }
+  
+  a {
+    color: inherit;
+    text-decoration: none;
+    font-weight: inherit;
+  }
+}
+
+.toolkit-evolution-note {
+  background: var(--lightgray);
+  color: var(--gray);
+  padding: 25px;
+  border-radius: 15px;
+  margin-top: 30px;
+  text-align: center;
+  border: 1px solid var(--outlinegray);
+  
+  @media (max-width: 768px) {
+    padding: 20px;
+    margin-top: 25px;
+  }
+  
+  h3 {
+    margin-top: 0;
+    font-size: 1.3em;
+    
+    @media (max-width: 768px) {
+      font-size: 1.1em;
+    }
+  }
+}
+
+// END: Data Engineering Toolkit styles
