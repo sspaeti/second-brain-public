@@ -33,6 +33,12 @@ prepare: ## prepare commands
 	# obsidian-quartz convert_to_lower_case #change linkIndex to lowercase for proper linking
 	python utils/lower_case.py #change linkIndex to lowercase for proper linking
 
+word-count:
+	find content -type f -not -path '*/\.*' -name '*.md' -exec cat {} \; | wc -w
+
+file-count:
+	find content -name "*.md" -type f | wc -l
+
 #Test Backlinks where probelm occured. Fixed with latest `hugo-obsidian`
 # UPDATE 2025-04-23; Fixed with update on https://github.com/sspaeti/hugo-obsidian
 #somehow the index is not correctly shown: 
