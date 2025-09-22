@@ -87,7 +87,7 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
                         eprintln!("Frontmatter content was:\n{}", frontmatter_string);
                     }
                 }
-                if file_name_only == "_index.md" || file_name_only == "data engineering.md" || file_name_only == "data engineering toolkit.md" || file_name_only == "cv.md" {
+                if file_name_only == "_index.md" || file_name_only == "data engineering.md" || file_name_only == "data engineering toolkit.md" || file_name_only == "cv.md" || file_name_only == "newsletter.md" {
                     enabletoc_value = "false".to_string();
                 }
                 else if let Some(enabletoc) = existing_frontmatter.get("enableToc").and_then(|v| v.as_str()) {
