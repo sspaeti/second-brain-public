@@ -1,7 +1,7 @@
 <!-- set data/config yaml file based on website language -->
 {{ $config := cond (eq $.Site.Language.Lang "en") "config" (printf "config.%s" $.Site.Language.Lang) }}
 {{ $data := index $.Site.Data $config }}
-<!-- find correct hero image path, either a manual created _img/feature (1. prio) or otherwise part of content with name of image (2.) -->
+<!-- find correct hero image path, either a manual created _img/feature (1. prio) or otherwise part of content with name of image (2.), or auto-generated (3.) -->
 {{ $ogImagePath := "" }}
 {{ if .Params.Ogimage }}
   {{ $featurePath := printf "content/_img/feature/%s" .Params.Ogimage }}
@@ -10,6 +10,22 @@
     {{ $ogImagePath = printf "https://www.ssp.sh/brain/_img/feature/%s" .Params.Ogimage }}
   {{ else if fileExists $rootPath }}
     {{ $ogImagePath = printf "https://www.ssp.sh/brain/%s" .Params.Ogimage }}
+  {{ else if .File }}
+    {{ $genPath := printf "content/_img/feature/gen/%s" (.File.BaseFileName | urlize) }}
+    {{ $genPathWebp := printf "%s.webp" $genPath }}
+    {{ if fileExists $genPathWebp }}
+      {{ $ogImagePath = printf "https://www.ssp.sh/brain/_img/feature/gen/%s.webp" (.File.BaseFileName | urlize) }}
+    {{ else }}
+      {{ $ogImagePath = "https://www.ssp.sh/brain/_img/feature/second-brain.jpeg" }}
+    {{ end }}
+  {{ else }}
+    {{ $ogImagePath = "https://www.ssp.sh/brain/_img/feature/second-brain.jpeg" }}
+  {{ end }}
+{{ else if .File }}
+  {{ $genPath := printf "content/_img/feature/gen/%s" (.File.BaseFileName | urlize) }}
+  {{ $genPathWebp := printf "%s.webp" $genPath }}
+  {{ if fileExists $genPathWebp }}
+    {{ $ogImagePath = printf "https://www.ssp.sh/brain/_img/feature/gen/%s.webp" (.File.BaseFileName | urlize) }}
   {{ else }}
     {{ $ogImagePath = "https://www.ssp.sh/brain/_img/feature/second-brain.jpeg" }}
   {{ end }}
