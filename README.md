@@ -21,3 +21,10 @@ I use the utils in [obsidian-quartz](./utils/obsidian-quartz/README.md) script, 
 Find these in [.htaccess](static/.htaccess)
 
 
+
+## ChangeLog
+
+### 2025-10-16: Fix cross-section navigation (brain ↔ blog)
+- Modified [`assets/js/router.js`](assets/js/router.js) to intercept clicks between `/brain/` and other sections, forcing full page loads instead of SPA navigation
+- Prevents "null" page errors when navigating from brain to main blog
+- Compatible with [`assets/js/external-links.js`](assets/js/external-links.js) which handles truly external links
