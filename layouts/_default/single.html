@@ -15,7 +15,7 @@
       <p class="meta">
           {{if not .Params.hideLastUpdate}}
           Last updated <time class="dt-published" datetime="{{ .Lastmod.Format "2006-01-02T15:04:05-07:00" }}">{{ partial "date-fmt.html" .}}</time>
-          <span style="display: none;">by <a href="https://www.ssp.sh" class="p-author h-card">Simon Späti</a></span>
+          <span style="display: none;">by <a href="{{ $.Site.Params.authorUrl | default "https://www.ssp.sh" }}" class="p-author h-card">{{ $.Site.Params.author | default "Simon Späti" }}</a></span>
           {{end}}
           <!-- {{ partial "github.html" . }} -->
       </p>

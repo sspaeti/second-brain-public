@@ -36,3 +36,6 @@ enableGitInfo = true
 [params]
   # site default theme ("light", "dark", "auto")
   defaultTheme = "dark"
+  # author name
+  author = "Simon Späti"
+  authorUrl = "https://www.ssp.sh"
