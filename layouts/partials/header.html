@@ -2,7 +2,7 @@
     {{ $config := cond (eq $.Site.Language.Lang "en") "config" (printf "config.%s" $.Site.Language.Lang) }}
     <!-- <h1 id="page-title"><a href="{{ "" | absLangURL }}">{{ ( index $.Site.Data $config ).page_title | default $.Site.Data.config.page_title }}</a></h1> -->
     <!-- hard cod website here as CORS will not work as CORS correctly when www. is provided. But www. needed for Google Canonical link to be correctly -->
-    <div id="page-title" class="header-title"><a href="https://brain.ssp.sh">
+    <div id="page-title" class="header-title"><a href="/brain">
     {{ if hasPrefix .RelPermalink "/brain/data-engineering/" }}
       {{ $dataEngIcon := resources.Get (printf "svg/%s" (( index $.Site.Data $config ).data_engineering_icon | default $.Site.Data.config.data_engineering_icon)) }}
       <svg style="vertical-align: middle; width: 1.1em; height: 1.1em; margin-right: 0.2em; transform: translateX(-0.1em);">{{ $dataEngIcon.Content | safeHTML }}</svg><span class="title-text">Second Brain</span>
