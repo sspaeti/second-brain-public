@@ -25,6 +25,15 @@
           {{ end }}
       </ul>
       {{partial "toc.html" .}}
+
+      {{- /* Hacker News Banner */ -}}
+      {{- with .Params.hackernews -}}
+      <div class="article-hackernews-banner">
+          <span class="hn-icon">🔶</span>
+          This note was on Hacker News. <a href="{{ . }}" target="_blank" rel="noopener">Read the comments</a>
+      </div>
+      {{- end -}}
+
       {{partial "textprocessing.html" . }}
       {{partial "footer.html" .}}
     </article>

@@ -512,6 +512,59 @@
 
 /* END: Webmention */
 
+/* START: Hacker News Banner */
+.article-hackernews-banner {
+  padding: .5rem 1rem;
+  font-size: 0.85rem;
+  font-family: var(--font-body);
+  position: relative;
+  margin: 0 0 1.5rem;
+  color: #ff6600;
+  font-style: italic;
+  text-align: right;
+  background-color: transparent;
+  border-top: 1px dashed #eee;
+  border-bottom: 1px dashed #eee;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  [saved-theme="dark"] & {
+    color: #ff9966;
+    border-top: 1px dashed #333;
+    border-bottom: 1px dashed #333;
+  }
+
+  .hn-icon {
+    font-style: normal;
+  }
+
+  a {
+    font-weight: 400;
+    color: var(--tertiary);
+    text-decoration: none;
+    border-bottom: none;
+    transition: color 0.3s ease;
+
+    [saved-theme="dark"] & {
+      color: var(--secondary);
+    }
+
+    &:hover {
+      color: var(--secondary);
+      text-decoration: underline;
+
+      [saved-theme="dark"] & {
+        color: var(--tertiary);
+      }
+    }
+  }
+}
+/* END: Hacker News Banner */
+
 /* START: Data Engineering Toolkit styles */
 
 /* Toolkit page container */
