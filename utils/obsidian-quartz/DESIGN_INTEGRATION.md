@@ -2,56 +2,34 @@
 
 ## Summary
 
-Successfully integrated **Design 8b (Landscape Bold - Monochrome)** into the Rust codebase for automatic OG image generation.
+Successfully integrated **Design 4 (Landscape Minimal Split-Screen)** into the Rust codebase for automatic OG image generation.
 
-## What Changed
+## Design Specifications
 
-### 1. New SVG Template (`src/og_template.svg`)
-- Created a separate template file containing the full design
-- Uses placeholder `{{TITLE_PLACEHOLDER}}` for dynamic title insertion
-- Design features:
-  - **Dimensions:** 1350 x 1080px (5:4 landscape aspect ratio)
-  - **Color palette:** Your website colors (#FF5D62, #181820, #1F1F28, #DCD7BA)
-  - **Brain icon** in framed box (top left)
-  - **sspaeti logo** in monochrome (bottom left, properly oriented)
-  - **Bold typography** for titles
-  - **"SECOND BRAIN"** header in Inter/Helvetica 600 weight
-  - **"A Digital Vault of Knowledge"** tagline
-  - **ssp.sh/brain** domain
+- **Dimensions:** 1200 × 630px (standard OG format, ~2:1 aspect ratio)
+- **Color palette:** #FF5D62 (accent), #181820/#1F1F28 (dark backgrounds), #DCD7BA (text)
+- **Layout:** Split-screen with brain icon (left), vertical divider at x=320, title area (right)
+- **Typography:** Inter/Helvetica 600 weight
+- **Dynamic font sizing:** 52-76px based on title length (1-4 lines)
+- **Line breaking:** Max 20 chars/line, 4 lines maximum
 
-### 2. Updated `src/svg_generator.rs`
+## Key Components
 
-## How It Works
+### 1. SVG Template (`src/og_template.svg`)
+- Brain icon: translate(80, 220), scale(8)
+- Vertical divider at x=320
+- Title placeholder: {{TITLE_PLACEHOLDER}}
+- sspaeti logo: bottom right (1040, 550), scale(0.0025)
+- Tagline: "A Digital Vault of Knowledge"
+- Domain: ssp.sh/brain
 
-1. **Title Processing:**
-   ```rust
-   split_title(title) // Groups words into lines (max 25 chars per line)
-   ```
-
-2. **SVG Generation:**
-   ```rust
-   create_svg(words, width, height)
-   // 1. Loads template from src/og_template.svg
-   // 2. Generates title text with proper escaping
-   // 3. Replaces {{TITLE_PLACEHOLDER}} in template
-   ```
-
-3. **Image Conversion:**
-   - SVG saved to `content/_img/feature/gen/{note-name}.svg`
-   - Converted to WebP using ImageMagick
-   - SVG file removed after conversion
-
-## Testing
-
-Build successfully completes:
-```bash
-cargo build --release
-# Output: Finished `release` profile [optimized]
-```
+### 2. Code (`src/svg_generator.rs`)
+- `split_title()`: Word-based line breaking (max 20 chars/line, 4 lines)
+- `create_svg()`: Template loading + dynamic title insertion
+- Title positioning: x=360, y=230, line_height=70px
+- XML character escaping for SVG safety
 
 ## Usage
-
-The system automatically generates OG images when processing notes:
 
 ```bash
 cd utils/obsidian-quartz
@@ -60,17 +38,15 @@ cargo run
 make prepare
 ```
 
-Each published note with `#publish` tag will get:
-- A unique SVG generated from template
-- Title dynamically inserted (1-4 lines based on length)
-- WebP conversion for optimal file size
+Each note tagged with `#publish` automatically gets:
+- Unique OG image generated from template
+- Title dynamically positioned and sized
+- WebP conversion via ImageMagick
 - Frontmatter updated with ogimage path
 
 ## Example Output
 
-For a note titled "Data Engineering Best Practices":
-- Lines: ["Data Engineering", "Best Practices"]
-- Font size: 88px (2 words)
-- Position: x=100, y=600 and y=720
-- File: `content/_img/feature/gen/data-engineering-best-practices.webp`
-
+For "Automatic Grammar/Spellchecking on Markdown files (DevOps)":
+- Lines: ["Automatic", "Grammar/Spellchecking", "on Markdown files", "(DevOps)"]
+- Font size: 52px (4 lines)
+- Output: `content/_img/feature/gen/automatic-grammar-spellchecking-on-markdown-files-devops.webp`
