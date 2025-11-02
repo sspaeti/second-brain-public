@@ -17,8 +17,8 @@ pub const EXCLUDED_TAG_EMOJIS: [char; 5] = ['🗃', '🌻', '🗺', '🌍', '�
 
 pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &str, images_map: &HashMap<String, PathBuf>) -> std::io::Result<()> {
 
-    const OG_WIDTH: u32 = 1350;
-    const OG_HEIGHT: u32 = 1080;
+    const OG_WIDTH: u32 = 1200;
+    const OG_HEIGHT: u32 = 630;
 
     // println!("Opening file: {}", path.display());
     let file = fs::File::open(path)?;

@@ -153,22 +153,22 @@ fn create_svg(words: &[String], _width: u32, _height: u32) -> Result<String, Box
         .map_err(|e| format!("Failed to read template file from {:?}: {}", template_path, e))?;
 
     // Generate title text elements
-    // Design 4 layout: title on right side starting at x=480
+    // Standard OG layout (1200x630): title on right side starting at x=360
     let mut title_text = String::new();
-    let mut y_position = 420.0;  // Starting Y position for Design 4 (adjusted for 4 lines)
-    let line_height = 100.0;  // Reduced line height to fit 4 lines better
+    let mut y_position = 230.0;  // Starting Y position for standard OG format
+    let line_height = 70.0;  // Compact line height to fit in 630px height
     let words_count = words.len() as f32;
 
     // Dynamically adjust font size based on title length (number of lines)
-    // Design 4 uses smaller fonts for more lines to ensure fit
+    // Standard OG format uses smaller fonts overall due to reduced height
     let title_font_size = if words_count > 3.0 {
-        70.0  // 4 lines - smallest font
+        52.0  // 4 lines - smallest font
     } else if words_count > 2.0 {
-        80.0  // 3 lines
+        60.0  // 3 lines
     } else if words_count > 1.0 {
-        90.0  // 2 lines
+        68.0  // 2 lines
     } else {
-        96.0  // 1 line - largest font
+        76.0  // 1 line - largest font
     };
 
     for word in words.iter() {
@@ -181,7 +181,7 @@ fn create_svg(words: &[String], _width: u32, _height: u32) -> Result<String, Box
             .replace('\'', "&apos;");
 
         title_text.push_str(&format!(
-            "    <text x=\"480\" y=\"{}\" fill=\"#DCD7BA\" font-family=\"Arial, sans-serif\" font-size=\"{}\" font-weight=\"bold\">{}</text>\n",
+            "    <text x=\"360\" y=\"{}\" fill=\"#DCD7BA\" font-family=\"Arial, sans-serif\" font-size=\"{}\" font-weight=\"bold\">{}</text>\n",
             y_position, title_font_size, escaped_word
         ));
         y_position += line_height;
