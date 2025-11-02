@@ -6,7 +6,7 @@ A utility for processing and publishing Obsidian notes to a Quartz-powered websi
 
 - **Selective Publishing**: Only publishes notes tagged with `#publish`
 - **Image Handling**: Automatically copies referenced images to your public folder
-- **OpenGraph Image Generation**: Creates SVG/WebP social media preview images
+- **OpenGraph Image Generation**: Creates SVG/WebP social media preview images. See `svg_generator.rs`
 - **Frontmatter Management**: Preserves and enhances YAML frontmatter
 - **Link Handling**: Converts link indexes to lowercase for better compatibility
 

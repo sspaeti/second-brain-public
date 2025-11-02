@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1350 1080">
+    <!-- Dark background -->
+    <defs>
+        <linearGradient id="bgDiagonal" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#1F1F28;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#181820;stop-opacity:1" />
+        </linearGradient>
+
+        <filter id="glow">
+            <feGaussianBlur stdDeviation="10" result="coloredBlur"/>
+            <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+    </defs>
+
+    <!-- Background -->
+    <rect width="100%" height="100%" fill="url(#bgDiagonal)"/>
+
+    <!-- Large accent shape - top left -->
+    <polygon points="0,0 500,0 0,400" fill="#FF5D62" opacity="0.12"/>
+
+    <!-- Bold horizontal accent bar -->
+    <rect x="0" y="480" width="1350" height="6" fill="#FF5D62" opacity="0.6"/>
+
+    <!-- Grid pattern -->
+    <g stroke="#DCD7BA" stroke-width="0.5" opacity="0.06">
+        <line x1="0" y1="360" x2="1350" y2="360"/>
+        <line x1="0" y1="720" x2="1350" y2="720"/>
+        <line x1="450" y1="0" x2="450" y2="1080"/>
+        <line x1="900" y1="0" x2="900" y2="1080"/>
+    </g>
+
+    <!-- Brain Icon - Top left with box frame -->
+    <g transform="translate(80, 80)">
+        <!-- Icon frame -->
+        <rect x="-20" y="-20" width="340" height="340" fill="none" stroke="#FF5D62" stroke-width="3" opacity="0.4"/>
+
+        <!-- Brain icon -->
+        <g transform="scale(12)" stroke="#FF5D62" stroke-width="2.5" fill="none" filter="url(#glow)">
+            <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-5 0v-15A2.5 2.5 0 0 1 9.5 2Z"/>
+            <path d="M14.5 4A2.5 2.5 0 0 1 17 6.5v11a2.5 2.5 0 0 1-5 0v-11A2.5 2.5 0 0 1 14.5 4Z"/>
+            <path d="M19.5 7A2.5 2.5 0 0 1 22 9.5v6a2.5 2.5 0 0 1-5 0v-6A2.5 2.5 0 0 1 19.5 7Z"/>
+            <path d="M4.5 7A2.5 2.5 0 0 1 7 9.5v6a2.5 2.5 0 0 1-5 0v-6A2.5 2.5 0 0 1 4.5 7Z"/>
+        </g>
+    </g>
+
+    <!-- SECOND BRAIN text - next to icon -->
+    <text x="500" y="180" fill="#FF5D62" font-family="'Inter', 'Helvetica Neue', 'Helvetica', Arial, sans-serif" font-size="52" font-weight="600" letter-spacing="8">
+        SECOND
+    </text>
+    <text x="500" y="260" fill="#FF5D62" font-family="'Inter', 'Helvetica Neue', 'Helvetica', Arial, sans-serif" font-size="52" font-weight="600" letter-spacing="8">
+        BRAIN
+    </text>
+
+    {{TITLE_PLACEHOLDER}}
+
+    <!-- Accent highlight bar -->
+    <rect x="100" y="760" width="280" height="8" fill="#FF5D62"/>
+
+    <!-- sspaeti Logo - Bottom left (small and tactful, monochrome) -->
+    <g transform="translate(100, 975)">
+        <g transform="scale(0.0042, -0.0042) translate(0, -17710)" fill="#FF5D62" opacity="0.4">
+            <path d="M5865 17699 c-208 -20 -462 -84 -650 -164 -261 -112 -468 -255 -670 -466 -50 -52 -158 -157 -240 -233 -198 -185 -839 -795 -1465 -1396 -1649 -1582 -2261 -2175 -2315 -2245 -281 -359 -455 -777 -511 -1225 -17 -134 -18 -410 -3 -548 48 -447 230 -882 516 -1237 51 -63 470 -484 1134 -1140 2043 -2016 2961 -2927 4658 -4620 2125 -2122 2406 -2407 2449 -2494 98 -197 -30 -348 -333 -391 -69 -9 -2350 0 -4560 19 -931 8 -985 10 -1073 29 -368 81 -612 268 -698 536 -82 255 -10 532 213 818 26 34 507 502 1068 1041 561 539 1021 985 1023 991 1 6 -239 247 -534 535 l-536 523 -31 -29 c-774 -723 -2038 -1918 -2083 -1969 -210 -239 -375 -494 -482 -744 -208 -484 -254 -991 -136 -1479 75 -307 228 -615 434 -876 144 -183 393 -399 605 -528 319 -193 674 -311 1085 -362 140 -18 1128 -27 4135 -40 1780 -8 1713 -10 1965 52 382 93 756 303 1077 607 681 642 3890 3731 3952 3803 289 338 486 789 546 1246 17 137 20 460 5 587 -66 528 -293 1005 -660 1382 -47 48 -827 806 -1735 1683 -907 878 -1650 1600 -1650 1605 0 4 608 582 1350 1284 743 702 1383 1311 1423 1354 600 632 851 1425 696 2200 -83 416 -293 812 -597 1121 -450 458 -1062 718 -1759 746 -134 6 -5120 37 -5396 34 -70 -1 -167 -6 -217 -10z m4240 -1549 c1114 -8 1377 -12 1455 -24 382 -60 647 -246 752 -528 25 -70 31 -102 35 -198 4 -100 1 -128 -21 -213 -47 -181 -154 -360 -316 -528 -47 -48 -668 -635 -1380 -1305 -712 -669 -1316 -1237 -1341 -1261 l-46 -44 -1744 1792 c-959 986 -1760 1813 -1781 1837 -182 220 -101 406 207 478 65 15 1275 13 4180 -6z m-3717 -3290 c1068 -1081 2208 -2226 2533 -2545 903 -884 3744 -3720 3796 -3789 224 -299 228 -696 9 -1010 -27 -39 -511 -510 -1391 -1353 l-1350 -1294 -96 98 c-1086 1111 -3659 3757 -3659 3763 0 4 542 567 1205 1251 663 684 1204 1247 1202 1251 -4 12 -1079 1063 -1087 1063 -5 0 -552 -560 -1215 -1245 -663 -685 -1210 -1246 -1214 -1248 -5 -1 -771 750 -1702 1671 -1251 1235 -1705 1690 -1736 1738 -106 162 -146 295 -146 484 0 113 4 142 27 220 32 107 89 218 153 301 51 66 2710 2617 2722 2612 4 -2 881 -887 1949 -1968z"/>
+        </g>
+    </g>
+
+    <!-- Bottom info - right aligned -->
+    <text x="1250" y="950" fill="#DCD7BA" font-family="'Inter', Arial, sans-serif" font-size="24" text-anchor="end" opacity="0.6" letter-spacing="2">
+        A Digital Vault of Knowledge
+    </text>
+
+    <text x="1250" y="1010" fill="#FF5D62" font-family="'Inter', Arial, sans-serif" font-size="40" text-anchor="end" font-weight="600">
+        ssp.sh/brain
+    </text>
+</svg>
