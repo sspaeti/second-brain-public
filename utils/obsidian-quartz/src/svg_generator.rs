@@ -75,27 +75,62 @@ fn split_title(title: &str) -> Vec<String> {
         .map(|s| s.to_string())
         .collect();
 
-    // Group words to create a balanced layout for the new landscape design
-    // Target length is shorter now since we have a landscape format
+    // Group words to create a balanced layout for Design 4 split-screen
+    // We need to fit on the right side with max 4 lines
     let mut grouped_words = Vec::new();
     let mut current_line = String::new();
-    let target_length = 25;  // Increased from 20 for wider format
 
-    for word in words {
-        if current_line.len() + word.len() + 1 <= target_length {
-            if !current_line.is_empty() {
-                current_line.push(' ');
-            }
-            current_line.push_str(&word);
+    // Reduced target length to prevent overflow - Design 4 has less horizontal space
+    // after the vertical divider at x=420
+    let target_length = 20;  // Conservative length for right-side panel
+    let max_lines = 4;
+
+    let mut word_index = 0;
+    while word_index < words.len() {
+        let word = &words[word_index];
+        let test_line = if current_line.is_empty() {
+            word.clone()
         } else {
+            format!("{} {}", current_line, word)
+        };
+
+        // Check if adding this word would exceed target length
+        if test_line.len() <= target_length {
+            current_line = test_line;
+        } else {
+            // Current line is done, start new line with this word
             if !current_line.is_empty() {
                 grouped_words.push(current_line);
+                current_line = word.clone();
+            } else {
+                // Single word is too long, add it anyway
+                current_line = word.clone();
             }
-            current_line = word;
         }
+
+        // Limit to max 4 lines
+        if grouped_words.len() >= max_lines - 1 && !current_line.is_empty() {
+            // We're at max lines, just combine the rest
+            for i in (word_index + 1)..words.len() {
+                let remaining_word = &words[i];
+                if current_line.len() + remaining_word.len() + 1 <= target_length * 2 {
+                    current_line.push(' ');
+                    current_line.push_str(remaining_word);
+                }
+            }
+            break;
+        }
+
+        word_index += 1;
     }
+
     if !current_line.is_empty() {
         grouped_words.push(current_line);
+    }
+
+    // Limit to exactly 4 lines maximum
+    if grouped_words.len() > max_lines {
+        grouped_words.truncate(max_lines);
     }
 
     grouped_words
@@ -118,19 +153,22 @@ fn create_svg(words: &[String], _width: u32, _height: u32) -> Result<String, Box
         .map_err(|e| format!("Failed to read template file from {:?}: {}", template_path, e))?;
 
     // Generate title text elements
+    // Design 4 layout: title on right side starting at x=480
     let mut title_text = String::new();
-    let mut y_position = 600.0;
-    let line_height = 120.0;
+    let mut y_position = 420.0;  // Starting Y position for Design 4 (adjusted for 4 lines)
+    let line_height = 100.0;  // Reduced line height to fit 4 lines better
     let words_count = words.len() as f32;
 
-    // Dynamically adjust font size based on title length
-    // Landscape format allows for larger text
+    // Dynamically adjust font size based on title length (number of lines)
+    // Design 4 uses smaller fonts for more lines to ensure fit
     let title_font_size = if words_count > 3.0 {
-        78.0
+        70.0  // 4 lines - smallest font
     } else if words_count > 2.0 {
-        88.0
+        80.0  // 3 lines
+    } else if words_count > 1.0 {
+        90.0  // 2 lines
     } else {
-        98.0
+        96.0  // 1 line - largest font
     };
 
     for word in words.iter() {
@@ -143,7 +181,7 @@ fn create_svg(words: &[String], _width: u32, _height: u32) -> Result<String, Box
             .replace('\'', "&apos;");
 
         title_text.push_str(&format!(
-            "    <text x=\"100\" y=\"{}\" fill=\"#DCD7BA\" font-family=\"Arial, sans-serif\" font-size=\"{}\" font-weight=\"900\" letter-spacing=\"-2\">{}</text>\n",
+            "    <text x=\"480\" y=\"{}\" fill=\"#DCD7BA\" font-family=\"Arial, sans-serif\" font-size=\"{}\" font-weight=\"bold\">{}</text>\n",
             y_position, title_font_size, escaped_word
         ));
         y_position += line_height;
