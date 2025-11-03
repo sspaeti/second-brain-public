@@ -643,10 +643,11 @@
 }
 
 .toolkit-stat-number {
+  font-family: var(--font-header);
   font-size: 2em;
   font-weight: bold;
   color: var(--secondary);
-  
+
   @media (max-width: 768px) {
     font-size: 1.5em;
   }
@@ -728,6 +729,7 @@
 .toolkit-data-quality { border-left-color: #673AB7; }
 
 .toolkit-category-title {
+  font-family: var(--font-header);
   color: var(--gray);
   font-size: 1.4em;
   font-weight: bold;
@@ -735,7 +737,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  
+
   @media (max-width: 768px) {
     font-size: 1.2em;
   }
@@ -923,23 +925,25 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  
+
   @media (min-width: 768px) {
     flex-direction: row;
     align-items: flex-start;
-    
+
     strong {
-      min-width: 150px;
+      min-width: 180px;
       flex-shrink: 0;
     }
   }
-  
+
   strong {
+    font-family: var(--font-body);
     color: var(--secondary);
     font-weight: 600;
   }
-  
+
   span {
+    font-family: var(--font-body);
     line-height: 1.5;
     color: var(--gray);
   }
@@ -987,11 +991,12 @@
   color: white;
   padding: 0.3rem 0.8rem;
   border-radius: 20px;
+  font-family: var(--font-mono);
   font-size: 0.8rem;
   font-weight: 600;
   display: inline-block;
   margin-bottom: 0.8rem;
-  
+
   @media (max-width: 768px) {
     font-size: 0.7rem;
     padding: 0.2rem 0.6rem;
@@ -1136,12 +1141,14 @@
   .cv-competencies-box {
     color: var(--gray);
   }
-  
+
   .cv-skill-category span {
+    font-family: var(--font-body);
     color: var(--gray);
   }
-  
+
   .cv-intro-item span:not(.cv-label) {
+    font-family: var(--font-body);
     color: var(--gray);
   }
 }
@@ -1153,10 +1160,12 @@
 }
 
 .cv-skill-category span {
+  font-family: var(--font-body);
   color: var(--gray);
 }
 
 .cv-intro-item span:not(.cv-label) {
+  font-family: var(--font-body);
   color: var(--gray);
 }
 
