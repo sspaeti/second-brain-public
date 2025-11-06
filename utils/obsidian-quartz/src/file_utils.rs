@@ -13,7 +13,7 @@ use serde_yaml::Value;
 use crate::svg_generator::{ImageConfig, generate_og_image, extract_title_from_md};
 
 // Constant for emojis to exclude from tags
-pub const EXCLUDED_TAG_EMOJIS: [char; 5] = ['🗃', '🌻', '🗺', '🌍', '📬'];
+pub const EXCLUDED_TAG_EMOJIS: [char; 6] = ['🗃', '🌻', '🗺', '🌍', '📬', '📚'];
 
 pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &str, images_map: &HashMap<String, PathBuf>) -> std::io::Result<()> {
 
