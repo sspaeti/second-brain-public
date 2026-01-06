@@ -34,5 +34,6 @@ links:
     link: https://github.com/sspaeti
   - link_name: Services
     link: https://services.ssp.sh
-  # - link_name: Chat
-  #   link: https://chat.ssp.sh/join/RPIA-3ZB7-FbbO
+  - link_name: Chat
+    link: https://technical-writers.zulipchat.com/join/sjcezmyg6k3doww4nsfz4qiq/
+    # link: https://chat.ssp.sh/join/RPIA-3ZB7-FbbO
