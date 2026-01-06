@@ -9,6 +9,7 @@ RewriteRule ^learning-in-public/?$ https://www.ssp.sh/brain/learn-in-public [R=3
 RewriteRule ^write-from-the-heart/?$ https://www.ssp.sh/brain/writing-from-the-heart [R=301,L]
 RewriteRule ^data-engineering-vault/?$ https://www.ssp.sh/brain/data-engineering [R=301,L]
 RewriteRule ^data-engineering-blogs-newsletters?/?$ https://www.ssp.sh/brain/data-engineering-blogs-and-newsletters [R=301,L]
+RewriteRule ^plaintext-files?/?$ https://www.ssp.sh/brain/plain-text-files [R=301,L]
 
 # redirect old article URL to new
 RewriteCond %{HTTP_HOST} ^ssp\.sh$
