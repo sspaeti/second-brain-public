@@ -39,3 +39,4 @@ enableGitInfo = true
   # author name
   author = "Simon Späti"
   authorUrl = "https://www.ssp.sh"
+  recentNotes = 13 #notes for SecondBrain
