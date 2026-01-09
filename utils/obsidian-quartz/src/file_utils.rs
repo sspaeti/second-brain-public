@@ -37,7 +37,8 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
     let mut enabletoc_value = String::new(); // To store the existing enableToc value
 
     let re = Regex::new(r"\s*!\[\[(.*?(?:png|jpg|gif|webp|mp4))\]\](.*)").unwrap();
-    
+    let created_re = Regex::new(r"Created\s+\[\[(\d{4}-\d{2}-\d{2})\]\]").unwrap();
+
     // Ugly fix as enableToc not working: Check if the file name is _index.md right after obtaining the file name
     let file_name_only = path.file_name()
                     .and_then(|f| f.to_str())
@@ -46,7 +47,8 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
 
     // HashMap to store images to copy
     let mut images_to_copy: Vec<String> = Vec::new();
-    
+    let mut created_date: Option<String> = None;
+
     let mut line_number = 0;
     for line in reader.lines() {
         let line = line?;
@@ -136,10 +138,20 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
                     images_to_copy.push(image_name.to_string());
                     // images_to_copy.insert(image_name.to_string(), image_path.clone());
 
-                } 
+                }
                 // else {
                 //     println!("Image not found in map: {}", image_name);
                 // }
+            }
+        }
+
+        // Extract created date from "Created [[YYYY-MM-DD]]" pattern
+        if created_date.is_none() {
+            if let Some(mat) = created_re.captures(&line) {
+                if mat.len() > 1 {
+                    created_date = Some(mat[1].to_string());
+                    // println!("Found created date: {}", &mat[1]);
+                }
             }
         }
     }
@@ -213,10 +225,17 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
             existing_frontmatter.insert("enableToc".to_string(), serde_yaml::Value::String(enabletoc_value.clone()));
         }
 
-        if existing_frontmatter.is_empty() { 
+        if existing_frontmatter.is_empty() {
             // Create frontmatter
             // frontmatter = format!("---\nlastmod: '{}'\ntitle: \"{}\"\ntags:\n{}\n---\n", last_modified_str, title, frontmatter_tags);
-            frontmatter = format!("---\nlastmod: '{}'\ntitle: \"{}\"\n---\n", last_modified_str, title);
+            let mut frontmatter_parts = vec![
+                format!("lastmod: '{}'", last_modified_str),
+                format!("title: \"{}\"", title),
+            ];
+            if let Some(ref date) = created_date {
+                frontmatter_parts.insert(0, format!("createddate: '{}'", date));
+            }
+            frontmatter = format!("---\n{}\n---\n", frontmatter_parts.join("\n"));
         }
         else {
             // Merge frontmatter
@@ -233,10 +252,22 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
             last_modified_str = existing_frontmatter.get("lastmod").and_then(|v| v.as_str()).filter(|s| !s.is_empty()).unwrap_or(&last_modified_str).to_string();
             existing_frontmatter.remove("lastmod");
 
+            // Handle created date - check if it exists in frontmatter or use extracted one
+            let date_str = existing_frontmatter.get("createddate")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string())
+                .or(created_date.clone());
+            existing_frontmatter.remove("createddate");
+
             // Update existing frontmatter with new values
             existing_frontmatter.insert("title".to_string(), serde_yaml::Value::String(format!("\"{}\"", title)));
             existing_frontmatter.insert("lastmod".to_string(), serde_yaml::Value::String(last_modified_str.clone()));
             existing_frontmatter.insert("enableToc".to_string(), serde_yaml::Value::String(enabletoc.clone()));
+
+            // Add created date if we have it
+            if let Some(date) = date_str {
+                existing_frontmatter.insert("createddate".to_string(), serde_yaml::Value::String(date));
+            }
             
             // Handling tags
             let mut new_tags: Vec<serde_yaml::Value> = vec![];
