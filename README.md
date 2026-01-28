@@ -8,6 +8,10 @@ This is a fork of the [Quartz](https://github.com/jackyzha0/quartz) repo ([v3](h
 
 The content/notes itself are not published in this repo, only on [ssp.sh/brain](https://ssp.sh/brain).
 
+> **[Explore with RAG → explore.ssp.sh](https://explore.ssp.sh)**
+>
+> Semantic search, hidden connections, and graph traversal powered by [obsidian-note-taking-assistant](https://github.com/sspaeti/obsidian-note-taking-assistant).
+
 ## Utils used
 ## Backlink and graph creation
 The tool used is `hugo-obsidian`, a small go programm written by Jacky. Here's the [source](https://github.com/jackyzha0/hugo-obsidian). But it is not maintained anymore (as there is now a [v4](https://github.com/jackyzha0/quartz/tree/v4) without it) and it had bugs and didn't show all my backlinks. That's why I forked it and fixed the backlinks. You can find it here: [sspaeti/hugo-obsidian](https://github.com/sspaeti/hugo-obsidian).
