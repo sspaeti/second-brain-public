@@ -1,9 +1,29 @@
-{{$src := .Destination | safeURL }}
-{{$width := index (split .Text "|") 1 | default "auto" }}
-{{$external := strings.HasPrefix $src "http" }}
-{{- if $external -}}
+{{- $dest := .Destination -}}
+{{- $src := .Destination | safeURL -}}
+{{- $width := index (split .Text "|") 1 | default "auto" -}}
+{{- $external := strings.HasPrefix $src "http" -}}
+{{- $isYouTube := or (findRE `youtube\.com/watch` $dest) (findRE `youtu\.be/` $dest) -}}
+{{- if $isYouTube -}}
+  {{- $videoID := "" -}}
+  {{- if findRE `youtube\.com/watch` $dest -}}
+    {{- $videoID = replaceRE `.*[?&]v=([^&]+).*` "$1" $dest -}}
+  {{- else -}}
+    {{- $videoID = replaceRE `.*youtu\.be/([^?&]+).*` "$1" $dest -}}
+  {{- end -}}
+  {{- $start := "" -}}
+  {{- if findRE `[?&]t=\d+` $dest -}}
+    {{- $start = replaceRE `.*[?&]t=(\d+).*` "?start=$1" $dest -}}
+  {{- end -}}
+  {{- if ne $videoID "" -}}
+<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+  <iframe src="https://www.youtube.com/embed/{{ $videoID }}{{ $start }}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen title="{{ .Text }}"></iframe>
+</div>
+  {{- else -}}
+<a href="{{ $src }}">{{ .Text }}</a>
+  {{- end -}}
+{{- else if $external -}}
 <img src="{{ $src }}" width="{{ $width }}" alt="{{ .Text }}" {{ with .Title }} title="{{ . }}" {{ end }} />
 {{- else -}}
-{{$fixedUrl := (cond (hasPrefix $src "/") $src (print "/" $src)) | urlize}}
+{{- $fixedUrl := (cond (hasPrefix $src "/") $src (print "/" $src)) | urlize -}}
 <img src="{{.Page.Site.BaseURL}}{{ $fixedUrl }}" width="{{ $width }}" alt="{{ .Text }}" {{ with .Title }} title="{{ . }}" {{ end }} />
 {{- end -}}

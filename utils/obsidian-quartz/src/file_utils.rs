@@ -363,6 +363,7 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
         file.write_all(frontmatter.as_bytes())?;
 
         let mut is_first_heading = true; // Flag to identify the first heading
+        let callout_re = Regex::new(r"^>\s*\[!\w+\]").unwrap();
         for (index, line) in lines.iter().enumerate() {
             // Skip lines that were part of the original frontmatter
             if index < line_end_frontmatter {
@@ -378,6 +379,20 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
             // Write the line to the file
             file.write_all(line.as_bytes())?;
             file.write_all(b"\n")?;
+
+            // Insert blank blockquote line between callout header and content
+            // so Goldmark produces separate <p> elements for title and body
+            if callout_re.is_match(line) {
+                if let Some(next_line) = lines.get(index + 1) {
+                    let trimmed = next_line.trim_start();
+                    if trimmed.starts_with('>') {
+                        let after_gt = trimmed[1..].trim();
+                        if !after_gt.is_empty() {
+                            file.write_all(b">\n")?;
+                        }
+                    }
+                }
+            }
         }
     }
     Ok(())
