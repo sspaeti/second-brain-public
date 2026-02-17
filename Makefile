@@ -39,6 +39,11 @@ word-count:
 file-count:
 	find content -name "*.md" -type f | wc -l
 
+updated-this-year:
+	@year=$$(date +%Y); \
+	count=$$(grep -l "^lastmod: $$year" content/*.md | wc -l); \
+	echo "$$count notes updated in $$year"
+
 #Test Backlinks where probelm occured. Fixed with latest `hugo-obsidian`
 # UPDATE 2025-04-23; Fixed with update on https://github.com/sspaeti/hugo-obsidian
 #somehow the index is not correctly shown: 
