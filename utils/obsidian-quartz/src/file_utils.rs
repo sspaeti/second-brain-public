@@ -37,7 +37,7 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
     let mut enabletoc_value = String::new(); // To store the existing enableToc value
 
     let re = Regex::new(r"\s*!\[\[(.*?(?:png|jpg|gif|webp|mp4))\]\](.*)").unwrap();
-    let created_re = Regex::new(r"Created:?\s+\[\[(\d{4}-\d{2}-\d{2})\]\]").unwrap();
+    let created_re = Regex::new(r"Created:?\s+\[\[.*?(\d{4}-\d{2}-\d{2}).*?\]\]").unwrap();
 
     // Ugly fix as enableToc not working: Check if the file name is _index.md right after obtaining the file name
     let file_name_only = path.file_name()
@@ -380,6 +380,11 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
 
             // Skip the "Created [[YYYY-MM-DD]]" line (now shown in page header)
             if Some(index) == created_date_line_index {
+                continue;
+            }
+
+            // Skip empty "References:" line (e.g. "References: " or "References:")
+            if line.starts_with("References:") && line["References:".len()..].trim().is_empty() {
                 continue;
             }
 
