@@ -14,8 +14,10 @@
       {{end}}
       <p class="meta">
           {{if not .Params.hideLastUpdate}}
-          Last updated <time class="dt-published" datetime="{{ .Lastmod.Format "2006-01-02T15:04:05-07:00" }}">{{ partial "date-fmt.html" .}}</time>
+          <span class="meta-label-full">Last updated</span><span class="meta-label-short">Updated:</span> <time class="dt-published" datetime="{{ .Lastmod.Format "2006-01-02T15:04:05-07:00" }}">{{ partial "date-fmt.html" .}}</time>
           <span style="display: none;">by <a href="{{ $.Site.Params.authorUrl | default "https://www.ssp.sh" }}" class="p-author h-card">{{ $.Site.Params.author | default "Simon Späti" }}</a></span>
+          {{- if .Params.createddate }} · <span class="meta-label-full">Created</span><span class="meta-label-short">Created:</span> <time datetime="{{ .Params.createddate }}">{{ (time .Params.createddate).Format "Jan 2, 2006" }}</time>
+          {{- end -}}
           {{end}}
           <!-- {{ partial "github.html" . }} -->
       </p>

@@ -214,6 +214,19 @@ article {
   & > .meta {
     margin: 0 0 1em 0;
     opacity: 0.7;
+
+    .meta-label-short {
+      display: none;
+    }
+
+    @media all and (max-width: 600px) {
+      .meta-label-full {
+        display: none;
+      }
+      .meta-label-short {
+        display: inline;
+      }
+    }
   }
 
   & a {
