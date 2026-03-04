@@ -93,6 +93,7 @@ article {
     a.internal-link:not(.broken),
     a:not(.internal-link):not(.hanchor):not([href^="http"]) {
       color: var(--gray);
+      background-color: transparent;
       text-decoration: underline !important;
       text-decoration-color: var(--tertiary) !important; // blue
       text-underline-offset: 3px;
