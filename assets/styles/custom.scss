@@ -13,6 +13,113 @@
   --million-progress-bar-color: var(--secondary);
 }
 
+// ========== Underline-based Article Links (prose only) ========== //
+// Only targets links inside p, li, blockquote — not TOC, headings, backlinks
+// Three variations: external (pink underline), internal working (teal underline), internal broken (dashed)
+
+// Remove bold from article prose links (underline replaces bold)
+article p a,
+article li:not(.tags li):not(.mainTOC li):not(#contact_buttons li) a,
+article blockquote a {
+  font-weight: normal !important;
+}
+
+// Dark mode
+[saved-theme="dark"] article {
+  p, li:not(.tags li):not(.mainTOC li):not(#contact_buttons li), blockquote {
+    // External links (href starts with http): body text + sakuraPink underline
+    a[href^="http"]:not(.hanchor) {
+      color: var(--gray);
+      text-decoration: underline !important;
+      text-decoration-color: var(--primary) !important; // sakuraPink
+      text-underline-offset: 3px;
+      text-decoration-thickness: 2px;
+
+      &:hover {
+        color: var(--primary) !important;
+        text-decoration-color: var(--primary) !important;
+      }
+    }
+
+    // Internal links (both .internal-link and relative hrefs): body text + dragonBlue/teal underline
+    a.internal-link:not(.broken),
+    a:not(.internal-link):not(.hanchor):not([href^="http"]) {
+      color: var(--gray);
+      background-color: transparent;
+      text-decoration: underline !important;
+      text-decoration-color: var(--secondary) !important; // dragonBlue
+      text-underline-offset: 3px;
+      text-decoration-thickness: 2px;
+
+      &:hover {
+        color: var(--secondary) !important;
+        text-decoration-color: var(--secondary) !important;
+      }
+    }
+
+    // Internal broken links: lighter teal + dashed underline
+    a.internal-link.broken {
+      color: #8BA4B0;
+      opacity: 0.7;
+      background-color: transparent;
+      text-decoration: underline dashed !important;
+      text-decoration-color: #8BA4B0 !important;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+// Light mode
+article {
+  p, li:not(.tags li):not(.mainTOC li):not(#contact_buttons li), blockquote {
+    a[href^="http"]:not(.hanchor) {
+      color: var(--gray);
+      text-decoration: underline !important;
+      text-decoration-color: var(--secondary) !important; // red/pink
+      text-underline-offset: 3px;
+      text-decoration-thickness: 2px;
+
+      &:hover {
+        color: var(--secondary) !important;
+        text-decoration-color: var(--secondary) !important;
+      }
+    }
+
+    a.internal-link:not(.broken),
+    a:not(.internal-link):not(.hanchor):not([href^="http"]) {
+      color: var(--gray);
+      text-decoration: underline !important;
+      text-decoration-color: var(--tertiary) !important; // blue
+      text-underline-offset: 3px;
+      text-decoration-thickness: 2px;
+
+      &:hover {
+        color: var(--tertiary) !important;
+        text-decoration-color: var(--tertiary) !important;
+      }
+    }
+
+    a.internal-link.broken {
+      color: #000000;
+      background-color: transparent;
+      text-decoration: underline dashed !important;
+      text-decoration-color: #555 !important;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+
+      &:hover {
+        color: #666;
+        text-decoration-color: #888 !important;
+      }
+    }
+  }
+}
+
 //check base.scss and .internal-linking for background color: can be set as varable
 
 
