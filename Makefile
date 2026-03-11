@@ -52,6 +52,9 @@ updated-this-year:
 # - semantic layer does not show backlinks, only one, although there are 10 of them, as e.g. data virtualization is one of them.
 # Workaround: If I rename the file in Obsidian, and rename it back to its origin. It will correctly create backlinks again. Not sure where the problem is. The linkindex.json seems to look good already with all paths included.
 
+stop-brain: ## kill any running hugo server to prevent localhost URLs in production (when dedp book is running)
+	-pkill -f "hugo server"
+
 run: ## run hugo from a clean state
 	hugo --gc && hugo server --enableGitInfo --minify
 
@@ -65,5 +68,6 @@ upload: ## upload to server
 serve: prepare run
 serve-old: prepare-python run
 
+
 upload-only: hugo-generate upload
-deploy: prepare hugo-generate upload
+deploy: stop-brain prepare hugo-generate upload
