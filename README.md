@@ -10,6 +10,12 @@ This is a fork of the [Quartz](https://github.com/jackyzha0/quartz) repo ([v3](h
   - Intelligent sentence truncation for complete thoughts
   - Displays on OG images as text overlay (Kanagawa color scheme)
   - Used in meta tags for SEO and social media previews
+* **BASE file support** for publishing Obsidian database views:
+  - Publishes Database Folder plugin `.base` files as standalone Hugo pages
+  - Generates HTML tables from database entries with wikilinks
+  - Supports folder filters and exclusion patterns
+  - Recursive subdirectory scanning
+  - Examples: [Coffee Beans](https://ssp.sh/brain/coffee-beans-base), [Books](https://ssp.sh/brain/books-base)
 * YouTube links in Obsidian image syntax (`![title](https://youtube.com/watch?v=XXX)`) render as embedded video players instead of broken images
 * Callout blocks are normalized so compact and spaced forms render identically
 
@@ -23,7 +29,14 @@ The content/notes themselves are not published in this repo, only on [ssp.sh/bra
 
 ### Content processing: obsidian-quartz
 
-Rust CLI tool that processes Obsidian vault notes and outputs Hugo-compatible markdown. Handles frontmatter, tags, images, OG image generation, callout normalization, and more.
+Rust CLI tool that processes Obsidian vault notes and outputs Hugo-compatible markdown. Handles frontmatter, tags, images, OG image generation, callout normalization, BASE database views, and more.
+
+Key features:
+- **Markdown publishing**: Processes notes tagged with `#publish`
+- **BASE database views**: Publishes Obsidian Database Folder plugin `.base` files as HTML tables
+- **Filter expressions**: Supports folder filters and exclusion patterns (`!file.path.contains`)
+- **Smart descriptions**: Auto-extracts clean descriptions from first paragraph
+- **OG image generation**: Creates social media preview images with SVG→WebP conversion
 
 See **[utils/obsidian-quartz/README.md](./utils/obsidian-quartz/README.md)** for details.
 
@@ -42,6 +55,34 @@ Custom render hooks in `layouts/_default/_markup/`:
 Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
+
+### 2026-04-17: Obsidian BASE file support for database views
+- **BASE File Publishing** (`utils/obsidian-quartz/src/base_*.rs`):
+  - Added support for Obsidian Database Folder plugin `.base` files
+  - Parses BASE YAML files with filters, views, properties, and formulas
+  - Implements temporary staging workflow to avoid private vault scanning:
+    - Copies source files to `/content/BASES/<base-name>/` during processing
+    - Queries from staging folder to build tables
+    - Cleans up staging folder after generation
+  - **Filter Support**:
+    - Folder filters: `file.path.contains("path")`
+    - Extension filters: `file.ext.contains("md")`
+    - Exclusion patterns: `!file.path.contains("path")` to skip folders
+    - Recursive subdirectory scanning
+  - **Table Generation**:
+    - Renders HTML tables with proper styling (`base-table-container`, `base-table`)
+    - Generates wikilinks (`[[Name]]`) that resolve to published content
+    - Supports multiple columns with custom properties
+    - Includes description/intro content before tables
+  - **Frontmatter**:
+    - Sets `enableToc: false`, `enableBacklinks: false`, `enableGraph: false`
+    - Auto-generates title from BASE filename
+  - **Examples**: Coffee Beans (46 entries), Books (184 entries, excluding 1256 Study books)
+- **Code Structure**:
+  - `base_parser.rs`: Parse BASE YAML into Rust structs (serde)
+  - `base_query.rs`: Query notes with filter expressions, extract folder/extension/exclusion patterns
+  - `base_renderer.rs`: Render notes as HTML tables with formatted values (ratings, prices)
+  - `file_utils.rs`: Orchestrate BASE processing workflow with staging and cleanup
 
 ### 2026-04-17: Smart description extraction and OG image enhancement
 - **Description Extraction** (`utils/obsidian-quartz/src/file_utils.rs`):

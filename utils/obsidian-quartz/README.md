@@ -25,16 +25,30 @@ A Rust CLI tool that processes Obsidian vault notes tagged with `#publish` and o
 - **Callout Normalization**: Inserts blank blockquote lines between callout headers and content so Hugo/Goldmark renders title and body as separate `<p>` elements
 - **Link Index**: Converts `linkIndex.json` keys to lowercase for Hugo compatibility
 - **Filename Lowercasing**: All output filenames are lowercased
+- **BASE File Support**: Publishes Obsidian Database Folder plugin `.base` files as standalone Hugo pages with database views:
+  - Detects BASE files with `publish: true` property
+  - Copies source files from vault to temporary staging folder
+  - Supports recursive subdirectory scanning
+  - Applies folder filters (`file.path.contains("...")`)
+  - Supports exclusion patterns (`!file.path.contains("...")` to skip folders)
+  - Generates HTML tables with wikilinks that resolve to published content
+  - Includes description/introductory content before tables
+  - Disables backlinks and graph for BASE pages
+  - Cleans up temporary staging folder after processing
+  - Example: Coffee beans database with 46+ entries, Books database with 180+ entries
 
 ## Project Structure
 
 ```
 src/
   main.rs               # Entry point, directory traversal, image map building
-  file_utils.rs          # Core note processing: frontmatter, tags, images, dates, callouts
-  svg_generator.rs       # OG image generation (SVG -> WebP via ImageMagick)
-  handle_link_index.rs   # Lowercases Hugo linkIndex.json for compatibility
-  og_template.svg        # SVG template for social preview images
+  file_utils.rs         # Core note processing: frontmatter, tags, images, dates, callouts, BASE files
+  svg_generator.rs      # OG image generation (SVG -> WebP via ImageMagick)
+  handle_link_index.rs  # Lowercases Hugo linkIndex.json for compatibility
+  base_parser.rs        # Parse BASE YAML files into Rust structs
+  base_query.rs         # Query and filter notes based on BASE filter expressions
+  base_renderer.rs      # Render BASE notes as HTML tables/cards/lists
+  og_template.svg       # SVG template for social preview images
 ```
 
 ## Usage
@@ -54,8 +68,19 @@ obsidian-quartz convert_to_lower_case
 
 ## How It Works
 
-1. Scans the Obsidian vault for `.md` files (skipping `Book` and `Blog` directories)
-2. For each file with a `#publish` tag:
+1. Scans the Obsidian vault for `.md` and `.base` files (skipping `Book` and `Blog` directories)
+2. For each `.base` file with `publish: true`:
+   - Parses BASE YAML structure (filters, views, properties, formulas)
+   - Extracts folder filters and exclusion patterns from filter expressions
+   - Creates temporary staging folder (`/content/BASES/<base-name>/`)
+   - Copies all matching source files from vault to staging folder (respecting exclusions)
+   - Recursively scans subdirectories in source folder
+   - Queries notes from staging folder to build table
+   - Renders HTML table with wikilinks (`[[Name]]` format)
+   - Includes description/intro content before table if specified
+   - Writes standalone markdown page to `/content/<base-name>.md`
+   - Cleans up temporary staging folder
+3. For each `.md` file with a `#publish` tag:
    - Parses existing YAML frontmatter
    - Extracts title, tags, and created date
    - Extracts and cleans description from first paragraph (or uses manual `desc:` field)
@@ -63,8 +88,33 @@ obsidian-quartz convert_to_lower_case
    - Copies referenced images to public folder
    - Normalizes callout blocks (inserts blank `>` lines for proper rendering)
    - Writes processed file with merged frontmatter to public folder
-3. Output frontmatter keys are sorted alphabetically, tags formatted as inline YAML arrays
-4. Descriptions are properly quoted and escaped for YAML syntax
+4. Output frontmatter keys are sorted alphabetically, tags formatted as inline YAML arrays
+5. Descriptions are properly quoted and escaped for YAML syntax
+
+### BASE File Workflow
+
+The BASE file processing uses a staging approach to avoid scanning the private vault during query operations:
+
+```
+Private Vault                    Git Repo (Public)
+-------------                    -----------------
+/vault/folder/
+  ├── Coffee.base    ──────┐     /content/
+  ├── Item1.md          ├──────> ├── coffee-base.md (generated table)
+  ├── Subfolder/        │        ├── item1.md (if #publish)
+  │   └── Item2.md  ────┤        └── item2.md (if #publish)
+  └── Study/            │
+      └── Item3.md  ────┼──X (excluded by !file.path.contains)
+                        │
+                 Temp Staging:
+                 /content/BASES/Coffee/ (cleaned up after)
+```
+
+This ensures:
+- No direct vault scanning during BASE queries
+- Exclusion patterns work correctly
+- Wikilinks resolve to published content in `/content/`
+- Clean separation between private vault and public repo
 
 ## Installation
 

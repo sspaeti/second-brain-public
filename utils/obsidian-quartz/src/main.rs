@@ -13,6 +13,10 @@ use handle_link_index::convert_to_lower_case;
 mod svg_generator;
 use svg_generator::{ImageConfig, generate_og_image, extract_title_from_md};
 
+mod base_parser;
+mod base_query;
+mod base_renderer;
+
 
 fn main() -> Result<(), Box<dyn Error>> {
    let args: Vec<String> = env::args().collect();
@@ -31,7 +35,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let mut images_map: HashMap<String, PathBuf> = HashMap::new();
         build_images_map(Path::new(&second_brain_path), &mut images_map)?;
 
-        match visit_dirs(Path::new(&second_brain_path), &public_folder_path_copy, &public_brain_image_path, &images_map) {
+        match visit_dirs(Path::new(&second_brain_path), &public_folder_path_copy, &public_brain_image_path, &images_map, &second_brain_path) {
             Ok(_) => (),
             Err(e) => println!("An error occurred: {}", e),
         }
@@ -40,9 +44,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn visit_dirs(dir: &Path, public_folder: &str, public_brain_image_path: &str, images_map: &HashMap<String, PathBuf>) -> std::io::Result<()> {
+fn visit_dirs(dir: &Path, public_folder: &str, public_brain_image_path: &str, images_map: &HashMap<String, PathBuf>, vault_root: &str) -> std::io::Result<()> {
     // println!("Visiting directory: {}", dir.display());
-    
+
     if dir.is_dir() {
         for entry in fs::read_dir(dir)? {
             let entry = entry?;
@@ -53,8 +57,8 @@ fn visit_dirs(dir: &Path, public_folder: &str, public_brain_image_path: &str, im
                     println!("Visiting directory: {}", path.display());
                     continue;
                 }
-                
-                visit_dirs(&path, public_folder, public_brain_image_path, images_map)?;
+
+                visit_dirs(&path, public_folder, public_brain_image_path, images_map, vault_root)?;
             } else {
                 ////DEBUG:
                 ////skip if file is not "Folder Structure PARA.md"
@@ -68,6 +72,20 @@ fn visit_dirs(dir: &Path, public_folder: &str, public_brain_image_path: &str, im
                 if let Some(extension) = path.extension() {
                     if extension == "md" {
                         process_file(&path, public_folder, public_brain_image_path, images_map)?;
+                    } else if extension == "base" {
+                        // Check if BASE file has publish: true property
+                        use crate::base_parser::parse_base_file;
+
+                        if let Ok(base_file) = parse_base_file(&path) {
+                            if base_file.publish {
+                                // Query from vault_root to get all matching files (published or not)
+                                // The BASE table is a self-contained view that doesn't require
+                                // individual files to be published
+                                if let Err(e) = file_utils::process_base_file(&path, public_folder, &PathBuf::from(vault_root)) {
+                                    eprintln!("Error processing BASE file: {}", e);
+                                }
+                            }
+                        }
                     }
                 }
             }

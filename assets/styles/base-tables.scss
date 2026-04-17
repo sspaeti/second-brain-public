@@ -1,0 +1,199 @@
+/* Obsidian BASE table styles */
+
+.base-table-container {
+  overflow-x: auto;
+  margin: 2rem 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.base-table-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--dark);
+}
+
+.base-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--light);
+  font-size: 0.95rem;
+
+  thead {
+    background: var(--secondary);
+    color: var(--dark);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  th, td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--outlinegray);
+  }
+
+  th {
+    cursor: default;
+    user-select: none;
+    white-space: nowrap;
+
+    &:hover {
+      background: var(--darkgray);
+    }
+  }
+
+  tbody tr {
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: var(--lightgray);
+    }
+
+    &:last-child td {
+      border-bottom: none;
+    }
+  }
+
+  td {
+    vertical-align: top;
+  }
+}
+
+/* Cards view styles */
+.base-cards-container {
+  margin: 2rem 0;
+}
+
+.base-cards-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--dark);
+}
+
+.base-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.base-card {
+  background: var(--light);
+  border: 1px solid var(--outlinegray);
+  border-radius: 8px;
+  padding: 1.25rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.base-card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: var(--dark);
+}
+
+.base-card-content {
+  font-size: 0.9rem;
+}
+
+.base-card-field {
+  margin-bottom: 0.5rem;
+
+  strong {
+    color: var(--gray);
+    margin-right: 0.5rem;
+  }
+}
+
+/* List view styles */
+.base-list-container {
+  margin: 2rem 0;
+}
+
+.base-list-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--dark);
+}
+
+.base-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.base-list-item {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--outlinegray);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  strong {
+    color: var(--dark);
+    font-weight: 600;
+  }
+}
+
+.base-list-properties {
+  color: var(--gray);
+  font-size: 0.9rem;
+  margin-left: 0.5rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .base-table {
+    font-size: 0.85rem;
+
+    th, td {
+      padding: 0.5rem;
+    }
+  }
+
+  .base-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .base-card {
+    padding: 1rem;
+  }
+
+  .base-table-container {
+    margin: 1rem 0;
+  }
+}
+
+/* Dark mode support */
+[saved-theme="dark"] {
+  .base-table {
+    background: var(--light);
+
+    thead {
+      background: var(--secondary);
+    }
+
+    tbody tr:hover {
+      background: var(--darkgray);
+    }
+  }
+
+  .base-card {
+    background: var(--light);
+    border-color: var(--lightgray);
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+  }
+}

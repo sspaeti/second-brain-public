@@ -509,15 +509,11 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
             // frontmatter = format!("---\ntitle: \"{}\"\nlastmod: '{}'\nenableToc: \"{}\"\n{}\n---\n", title, last_modified_str, enabletoc, sorted_frontmatter);
             // println!("Merged frontmatter: {}", frontmatter);
         }
-        // Writing to the file
-        let file_name = path.file_name().unwrap().to_str().unwrap().to_lowercase();
-        let dest_path = format!("{}/{}", public_folder, file_name);
-        println!("Writing to file: {}", dest_path);
-        let mut file = fs::File::create(&dest_path)?;
-        file.write_all(frontmatter.as_bytes())?;
-
+        // Build content string first
+        let mut content = String::new();
         let mut is_first_heading = true; // Flag to identify the first heading
         let callout_re = Regex::new(r"^>\s*\[!\w+\]").unwrap();
+
         for (index, line) in lines.iter().enumerate() {
             // Skip lines that were part of the original frontmatter
             if index < line_end_frontmatter {
@@ -540,9 +536,9 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
                 continue;
             }
 
-            // Write the line to the file
-            file.write_all(line.as_bytes())?;
-            file.write_all(b"\n")?;
+            // Add line to content
+            content.push_str(line);
+            content.push('\n');
 
             // Insert blank blockquote line between callout header and content
             // so Goldmark produces separate <p> elements for title and body
@@ -552,12 +548,364 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
                     if trimmed.starts_with('>') {
                         let after_gt = trimmed[1..].trim();
                         if !after_gt.is_empty() {
-                            file.write_all(b">\n")?;
+                            content.push_str(">\n");
                         }
                     }
                 }
             }
         }
+
+        // Inject BASE tables if present
+        let vault_root = std::env::var("secondbrain")
+            .map(|p| std::path::PathBuf::from(p))
+            .unwrap_or_else(|_| path.parent().unwrap_or(Path::new(".")).to_path_buf());
+
+        let processed_content = inject_base_tables_if_present(
+            &content,
+            path.parent(),
+            &vault_root,
+        ).unwrap_or_else(|e| {
+            eprintln!("Failed to inject BASE tables: {}", e);
+            content
+        });
+
+        // Writing to the file
+        let file_name = path.file_name().unwrap().to_str().unwrap().to_lowercase();
+        let dest_path = format!("{}/{}", public_folder, file_name);
+        println!("Writing to file: {}", dest_path);
+        let mut file = fs::File::create(&dest_path)?;
+        file.write_all(frontmatter.as_bytes())?;
+        file.write_all(processed_content.as_bytes())?;
     }
     Ok(())
+}
+
+/// Process a BASE file and generate a standalone markdown page for it
+pub fn process_base_file(
+    base_path: &Path,
+    public_folder: &str,
+    vault_root: &PathBuf,
+) -> Result<(), Box<dyn std::error::Error>> {
+    use crate::base_parser::{parse_base_file, extract_filter_expressions};
+    use crate::base_query::{query_notes, sort_notes};
+    use crate::base_renderer::{render_table_view, render_cards_view, render_list_view};
+    use std::fs;
+
+    println!("Processing BASE file: {}", base_path.display());
+
+    // Parse BASE file
+    let base_file = parse_base_file(base_path)?;
+
+    // Extract filter expressions
+    let filter_expressions = if let Some(ref filters) = base_file.filters {
+        extract_filter_expressions(filters)
+    } else {
+        vec![]
+    };
+
+    // Create temp BASES folder for copying source files
+    let base_name = base_path.file_stem().unwrap().to_string_lossy().to_string();
+    let temp_bases_dir = PathBuf::from(public_folder).join("BASES").join(&base_name);
+    fs::create_dir_all(&temp_bases_dir)?;
+
+    // Copy source files to temp BASES folder
+    let base_dir = base_path.parent().unwrap_or(vault_root);
+    copy_base_source_files(base_dir, vault_root, &filter_expressions, &temp_bases_dir)?;
+
+    // Query matching notes from temp BASES folder
+    // Use empty filter expressions since we're querying from a pre-filtered temp folder
+    let notes = query_notes(&temp_bases_dir, &temp_bases_dir, &vec![])?;
+
+    // Generate HTML for all views
+    let mut html_content = String::new();
+
+    // Add description if present
+    if let Some(ref description) = base_file.description {
+        html_content.push_str(description);
+        html_content.push_str("\n\n");
+    }
+
+    for view in &base_file.views {
+        // Only render table views for standalone BASE pages
+        if view.view_type != "table" {
+            continue;
+        }
+
+        let mut view_notes = notes.clone();
+
+        // Sort notes
+        sort_notes(&mut view_notes, &view.sort);
+
+        // Render table view
+        let view_html = render_table_view(&view_notes, view);
+
+        html_content.push_str(&view_html);
+        html_content.push_str("\n\n");
+    }
+
+    // Generate frontmatter
+    let base_stem = base_path
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("base");
+
+    let title = base_stem.replace("-", " ").replace("_", " ");
+    let title_capitalized = title
+        .split_whitespace()
+        .map(|word| {
+            let mut chars = word.chars();
+            match chars.next() {
+                None => String::new(),
+                Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ");
+
+    // Create frontmatter with disabled backlinks and graph
+    let frontmatter = format!(
+        "---\ntitle: \"{}\"\nenableToc: false\nenableBacklinks: false\nenableGraph: false\n---\n\n",
+        title_capitalized
+    );
+
+    // Write to file
+    let output_filename = format!("{}.md", base_stem.to_lowercase().replace(" ", "-"));
+    let dest_path = format!("{}/{}", public_folder, output_filename);
+
+    println!("Writing BASE page to: {}", dest_path);
+
+    let mut file = fs::File::create(&dest_path)?;
+    file.write_all(frontmatter.as_bytes())?;
+    file.write_all(html_content.as_bytes())?;
+
+    // Clean up temp BASES folder and parent BASES directory
+    if temp_bases_dir.exists() {
+        fs::remove_dir_all(&temp_bases_dir)?;
+    }
+
+    // Remove parent BASES folder if it's empty
+    let bases_parent = PathBuf::from(public_folder).join("BASES");
+    if bases_parent.exists() {
+        if let Ok(mut entries) = fs::read_dir(&bases_parent) {
+            if entries.next().is_none() {
+                // Directory is empty
+                fs::remove_dir(&bases_parent)?;
+            }
+        }
+    }
+
+    Ok(())
+}
+
+/// Copy source files from vault to temp BASES folder for querying
+fn copy_base_source_files(
+    base_dir: &Path,
+    vault_root: &Path,
+    filter_expressions: &[String],
+    temp_dir: &Path,
+) -> Result<(), Box<dyn std::error::Error>> {
+    use crate::base_query::{extract_folder_from_filters, extract_extension_from_filters, extract_exclusion_paths};
+    use std::fs;
+
+    // Extract folder filter and exclusions
+    let folder_filter = extract_folder_from_filters(filter_expressions);
+    let ext_filter = extract_extension_from_filters(filter_expressions);
+    let exclusions = extract_exclusion_paths(filter_expressions);
+
+    // Determine source directory
+    let source_dir = if let Some(folder) = folder_filter {
+        vault_root.join(folder)
+    } else {
+        base_dir.to_path_buf()
+    };
+
+    if !source_dir.exists() {
+        return Ok(());
+    }
+
+    // Recursively copy matching files, respecting exclusions
+    copy_files_recursive(&source_dir, temp_dir, &ext_filter, vault_root, &exclusions)?;
+
+    Ok(())
+}
+
+/// Recursively copy files from source to destination
+fn copy_files_recursive(
+    source: &Path,
+    dest: &Path,
+    ext_filter: &Option<String>,
+    vault_root: &Path,
+    exclusions: &[String],
+) -> Result<usize, Box<dyn std::error::Error>> {
+    use std::fs;
+    let mut count = 0;
+
+    for entry in fs::read_dir(source)? {
+        let entry = entry?;
+        let path = entry.path();
+
+        // Check if path matches any exclusion pattern
+        let path_str = path.to_string_lossy();
+        let mut is_excluded = false;
+        for exclusion in exclusions {
+            let exclusion_full = vault_root.join(exclusion);
+            if path_str.contains(&exclusion_full.to_string_lossy().to_string()) {
+                is_excluded = true;
+                break;
+            }
+        }
+
+        if is_excluded {
+            // Skip excluded paths (including all files in excluded directories)
+            continue;
+        }
+
+        if path.is_dir() {
+            // Recursively copy subdirectories (flatten structure)
+            count += copy_files_recursive(&path, dest, ext_filter, vault_root, exclusions)?;
+        } else if path.is_file() {
+            // Check extension
+            if let Some(required_ext) = ext_filter {
+                if let Some(ext) = path.extension() {
+                    if ext != required_ext.as_str() {
+                        continue;
+                    }
+                } else {
+                    continue;
+                }
+            }
+
+            // Skip meta files
+            let file_name = path.file_name().unwrap().to_string_lossy().to_string();
+            if file_name.ends_with(".base")
+                || file_name == "Coffee Beans.md"
+                || file_name == "Coffee Beans (dataview).md"
+                || file_name == "Coffee Beans Recommendations.md" {
+                continue;
+            }
+
+            // Copy file to dest (flatten - no subdirs)
+            let dest_file = dest.join(&file_name);
+            fs::copy(&path, &dest_file)?;
+            count += 1;
+        }
+    }
+
+    Ok(count)
+}
+
+/// Inject BASE table HTML if the content contains BASE file references
+pub fn inject_base_tables_if_present(
+    content: &str,
+    source_dir: Option<&Path>,
+    vault_root: &Path,
+) -> Result<String, Box<dyn std::error::Error>> {
+    use crate::base_parser::{parse_base_file, extract_filter_expressions};
+    use crate::base_query::{query_notes, sort_notes};
+    use crate::base_renderer::{render_table_view, render_cards_view, render_list_view};
+    use regex::Regex;
+
+    // Pattern to match [[filename.base]] or [[filename.base#ViewName]]
+    let base_ref_re = Regex::new(r"\[\[([^\]]+\.base)(?:#([^\]]+))?\]\]").unwrap();
+
+    let mut result = content.to_string();
+
+    // Find all BASE file references
+    let mut replacements = Vec::new();
+
+    for cap in base_ref_re.captures_iter(content) {
+        let base_file_name = &cap[1];
+        let view_name = cap.get(2).map(|m| m.as_str());
+        let full_match = cap.get(0).unwrap().as_str();
+
+        // Resolve BASE file path
+        let base_path = if let Some(dir) = source_dir {
+            dir.join(base_file_name)
+        } else {
+            vault_root.join(base_file_name)
+        };
+
+        if !base_path.exists() {
+            eprintln!("BASE file not found: {}", base_path.display());
+            continue;
+        }
+
+        // Parse BASE file
+        let base_file = match parse_base_file(&base_path) {
+            Ok(b) => b,
+            Err(e) => {
+                eprintln!("Failed to parse BASE file {}: {}", base_path.display(), e);
+                continue;
+            }
+        };
+
+        // Extract filter expressions
+        let filter_expressions = if let Some(ref filters) = base_file.filters {
+            extract_filter_expressions(filters)
+        } else {
+            vec![]
+        };
+
+        // Query matching notes
+        let base_dir = base_path.parent().unwrap_or(source_dir.unwrap_or(vault_root));
+        let mut notes = match query_notes(base_dir, vault_root, &filter_expressions) {
+            Ok(n) => n,
+            Err(e) => {
+                eprintln!("Failed to query notes for BASE: {}", e);
+                continue;
+            }
+        };
+
+        // Render the appropriate view(s)
+        let mut html = String::new();
+
+        if let Some(view_name) = view_name {
+            // Render specific view
+            if let Some(view) = base_file.views.iter().find(|v| v.name == view_name) {
+                // Sort notes
+                sort_notes(&mut notes, &view.sort);
+
+                // Render based on view type
+                html = match view.view_type.as_str() {
+                    "table" => render_table_view(&notes, view),
+                    "cards" => render_cards_view(&notes, view),
+                    "list" => render_list_view(&notes, view),
+                    _ => format!("<p>Unsupported view type: {}</p>", view.view_type),
+                };
+            }
+        } else {
+            // Render all views (or just the first table view)
+            for view in &base_file.views {
+                let mut view_notes = notes.clone();
+
+                // Sort notes
+                sort_notes(&mut view_notes, &view.sort);
+
+                // Render based on view type
+                let view_html = match view.view_type.as_str() {
+                    "table" => render_table_view(&view_notes, view),
+                    "cards" => render_cards_view(&view_notes, view),
+                    "list" => render_list_view(&view_notes, view),
+                    _ => continue, // Skip unsupported views
+                };
+
+                html.push_str(&view_html);
+                html.push_str("\n");
+
+                // For now, only render the first table view to avoid clutter
+                if view.view_type == "table" {
+                    break;
+                }
+            }
+        }
+
+        replacements.push((full_match.to_string(), html));
+    }
+
+    // Apply all replacements
+    for (pattern, replacement) in replacements {
+        result = result.replace(&pattern, &replacement);
+    }
+
+    Ok(result)
 }
