@@ -50,8 +50,7 @@
 
     {{TITLE_PLACEHOLDER}}
 
-    <!-- Accent line under title -->
-    <line x1="360" y1="400" x2="600" y2="400" stroke="#FF5D62" stroke-width="3" opacity="0.7"/>
+    {{DESCRIPTION_PLACEHOLDER}}
 
     <!-- Bottom tagline - smaller -->
     <text x="600" y="540" fill="#DCD7BA" font-family="Arial, sans-serif" font-size="20" text-anchor="middle" opacity="0.6" letter-spacing="2">

@@ -15,6 +15,133 @@ use crate::svg_generator::{ImageConfig, generate_og_image, extract_title_from_md
 // Constant for emojis to exclude from tags
 pub const EXCLUDED_TAG_EMOJIS: [char; 6] = ['🗃', '🌻', '🗺', '🌍', '📬', '📚'];
 
+/// Extracts a description from the markdown content (first paragraph after frontmatter)
+/// Cleans wikilinks and markdown formatting, limits to ~150 characters
+fn extract_description(lines: &[String], frontmatter_end: usize) -> Option<String> {
+    let wikilink_re = Regex::new(r"\[\[([^\]|]+)(?:\|([^\]]+))?\]\]").unwrap();
+    let bold_italic_re = Regex::new(r"(\*\*|__|\*|_|`|~~)").unwrap();
+    let heading_re = Regex::new(r"^#+\s+").unwrap();
+    let callout_re = Regex::new(r"^>\s*\[!\w+\]").unwrap();
+
+    let mut description = String::new();
+    let max_chars = 180;  // 3 lines × 60 chars with proper margins
+
+    // Find first non-empty paragraph after frontmatter
+    for (index, line) in lines.iter().enumerate() {
+        if index <= frontmatter_end {
+            continue;
+        }
+
+        let trimmed = line.trim();
+
+        // Skip empty lines, headings, callouts, blockquotes, images, horizontal rules
+        if trimmed.is_empty()
+            || heading_re.is_match(trimmed)
+            || callout_re.is_match(trimmed)
+            || trimmed.starts_with(">")  // Skip all blockquote/callout lines
+            || trimmed.starts_with("!")
+            || trimmed.starts_with("![[")
+            || trimmed.starts_with("---")
+            || trimmed.starts_with("Created:")
+            || trimmed.starts_with("Origin:")
+            || trimmed.starts_with("References:")
+            || trimmed.starts_with("Tags:")
+        {
+            continue;
+        }
+
+        // Add line to description
+        if !description.is_empty() {
+            description.push(' ');
+        }
+        description.push_str(trimmed);
+
+        // Stop if we have enough text or reached end of paragraph
+        if description.len() >= max_chars {
+            break;
+        }
+
+        // Check if next line is empty (end of paragraph)
+        if let Some(next_line) = lines.get(index + 1) {
+            if next_line.trim().is_empty() {
+                break;
+            }
+        }
+    }
+
+    if description.is_empty() {
+        return None;
+    }
+
+    // Clean markdown links: [Text](URL) → Text
+    let markdown_link_re = Regex::new(r"\[([^\]]+)\]\([^\)]+\)").unwrap();
+    description = markdown_link_re.replace_all(&description, "$1").to_string();
+
+    // Clean wikilinks: [[Link]] → Link, [[Link|Text]] → Text
+    description = wikilink_re.replace_all(&description, |caps: &regex::Captures| {
+        if let Some(text) = caps.get(2) {
+            text.as_str().to_string()
+        } else {
+            caps.get(1).unwrap().as_str().to_string()
+        }
+    }).to_string();
+
+    // Remove bold, italic, strikethrough, code formatting
+    description = bold_italic_re.replace_all(&description, "").to_string();
+
+    // Remove list markers and blockquote markers
+    let list_marker_re = Regex::new(r"(?:^|\s)[-*+>]\s+").unwrap();
+    description = list_marker_re.replace_all(&description, " ").to_string();
+
+    // Remove numbered list markers (1., 2., etc.)
+    let numbered_list_re = Regex::new(r"(?:^|\s)\d+\.\s+").unwrap();
+    description = numbered_list_re.replace_all(&description, " ").to_string();
+
+    // Collapse multiple spaces to single space
+    let multi_space_re = Regex::new(r"\s+").unwrap();
+    description = multi_space_re.replace_all(&description, " ").to_string();
+
+    // Limit to max_chars, preferring complete sentences
+    if description.len() > max_chars {
+        // Find a safe UTF-8 boundary
+        let mut truncate_at = max_chars;
+        while truncate_at > 0 && !description.is_char_boundary(truncate_at) {
+            truncate_at -= 1;
+        }
+
+        // Try to find the last sentence ending (., !, ?) within the limit
+        let truncated = &description[..truncate_at];
+        let sentence_endings = [". ", "! ", "? "];
+        let mut last_sentence_end = None;
+
+        for ending in &sentence_endings {
+            if let Some(pos) = truncated.rfind(ending) {
+                // Include the punctuation + space
+                let end_pos = pos + ending.len();
+                if last_sentence_end.is_none() || end_pos > last_sentence_end.unwrap() {
+                    last_sentence_end = Some(end_pos);
+                }
+            }
+        }
+
+        // If we found a sentence ending, truncate there (no ellipsis needed)
+        if let Some(end_pos) = last_sentence_end {
+            description.truncate(end_pos);
+            description = description.trim().to_string();
+        } else {
+            // No sentence ending found, truncate at word boundary with ellipsis
+            description.truncate(truncate_at);
+            if let Some(last_space) = description.rfind(' ') {
+                description.truncate(last_space);
+            }
+            description = description.trim().to_string();
+            description.push_str("...");
+        }
+    }
+
+    Some(description.trim().to_string())
+}
+
 pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &str, images_map: &HashMap<String, PathBuf>) -> std::io::Result<()> {
 
     const OG_WIDTH: u32 = 1200;
@@ -166,29 +293,45 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
             fs::create_dir_all(feature_dir)?;
         }
 
+        // Extract description for OG image and meta tags
+        // Priority: 1) manual 'desc:' field, 2) auto-extract from first paragraph
+        let description = existing_frontmatter
+            .get("desc")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string())
+            .or_else(|| extract_description(&lines, line_end_frontmatter));
+
+        // Store description in frontmatter if we extracted it and it doesn't exist
+        if let Some(ref desc) = description {
+            if !existing_frontmatter.contains_key("description") {
+                existing_frontmatter.insert("description".to_string(), Value::String(desc.clone()));
+            }
+        }
+
         // Only generate new SVG and update frontmatter if ogimage doesn't exist
         if !existing_frontmatter.contains_key("ogimage") {
             let file_stem = path.file_stem()
                 .and_then(|s| s.to_str())
                 .map(|s| s.to_lowercase().replace(" ", "-"))  // Convert to lowercase and replace spaces
                 .unwrap_or("default".to_string());
-            
+
             let image_config = ImageConfig {
                 title: title.clone(),
+                description: description.clone(),
                 width: OG_WIDTH,
                 height: OG_HEIGHT,
                 output_path: format!("content/_img/feature/gen/{}.svg", file_stem),
             };
-            
+
             if let Err(e) = generate_og_image(&image_config) {
                 eprintln!("Failed to generate OG image for {}: {}", path.display(), e);
             } else {
                 // Only update frontmatter if we successfully generated a new image
-                existing_frontmatter.insert("ogimage".to_string(), 
+                existing_frontmatter.insert("ogimage".to_string(),
                     Value::String(format!("gen/{}.webp", file_stem)));
-                existing_frontmatter.insert("ogwidth".to_string(), 
+                existing_frontmatter.insert("ogwidth".to_string(),
                     Value::Number(serde_yaml::Number::from(OG_WIDTH)));
-                existing_frontmatter.insert("ogheight".to_string(), 
+                existing_frontmatter.insert("ogheight".to_string(),
                     Value::Number(serde_yaml::Number::from(OG_HEIGHT)));
             }
         }
@@ -334,10 +477,19 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
                         continue;
                     }
                 }
-                
+
                 // Handle all other value types
                 let value_str = match value {
-                    serde_yaml::Value::String(s) => s.clone(),
+                    serde_yaml::Value::String(s) => {
+                        // Quote description field for proper YAML syntax highlighting
+                        if key == "description" {
+                            // Escape any double quotes in the string
+                            let escaped = s.replace("\\", "\\\\").replace("\"", "\\\"");
+                            format!("\"{}\"", escaped)
+                        } else {
+                            s.clone()
+                        }
+                    },
                     serde_yaml::Value::Sequence(seq) => {
                         seq.iter()
                             .filter_map(|v| if let serde_yaml::Value::String(s) = v { Some(s.clone()) } else { None })
@@ -346,7 +498,7 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
                     },
                     _ => serde_yaml::to_string(value).unwrap_or_default(),
                 };
-                
+
                 sorted_frontmatter.push_str(&format!("{}: {}\n", key, value_str));
             }
             sorted_frontmatter.push_str("---\n");

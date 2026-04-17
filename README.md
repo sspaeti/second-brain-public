@@ -5,6 +5,11 @@ See on [ssp.sh/brain](https://ssp.sh/brain).
 This is a fork of the [Quartz](https://github.com/jackyzha0/quartz) repo ([v3](https://github.com/jackyzha0/quartz/tree/hugo) with Hugo). I added some additional features such as:
 * Tagging with `#publish` automatically copies the note from my private second brain in [Obsidian](https://obsidian.md) to this public second brain
 * Converts the first header (`# my title`) into frontmatter and removes it (as Quartz expects)
+* **Smart description extraction** from first paragraph with automatic cleaning:
+  - Removes wikilinks, markdown formatting, list markers
+  - Intelligent sentence truncation for complete thoughts
+  - Displays on OG images as text overlay (Kanagawa color scheme)
+  - Used in meta tags for SEO and social media previews
 * YouTube links in Obsidian image syntax (`![title](https://youtube.com/watch?v=XXX)`) render as embedded video players instead of broken images
 * Callout blocks are normalized so compact and spaced forms render identically
 
@@ -37,6 +42,24 @@ Custom render hooks in `layouts/_default/_markup/`:
 Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
+
+### 2026-04-17: Smart description extraction and OG image enhancement
+- **Description Extraction** (`utils/obsidian-quartz/src/file_utils.rs`):
+  - Automatically extracts clean descriptions from first paragraph after frontmatter
+  - Removes wikilinks (`[[Link]]` → `Link`), markdown links (`[Text](URL)` → `Text`)
+  - Strips formatting, list markers, blockquotes
+  - Smart sentence truncation (prefers complete sentences, max 180 chars)
+  - Stores as quoted `description: "..."` in frontmatter for proper YAML syntax
+  - Manual override via `desc:` frontmatter field
+- **OG Image Enhancement** (`utils/obsidian-quartz/src/svg_generator.rs`):
+  - Added description text overlay (24px, Kanagawa oldWhite #C8C093)
+  - Reduced title font sizes (44-60px) to make room for description
+  - Optimized text wrapping (title: 25 chars/line, description: 60 chars/line)
+  - Removed fixed accent line for cleaner layout
+- **Hugo Template Updates** (`layouts/partials/head.html`):
+  - Created `$cleanDescription` variable with priority: manual → auto-extracted → .Summary
+  - Applied wikilink/markdown cleaning to all meta tags
+  - Updated og:description, twitter:description, and JSON-LD schema
 
 ### 2025-10-16: Fix cross-section navigation (brain ↔ blog)
 - Modified [`assets/js/router.js`](assets/js/router.js) to intercept clicks between `/brain/` and other sections, forcing full page loads instead of SPA navigation

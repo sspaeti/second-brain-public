@@ -6,6 +6,7 @@ use regex::Regex;
 
 pub struct ImageConfig {
     pub title: String,
+    pub description: Option<String>,
     pub width: u32,
     pub height: u32,
     pub output_path: String,
@@ -30,7 +31,7 @@ pub fn generate_og_image(config: &ImageConfig) -> Result<(), Box<dyn Error>> {
     }
     
     let words: Vec<String> = split_title(&config.title);
-    let svg = create_svg(&words, config.width, config.height)?;
+    let svg = create_svg(&words, &config.description, config.width, config.height)?;
     
     // First save the SVG to a temporary file
     fs::write(&safe_svg_path, svg)?;
@@ -70,7 +71,7 @@ fn split_title(title: &str) -> Vec<String> {
         .replace('>', "");
 
     let words: Vec<String> = clean_title
-        .split(|c: char| c.is_whitespace() || c == ':')
+        .split(|c: char| c.is_whitespace())
         .filter(|s| !s.is_empty())
         .map(|s| s.to_string())
         .collect();
@@ -80,9 +81,10 @@ fn split_title(title: &str) -> Vec<String> {
     let mut grouped_words = Vec::new();
     let mut current_line = String::new();
 
-    // Reduced target length to prevent overflow - Design 4 has less horizontal space
-    // after the vertical divider at x=420
-    let target_length = 20;  // Conservative length for right-side panel
+    // Account for right margin and logo space
+    // Available: 1200px width - 360px start - 100px right margin = 740px usable
+    // With font sizes 44-60px (avg ~30px/char), we can fit ~24-26 chars
+    let target_length = 25;  // Balanced for proper margins with buffer
     let max_lines = 4;
 
     let mut word_index = 0;
@@ -136,7 +138,7 @@ fn split_title(title: &str) -> Vec<String> {
     grouped_words
 }
 
-fn create_svg(words: &[String], _width: u32, _height: u32) -> Result<String, Box<dyn Error>> {
+fn create_svg(words: &[String], description: &Option<String>, _width: u32, _height: u32) -> Result<String, Box<dyn Error>> {
     // New landscape format: 1350 x 1080 (5:4 aspect ratio)
     // Load the template file - use path relative to the repo root
     // First try from current working directory, then from utils/obsidian-quartz/src
@@ -155,20 +157,19 @@ fn create_svg(words: &[String], _width: u32, _height: u32) -> Result<String, Box
     // Generate title text elements
     // Standard OG layout (1200x630): title on right side starting at x=360
     let mut title_text = String::new();
-    let mut y_position = 230.0;  // Starting Y position for standard OG format
-    let line_height = 70.0;  // Compact line height to fit in 630px height
+    let mut y_position = 200.0;  // Starting Y position (moved up to make room for description)
+    let line_height = 60.0;  // Reduced line height to fit description
     let words_count = words.len() as f32;
 
-    // Dynamically adjust font size based on title length (number of lines)
-    // Standard OG format uses smaller fonts overall due to reduced height
+    // Reduced font sizes to make room for description (44-60px instead of 52-76px)
     let title_font_size = if words_count > 3.0 {
-        52.0  // 4 lines - smallest font
+        44.0  // 4 lines - smallest font
     } else if words_count > 2.0 {
-        60.0  // 3 lines
+        50.0  // 3 lines
     } else if words_count > 1.0 {
-        68.0  // 2 lines
+        56.0  // 2 lines
     } else {
-        76.0  // 1 line - largest font
+        60.0  // 1 line - largest font
     };
 
     for word in words.iter() {
@@ -187,10 +188,75 @@ fn create_svg(words: &[String], _width: u32, _height: u32) -> Result<String, Box
         y_position += line_height;
     }
 
-    // Replace placeholder in template with actual title
-    let svg = template.replace("{{TITLE_PLACEHOLDER}}", &title_text);
+    // Generate description text if available
+    let mut description_text = String::new();
+    if let Some(desc) = description {
+        // Split description into lines (24px font ≈ 14px/char, 740px / 14px ≈ 52 chars)
+        let desc_lines = split_description(desc, 60, 3);
+        let mut desc_y = y_position + 30.0;  // Start 30px below title
+        let desc_line_height = 34.0;
+        let desc_font_size = 24.0;
+
+        for line in desc_lines {
+            let escaped_line = line
+                .replace('&', "&amp;")
+                .replace('<', "&lt;")
+                .replace('>', "&gt;")
+                .replace('"', "&quot;")
+                .replace('\'', "&apos;");
+
+            description_text.push_str(&format!(
+                "    <text x=\"360\" y=\"{}\" fill=\"#C8C093\" font-family=\"Arial, sans-serif\" font-size=\"{}\" font-weight=\"normal\">{}</text>\n",
+                desc_y, desc_font_size, escaped_line
+            ));
+            desc_y += desc_line_height;
+        }
+    }
+
+    // Replace placeholders in template
+    let svg = template
+        .replace("{{TITLE_PLACEHOLDER}}", &title_text)
+        .replace("{{DESCRIPTION_PLACEHOLDER}}", &description_text);
 
     Ok(svg)
+}
+
+/// Split description text into multiple lines for display
+fn split_description(text: &str, max_chars: usize, max_lines: usize) -> Vec<String> {
+    let words: Vec<&str> = text.split_whitespace().collect();
+    let mut lines = Vec::new();
+    let mut current_line = String::new();
+
+    for word in words {
+        let test_line = if current_line.is_empty() {
+            word.to_string()
+        } else {
+            format!("{} {}", current_line, word)
+        };
+
+        if test_line.len() <= max_chars {
+            current_line = test_line;
+        } else {
+            if !current_line.is_empty() {
+                lines.push(current_line);
+                current_line = word.to_string();
+            } else {
+                // Single word too long, add it anyway
+                lines.push(word.to_string());
+            }
+        }
+
+        // Stop if we've reached max lines
+        if lines.len() >= max_lines {
+            break;
+        }
+    }
+
+    if !current_line.is_empty() && lines.len() < max_lines {
+        lines.push(current_line);
+    }
+
+    lines
 }
 
 

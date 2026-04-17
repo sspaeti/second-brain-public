@@ -1,6 +1,27 @@
 <!-- set data/config yaml file based on website language -->
 {{ $config := cond (eq $.Site.Language.Lang "en") "config" (printf "config.%s" $.Site.Language.Lang) }}
 {{ $data := index $.Site.Data $config }}
+<!-- Clean description: prioritize manual fields, clean wikilinks from .Summary -->
+{{ $cleanDescription := "" }}
+{{ if .IsHome }}
+  {{ $cleanDescription = $data.description | default $.Site.Data.config.description }}
+{{ else }}
+  {{ if .Params.ogdescription }}
+    {{ $cleanDescription = .Params.ogdescription }}
+  {{ else if .Params.description }}
+    {{ $cleanDescription = .Params.description }}
+  {{ else }}
+    {{ $summary := .Summary }}
+    {{ $summary = replaceRE `\[([^\]]+)\]\([^\)]+\)` "$1" $summary }}
+    {{ $summary = replaceRE `\[\[([^\]|]+)\|([^\]]+)\]\]` "$2" $summary }}
+    {{ $summary = replaceRE `\[\[([^\]|]+)\]\]` "$1" $summary }}
+    {{ $summary = replaceRE `\*\*|__|\*|_|~~` "" $summary }}
+    {{ $summary = replaceRE "(?:^|\\s)[-*+>]\\s+" " " $summary }}
+    {{ $summary = replaceRE "(?:^|\\s)\\d+\\.\\s+" " " $summary }}
+    {{ $summary = replaceRE `\s+` " " $summary }}
+    {{ $cleanDescription = $summary | trim }}
+  {{ end }}
+{{ end }}
 <!-- find correct hero image path, either a manual created _img/feature (1. prio) or otherwise part of content with name of image (2.), or auto-generated (3.) -->
 {{ $ogImagePath := "" }}
 {{ if .Params.Ogimage }}
@@ -38,7 +59,7 @@
   <meta charset="UTF-8" />
   <meta
     name="description"
-    content="{{if .IsHome}}{{$data.description | default $.Site.Data.config.description}}{{else}}{{.Summary}}{{end}}"
+    content="{{ $cleanDescription }}"
   />
   <meta property="og:title" content="{{ .Title }}">
   <meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}">
@@ -46,7 +67,7 @@
   <meta property="og:width" content="{{ if .Params.Ogwidth }}{{ .Params.Ogwidth }}{{ else }}1024{{ end }}"> <!--this and below need to be changed to second-brain.jpeg-->
   <meta property="og:height" content="{{ if .Params.Ogheight }}{{ .Params.Ogheight }}{{ else }}763{{ end }}">
   <meta property="og:url" content="{{ .Permalink }}">
-  <meta property="og:description" content="{{if .IsHome}}{{$data.description | default $.Site.Data.config.description}}{{else}}{{.Summary}}{{end}}">
+  <meta property="og:description" content="{{ $cleanDescription }}">
   <meta property="og:site_name" content="Simon Späti's Second Brain">
   <meta property="og:locale" content="en_US">
   {{ if .IsPage }}
@@ -58,7 +79,7 @@
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:site" content="@sspaeti" />
   <meta name="twitter:title" content="{{ .Title }}" />
-  <meta name="twitter:description" content="{{if .IsHome}}{{$data.description | default $.Site.Data.config.description}}{{else}}{{.Summary}}{{end}}" />
+  <meta name="twitter:description" content="{{ $cleanDescription }}" />
   <meta property="twitter:image" content="{{ $ogImagePath }}">
   <meta name="author" content="{{ $.Site.Params.author | default "Simon Späti" }}">
   {{ if .IsPage }}
@@ -78,7 +99,7 @@
       "@type": "Person",
       "name": "Simon Späti"
     },
-    "description": {{ .Summary | jsonify }},
+    "description": {{ $cleanDescription | jsonify }},
     "image": "{{ $ogImagePath }}",
     "url": {{ .Permalink | jsonify }}
   }

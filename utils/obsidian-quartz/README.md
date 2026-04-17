@@ -9,8 +9,19 @@ A Rust CLI tool that processes Obsidian vault notes tagged with `#publish` and o
 - **Title Extraction**: Converts first `# heading` into frontmatter `title` and removes it from body
 - **Tag Processing**: Extracts tags from `Tags:` lines, filters out emoji tags and `#publish`
 - **Date Extraction**: Extracts creation dates from `Created [[YYYY-MM-DD]]` pattern
+- **Description Extraction**: Automatically extracts clean descriptions from first paragraph:
+  - Removes wikilinks (`[[Link]]` → `Link`), markdown links (`[Text](URL)` → `Text`)
+  - Strips formatting (bold, italic, code, strikethrough)
+  - Removes list markers (`-`, `*`, `>`, `1.`), blockquote lines
+  - Smart sentence truncation (completes sentences when possible, max 180 chars)
+  - Stores in frontmatter as quoted `description: "..."` for proper YAML syntax
+  - Manual override: use `desc:` frontmatter field
 - **Image Handling**: Detects `![[image.png]]` references and copies images to public folder
-- **OpenGraph Image Generation**: Creates SVG/WebP social media preview images (1200x630) via ImageMagick
+- **OpenGraph Image Generation**: Creates SVG/WebP social media preview images (1200x630) with:
+  - Title text (44-60px font, max 4 lines, 25 chars/line)
+  - Description overlay (24px font, Kanagawa oldWhite color #C8C093, max 3 lines, 60 chars/line)
+  - Dark gradient background with brain icon and branding
+  - Converted SVG → WebP via ImageMagick
 - **Callout Normalization**: Inserts blank blockquote lines between callout headers and content so Hugo/Goldmark renders title and body as separate `<p>` elements
 - **Link Index**: Converts `linkIndex.json` keys to lowercase for Hugo compatibility
 - **Filename Lowercasing**: All output filenames are lowercased
@@ -47,11 +58,13 @@ obsidian-quartz convert_to_lower_case
 2. For each file with a `#publish` tag:
    - Parses existing YAML frontmatter
    - Extracts title, tags, and created date
-   - Generates OG preview image if `ogimage` not already in frontmatter
+   - Extracts and cleans description from first paragraph (or uses manual `desc:` field)
+   - Generates OG preview image with title + description overlay if `ogimage` not already in frontmatter
    - Copies referenced images to public folder
    - Normalizes callout blocks (inserts blank `>` lines for proper rendering)
    - Writes processed file with merged frontmatter to public folder
 3. Output frontmatter keys are sorted alphabetically, tags formatted as inline YAML arrays
+4. Descriptions are properly quoted and escaped for YAML syntax
 
 ## Installation
 
