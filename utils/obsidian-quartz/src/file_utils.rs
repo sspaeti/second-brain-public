@@ -28,7 +28,8 @@ fn extract_description(lines: &[String], frontmatter_end: usize) -> Option<Strin
 
     // Find first non-empty paragraph after frontmatter
     for (index, line) in lines.iter().enumerate() {
-        if index <= frontmatter_end {
+        // Skip frontmatter lines (frontmatter_end is 1-based line number of closing ---)
+        if index < frontmatter_end {
             continue;
         }
 

@@ -53,6 +53,11 @@
 {{ else }}
   {{ $ogImagePath = "https://www.ssp.sh/brain/_img/feature/second-brain.jpeg" }}
 {{ end }}
+<!-- Determine Twitter card type: use summary_large_image only for generated images and known wide images -->
+{{ $twitterCardType := "summary" }}
+{{ if or (strings.Contains $ogImagePath "/gen/") (strings.HasSuffix $ogImagePath "second-brain.jpeg") }}
+  {{ $twitterCardType = "summary_large_image" }}
+{{ end }}
 
 <head>
   <!-- Meta tags -->
@@ -76,7 +81,7 @@
   <meta property="article:author" content="https://www.ssp.sh/about/">
   {{ range .Params.tags }}<meta property="article:tag" content="{{ . }}">{{ end }}
   {{ end }}
-  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:card" content="{{ $twitterCardType }}" />
   <meta name="twitter:site" content="@sspaeti" />
   <meta name="twitter:title" content="{{ .Title }}" />
   <meta name="twitter:description" content="{{ $cleanDescription }}" />
