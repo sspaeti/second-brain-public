@@ -19,7 +19,7 @@
     {{ $summary = replaceRE "(?:^|\\s)[-*+>]\\s+" " " $summary }}
     {{ $summary = replaceRE "(?:^|\\s)\\d+\\.\\s+" " " $summary }}
     {{ $summary = replaceRE `\s+` " " $summary }}
-    {{ $cleanDescription = $summary | trim }}
+    {{ $cleanDescription = strings.TrimSpace $summary }}
   {{ end }}
 {{ end }}
 <!-- find correct hero image path, either a manual created _img/feature (1. prio) or otherwise part of content with name of image (2.), or auto-generated (3.) -->
