@@ -1,6 +1,40 @@
 // Replace this with your own font imports!
 @import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap');
-@import url('https://pvinis.github.io/iosevka-webfont/3.4.1/iosevka.css');
+// Iosevka font — self-hosted woff2 files copied from the blog repo:
+// /home/sspaeti/git/sspaeti.com/sspaeti-hugo-blog/static/fonts/
+// Keep in sync with the blog when updating Iosevka.
+@font-face {
+  font-family: 'Iosevka Web';
+  font-display: swap;
+  font-weight: 400;
+  font-stretch: normal;
+  font-style: normal;
+  src: url('/brain/fonts/woff2/iosevka-regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Iosevka Web';
+  font-display: swap;
+  font-weight: 400;
+  font-stretch: normal;
+  font-style: italic;
+  src: url('/brain/fonts/woff2/iosevka-italic.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Iosevka Web';
+  font-display: swap;
+  font-weight: 700;
+  font-stretch: normal;
+  font-style: normal;
+  src: url('/brain/fonts/woff2/iosevka-bold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Iosevka Web';
+  font-display: swap;
+  font-weight: 700;
+  font-stretch: normal;
+  font-style: italic;
+  src: url('/brain/fonts/woff2/iosevka-bolditalic.woff2') format('woff2');
+}
 
 // keeping for reference
 // @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Inter:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap');
