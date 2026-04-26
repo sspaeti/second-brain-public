@@ -62,7 +62,7 @@ hugo-generate: ## generate hugo from clean but don't run
 	rm -rf resources/_gen/ #helps prevent localhost:1313 in deployed website if accidentally an old hugo process running or from my book
 	hugo --gc && hugo
 
-purge-cdn: ## Purge Bunny CDN cache for ssp.sh/brain only
+purge-cdn: ## Purge Bunny CDN cache for ssp.sh/brain only (all brain pages)
 	@if [ -z "$$BUNNY_API_KEY" ] || [ -z "$$BUNNY_ZONE_SSP" ]; then \
 		echo "Skipping CDN purge (set BUNNY_API_KEY and BUNNY_ZONE_SSP to enable)"; \
 	else \
@@ -70,6 +70,26 @@ purge-cdn: ## Purge Bunny CDN cache for ssp.sh/brain only
 			-H "AccessKey: $$BUNNY_API_KEY" && \
 		echo "CDN cache purged for ssp.sh/brain/*"; \
 	fi
+
+purge-cdn-today: ## Purge only brain notes updated today (based on lastmod in frontmatter)
+	@if [ -z "$$BUNNY_API_KEY" ]; then \
+		echo "BUNNY_API_KEY not set"; exit 1; \
+	fi; \
+	today=$$(date +%Y-%m-%d); \
+	count=0; \
+	grep -rl "^lastmod: $$today" content/*.md 2>/dev/null | while IFS= read -r file; do \
+		slug=$$(basename "$$file" .md | tr '[:upper:]' '[:lower:]' | sed 's/ /-/g; s/[()]//g'); \
+		curl -s -X POST "https://api.bunny.net/purge?url=https://www.ssp.sh/brain/$$slug&async=true" \
+			-H "AccessKey: $$BUNNY_API_KEY"; \
+		curl -s -X POST "https://api.bunny.net/purge?url=https://www.ssp.sh/brain/$$slug/&async=true" \
+			-H "AccessKey: $$BUNNY_API_KEY"; \
+		echo "Purged: ssp.sh/brain/$$slug"; \
+		count=$$((count + 1)); \
+	done; \
+	total=$$(grep -rl "^lastmod: $$today" content/*.md 2>/dev/null | wc -l); \
+	curl -s -X POST "https://api.bunny.net/purge?url=https://www.ssp.sh/brain/&async=true" \
+		-H "AccessKey: $$BUNNY_API_KEY"; \
+	echo "Purged brain index + $$total notes updated $$today"
 
 upload: ## upload to server
 	rsync -avz --delete public/ sspaeti@sspaeti.com:~/www/ssp/brain
@@ -79,4 +99,4 @@ serve-old: prepare-python run
 
 
 upload-only: hugo-generate upload
-deploy: stop-brain prepare hugo-generate upload
+deploy: stop-brain prepare hugo-generate upload purge-cdn-today
