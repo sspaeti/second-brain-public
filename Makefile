@@ -78,5 +78,5 @@ serve: prepare run
 serve-old: prepare-python run
 
 
-upload-only: hugo-generate upload purge-cdn
-deploy: stop-brain prepare hugo-generate upload purge-cdn
+upload-only: hugo-generate upload
+deploy: stop-brain prepare hugo-generate upload
