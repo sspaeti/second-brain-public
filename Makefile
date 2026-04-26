@@ -62,12 +62,21 @@ hugo-generate: ## generate hugo from clean but don't run
 	rm -rf resources/_gen/ #helps prevent localhost:1313 in deployed website if accidentally an old hugo process running or from my book
 	hugo --gc && hugo
 
-upload: ## upload to server 
+purge-cdn: ## Purge Bunny CDN cache for ssp.sh/brain only
+	@if [ -z "$$BUNNY_API_KEY" ] || [ -z "$$BUNNY_ZONE_SSP" ]; then \
+		echo "Skipping CDN purge (set BUNNY_API_KEY and BUNNY_ZONE_SSP to enable)"; \
+	else \
+		curl -s -X POST "https://api.bunny.net/purge?url=https://www.ssp.sh/brain/*&async=true" \
+			-H "AccessKey: $$BUNNY_API_KEY" && \
+		echo "CDN cache purged for ssp.sh/brain/*"; \
+	fi
+
+upload: ## upload to server
 	rsync -avz --delete public/ sspaeti@sspaeti.com:~/www/ssp/brain
 
 serve: prepare run
 serve-old: prepare-python run
 
 
-upload-only: hugo-generate upload
-deploy: stop-brain prepare hugo-generate upload
+upload-only: hugo-generate upload purge-cdn
+deploy: stop-brain prepare hugo-generate upload purge-cdn
