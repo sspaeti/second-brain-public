@@ -49,35 +49,6 @@
     <div id="webmentions"></div>
     {{end}}
 </div>
-<!-- Initialize Mermaid for both page load and SPA navigation -->
-<script>
-  // Function to initialize Mermaid diagrams if they exist on the page
-  function initMermaidDiagrams() {
-    // Check if we have mermaid diagrams that need initialization
-    const unprocessedDiagrams = document.querySelectorAll('.mermaid:not([data-processed="true"])');
-    
-    if (unprocessedDiagrams.length > 0) {
-      // Try to access the mermaid object through dynamic import if not already available globally
-      if (window.mermaidLibLoaded) {
-        // Access mermaid from the dynamically imported module
-        import('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs')
-          .then(module => {
-            module.default.init(undefined, unprocessedDiagrams);
-          })
-          .catch(error => console.error('Failed to load Mermaid:', error));
-      }
-    }
-  }
-
-  // Initialize on page load
-  document.addEventListener('DOMContentLoaded', initMermaidDiagrams);
-  
-  // Initialize on SPA navigation
-  window.addEventListener('million:navigate', function() {
-    // Small delay to ensure DOM is updated
-    setTimeout(initMermaidDiagrams, 50);
-  });
-</script>
 </body>
 
 </html>

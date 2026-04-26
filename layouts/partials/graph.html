@@ -4,7 +4,9 @@
   crossorigin="anonymous"
 ></script>
 <h3>{{ i18n "interactive_graph" }}</h3>
-<div id="graph-container"></div>
+<div class="graph-wrapper" data-expandable>
+  <div id="graph-container"></div>
+</div>
 <style>
   :root {
     --g-node: var(--secondary);

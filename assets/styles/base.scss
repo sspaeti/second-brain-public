@@ -357,8 +357,18 @@ a {
 pre {
   font-family: var(--font-mono);
   padding: 0.75em;
-  border-radius: 3px;
+  border-radius: 5px;
   overflow-x: scroll;
+
+  &.mermaid {
+    overflow-x: visible;
+  }
+}
+
+.highlight {
+  border: 1px solid var(--outlinegray);
+  border-radius: 5px;
+  overflow: hidden;
 }
 
 code {
@@ -430,16 +440,21 @@ hr {
     flex: 1 0 0;
   }
 
-  & #graph-container {
+  & .graph-wrapper {
+    position: relative;
     border: var(--outlinegray) 1px solid;
     border-radius: 5px;
     box-sizing: border-box;
     min-height: 400px;
     margin: 0.5em 0;
+    overflow: hidden;
+  }
+
+  & #graph-container {
+    min-height: 400px;
 
     & > svg {
       margin-bottom: -5px;
-
     }
   }
 }

@@ -258,11 +258,14 @@
         container.textContent = ""
 
         const drawGlobal = isHome && {{$.Site.Data.graphConfig.enableGlobalGraph}};
+        window.__graphBaseUrl = {{strings.TrimRight "/" .Site.BaseURL}};
+        window.__graphPathColors = {{$.Site.Data.graphConfig.paths}};
+        window.__graphConfig = drawGlobal ? {{$.Site.Data.graphConfig.globalGraph}} : {{$.Site.Data.graphConfig.localGraph}};
         drawGraph(
             {{strings.TrimRight "/" .Site.BaseURL}},
             drawGlobal,
-            {{$.Site.Data.graphConfig.paths}},
-            drawGlobal ? {{$.Site.Data.graphConfig.globalGraph}} : {{$.Site.Data.graphConfig.localGraph}}
+            window.__graphPathColors,
+            window.__graphConfig
           );
 
         }
@@ -318,31 +321,35 @@
     {{if $data.enableGoatCounter | default false}}
       {{ partial "goat-counter.html" (dict "goatCounterUser" $data.goatCounterUser) }}
     {{end}}
-  <!-- Always load Mermaid for any page to ensure it's available during SPA navigation -->
+  <!-- Mermaid: lazy-loaded only when diagrams are detected -->
   <script type="module">
-    // Mermaid is always loaded but only initialized when diagrams are present
-    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
-    
-    // Get the current theme (light or dark)
+    let mermaidLib = null;
+    let isRendering = false;
+
     function getCurrentTheme() {
-      const savedTheme = document.documentElement.getAttribute('saved-theme');
-      if (savedTheme) return savedTheme;
-      
-      // Fallback to system preference
+      const saved = document.documentElement.getAttribute('saved-theme');
+      if (saved) return saved;
       return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
-    
-    // Function to initialize or reinitialize mermaid diagrams
-    window.initMermaid = function() {
-      // Check if page has mermaid diagrams
-      if (document.querySelector('.mermaid')) {
-        console.log("Initializing mermaid diagrams");
-        
-        // Determine if dark mode is active
+
+    async function loadMermaid() {
+      if (!mermaidLib) {
+        const module = await import('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs');
+        mermaidLib = module.default;
+      }
+      return mermaidLib;
+    }
+
+    async function renderMermaidDiagrams() {
+      const diagrams = document.querySelectorAll('.mermaid:not(.mermaid-processed)');
+      if (diagrams.length === 0 || isRendering) return;
+
+      isRendering = true;
+      try {
+        const mermaid = await loadMermaid();
         const isDark = getCurrentTheme() === 'dark';
-        console.log("Theme is:", isDark ? "dark" : "light");
-        
-        mermaid.initialize({ 
+
+        mermaid.initialize({
           startOnLoad: false,
           theme: isDark ? 'dark' : 'neutral',
           darkMode: isDark,
@@ -361,116 +368,69 @@
             nodeTextColor: '#f8f8f2'
           } : {}
         });
-        
-        // Manually render all diagrams - this is necessary after SPA navigation
-        setTimeout(() => {
-          document.querySelectorAll('.mermaid').forEach((element) => {
-            // Only render if not already rendered
-            if (!element.classList.contains('mermaid-processed')) {
-              try {
-                // Store original content for theme toggle reuse
-                const originalContent = element.textContent;
-                element.setAttribute('data-original-content', originalContent);
-                
-                // Render the diagram
-                mermaid.render(`mermaid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, originalContent)
-                  .then((result) => {
-                    element.innerHTML = result.svg;
-                    element.classList.add('mermaid-processed');
-                  });
-              } catch (error) {
-                console.error("Error rendering mermaid diagram:", error);
-              }
-            }
-          });
-        }, 0);
-      }
-    };
-    
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', () => {
-      window.initMermaid();
-    });
-    
-    // Also initialize after SPA navigation
-    if (window.Million) {
-      // Use a MutationObserver to detect when the page content changes
-      const observer = new MutationObserver((mutations) => {
-        for (const mutation of mutations) {
-          if (mutation.addedNodes.length > 0) {
-            // Check if any of the added nodes or their children contain a mermaid diagram
-            const hasMermaid = [...mutation.addedNodes].some(node => {
-              if (node.nodeType === Node.ELEMENT_NODE) {
-                return node.classList?.contains('mermaid') || 
-                       node.querySelector?.('.mermaid') !== null;
-              }
-              return false;
-            });
-            
-            if (hasMermaid) {
-              window.initMermaid();
-              break;
-            }
+
+        for (const el of diagrams) {
+          try {
+            const content = el.getAttribute('data-original-content') || el.textContent;
+            el.setAttribute('data-original-content', content);
+            const id = `mermaid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            const result = await mermaid.render(id, content);
+            el.innerHTML = result.svg;
+            el.classList.add('mermaid-processed');
+          } catch (err) {
+            console.error('Mermaid render error:', err);
           }
         }
-      });
-      
-      // Start observing the document body
-      observer.observe(document.body, { childList: true, subtree: true });
+      } finally {
+        isRendering = false;
+      }
     }
-    
-    // Store the mermaid object globally so it can be accessed by other scripts
-    window.mermaidLibLoaded = true;
-    
-    // Watch for theme changes to update Mermaid diagrams
+
+    function resetAndRerender() {
+      document.querySelectorAll('.mermaid.mermaid-processed').forEach(el => {
+        el.classList.remove('mermaid-processed');
+        const original = el.getAttribute('data-original-content');
+        if (original) el.textContent = original;
+      });
+      renderMermaidDiagrams();
+    }
+
+    window.initMermaid = renderMermaidDiagrams;
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', renderMermaidDiagrams);
+
+    // SPA navigation: observe for new mermaid elements
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.addedNodes.length > 0) {
+          const hasMermaid = [...mutation.addedNodes].some(node =>
+            node.nodeType === Node.ELEMENT_NODE &&
+            (node.classList?.contains('mermaid') || node.querySelector?.('.mermaid'))
+          );
+          if (hasMermaid) {
+            renderMermaidDiagrams();
+            break;
+          }
+        }
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Theme toggle re-render
     document.addEventListener('DOMContentLoaded', () => {
-      const darkModeToggle = document.querySelector('#darkmode-toggle');
-      if (darkModeToggle) {
-        darkModeToggle.addEventListener('change', () => {
-          // Need small delay for the theme attribute to be updated
-          setTimeout(() => {
-            // Clear existing diagrams by removing the processed class
-            document.querySelectorAll('.mermaid').forEach(el => {
-              if (el.classList.contains('mermaid-processed')) {
-                // Store the original content if not already stored
-                if (!el.getAttribute('data-original-content')) {
-                  const originalContent = el.getAttribute('data-content') || el.textContent;
-                  el.setAttribute('data-original-content', originalContent);
-                }
-                el.classList.remove('mermaid-processed');
-                // Reset to original content
-                const originalContent = el.getAttribute('data-original-content');
-                if (originalContent) {
-                  el.textContent = originalContent;
-                }
-              }
-            });
-            
-            // Re-render with new theme
-            window.initMermaid();
-          }, 100);
+      const toggle = document.querySelector('#darkmode-toggle');
+      if (toggle) {
+        toggle.addEventListener('change', () => {
+          requestAnimationFrame(resetAndRerender);
         });
       }
     });
-    
-    // Also listen for system dark mode changes
+
+    // System dark mode change
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-      // Only re-render if using system theme (no saved theme)
       if (!document.documentElement.hasAttribute('saved-theme')) {
-        setTimeout(() => {
-          // Similar to above, reset and re-render diagrams
-          document.querySelectorAll('.mermaid').forEach(el => {
-            if (el.classList.contains('mermaid-processed')) {
-              el.classList.remove('mermaid-processed');
-              const originalContent = el.getAttribute('data-original-content');
-              if (originalContent) {
-                el.textContent = originalContent;
-              }
-            }
-          });
-          
-          window.initMermaid();
-        }, 100);
+        requestAnimationFrame(resetAndRerender);
       }
     });
   </script>
@@ -483,12 +443,7 @@
 
   <!-- Replaced with GoatCounter -->
   <!-- <!-1- Google tag (gtag.js) -1-> -->
-  <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-PH3D1NNYSE"></script> -->
-  <!-- <script> -->
-  <!--   window.dataLayer = window.dataLayer || []; -->
-  <!--   function gtag(){dataLayer.push(arguments);} -->
-  <!--   gtag('js', new Date()); -->
-
-  <!--   gtag('config', 'G-PH3D1NNYSE'); -->
-  <!-- </script> -->
+  <!-- Lightbox expand component -->
+  {{ $lightbox := resources.Get "js/lightbox.js" | resources.Fingerprint "md5" }}
+  <script src="{{ $lightbox.Permalink }}" defer></script>
 </head>

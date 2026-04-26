@@ -1,4 +1,4 @@
-async function drawGraph(baseUrl, isHome, pathColors, graphConfig) {
+async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContainer) {
 
   let {
   depth,
@@ -10,7 +10,7 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig) {
   repelForce,
   fontSize} = graphConfig;
 
-  const container = document.getElementById("graph-container")
+  const container = targetContainer || document.getElementById("graph-container")
   const { index, links, content } = await fetchData
 
   // Use .pathname to remove hashes / searchParams / text fragments
@@ -109,7 +109,7 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig) {
     .force("center", d3.forceCenter())
 
   const svg = d3
-    .select("#graph-container")
+    .select(container)
     .append("svg")
     .attr("width", width)
     .attr("height", height)
@@ -171,16 +171,16 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig) {
       window.Million.navigate(new URL(`${baseUrl}${decodeURI(d.id).replace(/\s+/g, "-")}/`), ".singlePage")
     })
     .on("mouseover", function (_, d) {
-      d3.selectAll(".node").transition().duration(100).attr("fill", "var(--g-node-inactive)")
+      svg.selectAll(".node").transition().duration(100).attr("fill", "var(--g-node-inactive)")
 
       const neighbours = parseIdsFromLinks([
         ...(index.links[d.id] || []),
         ...(index.backlinks[d.id] || []),
       ])
-      const neighbourNodes = d3.selectAll(".node").filter((d) => neighbours.includes(d.id))
+      const neighbourNodes = svg.selectAll(".node").filter((d) => neighbours.includes(d.id))
       const currentId = d.id
       window.Million.prefetch(new URL(`${baseUrl}${decodeURI(d.id).replace(/\s+/g, "-")}/`))
-      const linkNodes = d3
+      const linkNodes = svg
         .selectAll(".link")
         .filter((d) => d.source.id === currentId || d.target.id === currentId)
 
@@ -204,10 +204,10 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig) {
         .attr('dy', d => nodeRadius(d) + 20 + 'px') // radius is in px
     })
     .on("mouseleave", function (_, d) {
-      d3.selectAll(".node").transition().duration(200).attr("fill", color)
+      svg.selectAll(".node").transition().duration(200).attr("fill", color)
 
       const currentId = d.id
-      const linkNodes = d3
+      const linkNodes = svg
         .selectAll(".link")
         .filter((d) => d.source.id === currentId || d.target.id === currentId)
 
@@ -267,4 +267,6 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig) {
     node.attr("cx", (d) => d.x).attr("cy", (d) => d.y)
     labels.attr("x", (d) => d.x).attr("y", (d) => d.y)
   })
+
+  return simulation
 }

@@ -1,4 +1,6 @@
-<pre class="mermaid">
-  {{- .Inner | safeHTML }}
-</pre>
+<div class="mermaid-container" data-expandable>
+  <pre class="mermaid">
+    {{- .Inner | safeHTML }}
+  </pre>
+</div>
 {{ .Page.Store.Set "hasMermaid" true }}

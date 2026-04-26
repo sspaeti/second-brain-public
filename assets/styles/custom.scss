@@ -1300,3 +1300,87 @@ article {
 }
 
 /* END: CV Styles */
+
+/* Lightbox / Expand overlay */
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+
+  &.lightbox-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.lightbox-content {
+  position: relative;
+  background: var(--light);
+  border-radius: 8px;
+  padding: 1.5em;
+  width: 95vw;
+  max-width: 1400px;
+  max-height: 95vh;
+  overflow: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 0.5em;
+  right: 0.75em;
+  font-size: 1.5em;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--gray);
+  line-height: 1;
+
+  &:hover {
+    color: var(--dark);
+  }
+}
+
+.expand-btn {
+  position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+  background: var(--lightgray);
+  border: 1px solid var(--outlinegray);
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 0.3em 0.4em;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 10;
+  color: var(--gray);
+
+  &:hover {
+    color: var(--dark);
+    background: var(--light);
+  }
+}
+
+[data-expandable]:hover .expand-btn {
+  opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+  .expand-btn {
+    opacity: 0.6;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lightbox-overlay {
+    transition: none;
+  }
+}
