@@ -329,6 +329,7 @@ sup > a {
 
 #page-title {
   margin: 0;
+  white-space: nowrap;
   & > a {
     font-family: var(--font-header);
   }
