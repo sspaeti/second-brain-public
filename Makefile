@@ -71,7 +71,10 @@ purge-cdn: ## Purge Bunny CDN cache for ssp.sh/brain only (all brain pages)
 		echo "CDN cache purged for ssp.sh/brain/*"; \
 	fi
 
-purge-cdn-today: ## Purge only brain notes updated today (based on lastmod in frontmatter)
+purge-cdn-changed: ## Purge only brain notes changed since last purge (tracks timestamp locally)
+	python utils/purge_cdn.py
+
+purge-cdn-today: ## Purge all brain notes updated today (legacy, date-only granularity)
 	@if [ -z "$$BUNNY_API_KEY" ]; then \
 		echo "BUNNY_API_KEY not set"; exit 1; \
 	fi; \
@@ -99,4 +102,4 @@ serve-old: prepare-python run
 
 
 upload-only: hugo-generate upload
-deploy: stop-brain prepare hugo-generate upload purge-cdn-today
+deploy: stop-brain prepare hugo-generate upload purge-cdn-changed
