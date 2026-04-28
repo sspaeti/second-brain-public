@@ -32,7 +32,11 @@ LASTMOD_RE = re.compile(r"^lastmod:\s*(.+)$", re.MULTILINE)
 def get_last_purge_time() -> datetime:
     if TIMESTAMP_FILE.exists():
         ts = TIMESTAMP_FILE.read_text().strip()
-        return datetime.fromisoformat(ts)
+        if ts:
+            try:
+                return datetime.fromisoformat(ts)
+            except ValueError:
+                print(f"WARNING: corrupt .last_purge_time ({ts!r}), falling back to today")
     return datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
 
