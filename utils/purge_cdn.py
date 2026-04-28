@@ -83,8 +83,8 @@ def slug_from_public(md_path: Path) -> str | None:
 def purge_url(slug: str, api_key: str) -> bool:
     """Purge a slug (with and without trailing slash). Returns True only on success."""
     headers = {"AccessKey": api_key}
-    for suffix in [slug, f"{slug}/"]:
-        url = f"{BASE_URL}/{suffix}" if suffix else f"{BASE_URL}/"
+    urls = [f"{BASE_URL}/{slug}", f"{BASE_URL}/{slug}/"] if slug else [f"{BASE_URL}/"]
+    for url in urls:
         params = urlencode({"url": url, "async": "true"})
         full_url = f"{PURGE_API}?{params}"
         while True:
@@ -151,12 +151,12 @@ def main():
         else:
             print(f"  Purged: ssp.sh/brain/{slug}")
 
-    # Always purge the index page
+    # Always purge the index page (holds recent updates list)
     if not purge_url("", api_key):
         failed = True
-        print("FAILED to purge brain index")
+        print(f"  FAILED: ssp.sh/brain/")
     else:
-        print("Purged brain index")
+        print(f"  Purged: ssp.sh/brain/")
 
     if failed:
         print("Some purges failed — NOT updating .last_purge_time")
