@@ -1,16 +1,16 @@
+use chrono::{DateTime, NaiveDate, NaiveDateTime, Utc};
 use std::fs;
-use std::path::{Path, PathBuf};
 use std::io::prelude::*;
 use std::io::{BufReader, Write};
-use chrono::{DateTime, Utc};
+use std::path::{Path, PathBuf};
 
 use regex::Regex;
-use std::fs::copy;
 use std::collections::HashMap;
+use std::fs::copy;
 
 use serde_yaml::Value;
 
-use crate::svg_generator::{ImageConfig, generate_og_image, extract_title_from_md};
+use crate::svg_generator::{extract_title_from_md, generate_og_image, ImageConfig};
 
 // Constant for emojis to exclude from tags
 pub const EXCLUDED_TAG_EMOJIS: [char; 6] = ['🗃', '🌻', '🗺', '🌍', '📬', '📚'];
@@ -24,7 +24,7 @@ fn extract_description(lines: &[String], frontmatter_end: usize) -> Option<Strin
     let callout_re = Regex::new(r"^>\s*\[!\w+\]").unwrap();
 
     let mut description = String::new();
-    let max_chars = 180;  // 3 lines × 60 chars with proper margins
+    let max_chars = 180; // 3 lines × 60 chars with proper margins
 
     // Find first non-empty paragraph after frontmatter
     for (index, line) in lines.iter().enumerate() {
@@ -79,13 +79,15 @@ fn extract_description(lines: &[String], frontmatter_end: usize) -> Option<Strin
     description = markdown_link_re.replace_all(&description, "$1").to_string();
 
     // Clean wikilinks: [[Link]] → Link, [[Link|Text]] → Text
-    description = wikilink_re.replace_all(&description, |caps: &regex::Captures| {
-        if let Some(text) = caps.get(2) {
-            text.as_str().to_string()
-        } else {
-            caps.get(1).unwrap().as_str().to_string()
-        }
-    }).to_string();
+    description = wikilink_re
+        .replace_all(&description, |caps: &regex::Captures| {
+            if let Some(text) = caps.get(2) {
+                text.as_str().to_string()
+            } else {
+                caps.get(1).unwrap().as_str().to_string()
+            }
+        })
+        .to_string();
 
     // Remove bold, italic, strikethrough, code formatting
     description = bold_italic_re.replace_all(&description, "").to_string();
@@ -143,8 +145,12 @@ fn extract_description(lines: &[String], frontmatter_end: usize) -> Option<Strin
     Some(description.trim().to_string())
 }
 
-pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &str, images_map: &HashMap<String, PathBuf>) -> std::io::Result<()> {
-
+pub fn process_file(
+    path: &Path,
+    public_folder: &str,
+    public_brain_image_path: &str,
+    images_map: &HashMap<String, PathBuf>,
+) -> std::io::Result<()> {
     const OG_WIDTH: u32 = 1200;
     const OG_HEIGHT: u32 = 630;
 
@@ -168,10 +174,11 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
     let created_re = Regex::new(r"Created:?\s+\[\[.*?(\d{4}-\d{2}-\d{2}).*?\]\]").unwrap();
 
     // Ugly fix as enableToc not working: Check if the file name is _index.md right after obtaining the file name
-    let file_name_only = path.file_name()
-                    .and_then(|f| f.to_str())
-                    .map(|s| s.to_lowercase())
-                    .unwrap_or_else(|| String::new());
+    let file_name_only = path
+        .file_name()
+        .and_then(|f| f.to_str())
+        .map(|s| s.to_lowercase())
+        .unwrap_or_else(|| String::new());
 
     // HashMap to store images to copy
     let mut images_to_copy: Vec<String> = Vec::new();
@@ -184,9 +191,9 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
         lines.push(line.clone());
 
         line_number += 1;
-        
+
         // Check if we're inside the frontmatter
-        if ( line == "---" && line_number == 1 ) || ( in_frontmatter && line == "---") {
+        if (line == "---" && line_number == 1) || (in_frontmatter && line == "---") {
             in_frontmatter = !in_frontmatter;
 
             // If there is an existing frontmatter, parse the frontmatter string
@@ -194,13 +201,16 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
                 line_end_frontmatter = line_number;
 
                 match serde_yaml::from_str(&frontmatter_string) {
-                    Ok(frontmatter) => { 
+                    Ok(frontmatter) => {
                         // existing_frontmatter = serde_yaml::from_str(&frontmatter_string).unwrap();
                         existing_frontmatter = frontmatter;
                         // println!("Existing frontmatter: {:?}", existing_frontmatter);
 
                         //if existing frontmatter, check if it contains #publish tag
-                        if let Some(tags_values) = existing_frontmatter.get("tags").and_then(|v| v.as_sequence()) {
+                        if let Some(tags_values) = existing_frontmatter
+                            .get("tags")
+                            .and_then(|v| v.as_sequence())
+                        {
                             let contains_publish = tags_values.iter().any(|tag| {
                                 if let Some(tag_str) = tag.as_str() {
                                     tag_str.contains("publish")
@@ -218,10 +228,17 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
                         eprintln!("Frontmatter content was:\n{}", frontmatter_string);
                     }
                 }
-                if file_name_only == "_index.md" || file_name_only == "data engineering.md" || file_name_only == "data engineering toolkit.md" || file_name_only == "cv.md" || file_name_only == "newsletter.md" {
+                if file_name_only == "_index.md"
+                    || file_name_only == "data engineering.md"
+                    || file_name_only == "data engineering toolkit.md"
+                    || file_name_only == "cv.md"
+                    || file_name_only == "newsletter.md"
+                {
                     enabletoc_value = "false".to_string();
-                }
-                else if let Some(enabletoc) = existing_frontmatter.get("enableToc").and_then(|v| v.as_str()) {
+                } else if let Some(enabletoc) = existing_frontmatter
+                    .get("enableToc")
+                    .and_then(|v| v.as_str())
+                {
                     enabletoc_value = enabletoc.to_string();
                 } else {
                     enabletoc_value = "".to_string(); // Default to empty if not present
@@ -250,14 +267,15 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
         if line.starts_with("Tags:") {
             let tags_line = line[5..].trim();
             // Extract tags, but filter out emoji-containing tags right away
-            tags = tags_line.split(' ')
+            tags = tags_line
+                .split(' ')
                 .map(|s| s.replace("#", "").to_string())
                 .filter(|s| !EXCLUDED_TAG_EMOJIS.iter().any(|emoji| s.contains(*emoji)))
                 .collect();
             lines.pop();
             continue;
         }
-        
+
         // Search for images and store them in `images_to_copy`
         if let Some(mat) = re.captures(&line) {
             if mat.len() > 1 {
@@ -266,7 +284,6 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
                     // println!("Found image: {}", image_name);
                     images_to_copy.push(image_name.to_string());
                     // images_to_copy.insert(image_name.to_string(), image_path.clone());
-
                 }
                 // else {
                 //     println!("Image not found in map: {}", image_name);
@@ -285,7 +302,7 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
             }
         }
     }
-    
+
     // If we found a publish tag, process the file
     if found_publish {
         // Create content/_img/feature directory if it doesn't exist
@@ -311,9 +328,10 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
 
         // Only generate new SVG and update frontmatter if ogimage doesn't exist
         if !existing_frontmatter.contains_key("ogimage") {
-            let file_stem = path.file_stem()
+            let file_stem = path
+                .file_stem()
                 .and_then(|s| s.to_str())
-                .map(|s| s.to_lowercase().replace(" ", "-"))  // Convert to lowercase and replace spaces
+                .map(|s| s.to_lowercase().replace(" ", "-")) // Convert to lowercase and replace spaces
                 .unwrap_or("default".to_string());
 
             let image_config = ImageConfig {
@@ -328,12 +346,18 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
                 eprintln!("Failed to generate OG image for {}: {}", path.display(), e);
             } else {
                 // Only update frontmatter if we successfully generated a new image
-                existing_frontmatter.insert("ogimage".to_string(),
-                    Value::String(format!("gen/{}.webp", file_stem)));
-                existing_frontmatter.insert("ogwidth".to_string(),
-                    Value::Number(serde_yaml::Number::from(OG_WIDTH)));
-                existing_frontmatter.insert("ogheight".to_string(),
-                    Value::Number(serde_yaml::Number::from(OG_HEIGHT)));
+                existing_frontmatter.insert(
+                    "ogimage".to_string(),
+                    Value::String(format!("gen/{}.webp", file_stem)),
+                );
+                existing_frontmatter.insert(
+                    "ogwidth".to_string(),
+                    Value::Number(serde_yaml::Number::from(OG_WIDTH)),
+                );
+                existing_frontmatter.insert(
+                    "ogheight".to_string(),
+                    Value::Number(serde_yaml::Number::from(OG_HEIGHT)),
+                );
             }
         }
 
@@ -344,31 +368,40 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
                 let destination_path = format!("{}/{}", public_brain_image_path, image_name);
                 // println!("Copying image to: {}", destination_path);
                 if let Err(e) = copy(image_path, &destination_path) {
-                    println!("Error while copying image: {} - {} -> {}", e, image_path.display(), destination_path);
+                    println!(
+                        "Error while copying image: {} - {} -> {}",
+                        e,
+                        image_path.display(),
+                        destination_path
+                    );
                 };
             }
         }
-        
+
         // Read the last modified timestamp
         let metadata = fs::metadata(path)?;
-        let last_modified: DateTime<Utc> = DateTime::from(metadata.modified()?);
-        let mut last_modified_str = last_modified.format("%Y-%m-%d %H:%M:%S").to_string();
+        let file_mtime_utc: DateTime<Utc> = DateTime::from(metadata.modified()?);
+        let mut last_modified_str = file_mtime_utc.format("%Y-%m-%d %H:%M:%S").to_string();
         let mut frontmatter = String::new();
 
         // Prepare tags for frontmatter
         let mut frontmatter_tags = String::new();
-        let filtered_tags: Vec<String> = tags.iter()
+        let filtered_tags: Vec<String> = tags
+            .iter()
             .filter(|tag| *tag != "publish" && !tag.is_empty())
             .cloned()
             .collect();
-            
+
         for tag in filtered_tags.iter() {
             frontmatter_tags.push_str(&format!("- {}\n", tag));
         }
 
         // If enabletoc_value is not empty, update it in existing_frontmatter
         if !enabletoc_value.is_empty() {
-            existing_frontmatter.insert("enableToc".to_string(), serde_yaml::Value::String(enabletoc_value.clone()));
+            existing_frontmatter.insert(
+                "enableToc".to_string(),
+                serde_yaml::Value::String(enabletoc_value.clone()),
+            );
         }
 
         if existing_frontmatter.is_empty() {
@@ -382,75 +415,147 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
                 frontmatter_parts.insert(0, format!("createddate: '{}'", date));
             }
             frontmatter = format!("---\n{}\n---\n", frontmatter_parts.join("\n"));
-        }
-        else {
+        } else {
             // Merge frontmatter
             let mut existing_frontmatter = existing_frontmatter.clone();
 
-            title = existing_frontmatter.get("title").and_then(|v| v.as_str()).filter(|s| !s.is_empty()).unwrap_or(&title).to_string();
+            title = existing_frontmatter
+                .get("title")
+                .and_then(|v| v.as_str())
+                .filter(|s| !s.is_empty())
+                .unwrap_or(&title)
+                .to_string();
             existing_frontmatter.remove("title");
 
-            let enabletoc = existing_frontmatter.get("enableToc").and_then(|v| v.as_str()).filter(|s| !s.is_empty()).unwrap_or("").to_string();
+            let enabletoc = existing_frontmatter
+                .get("enableToc")
+                .and_then(|v| v.as_str())
+                .filter(|s| !s.is_empty())
+                .unwrap_or("")
+                .to_string();
             if !enabletoc.is_empty() {
                 existing_frontmatter.remove("enableToc");
             }
 
-            last_modified_str = existing_frontmatter.get("lastmod").and_then(|v| v.as_str()).filter(|s| !s.is_empty()).unwrap_or(&last_modified_str).to_string();
+            // Compute lastmod as max(existing lastmod, source file mtime)
+            let existing_lastmod_opt = existing_frontmatter
+                .get("lastmod")
+                .and_then(|v| v.as_str())
+                .filter(|s| !s.is_empty());
+
+            // Parse helper: accept several common formats and quotes
+            fn parse_lastmod_utc(raw: &str) -> Option<DateTime<Utc>> {
+                let mut s = raw.trim();
+                if (s.starts_with('\'') && s.ends_with('\''))
+                    || (s.starts_with('"') && s.ends_with('"'))
+                {
+                    s = &s[1..s.len() - 1];
+                }
+                // ISO with 'Z' or offset
+                let s_iso = s.replace('Z', "+00:00");
+                if let Ok(dt) = DateTime::parse_from_rfc3339(&s_iso) {
+                    return Some(dt.with_timezone(&Utc));
+                }
+                // "YYYY-MM-DD HH:MM:SS %z"
+                if let Ok(dt) = DateTime::parse_from_str(&s, "%Y-%m-%d %H:%M:%S %z") {
+                    return Some(dt.with_timezone(&Utc));
+                }
+                // "YYYY-MM-DD HH:MM:SS" (naive, treat as UTC)
+                if let Ok(ndt) = NaiveDateTime::parse_from_str(&s, "%Y-%m-%d %H:%M:%S") {
+                    return Some(DateTime::<Utc>::from_utc(ndt, Utc));
+                }
+                // "YYYY-MM-DD" (midnight UTC)
+                if let Ok(nd) = NaiveDate::parse_from_str(&s, "%Y-%m-%d") {
+                    let ndt = nd.and_hms_opt(0, 0, 0)?;
+                    return Some(DateTime::<Utc>::from_utc(ndt, Utc));
+                }
+                None
+            }
+
+            let chosen_lastmod_utc = match existing_lastmod_opt.and_then(|s| parse_lastmod_utc(s)) {
+                Some(existing_dt) => {
+                    if existing_dt > file_mtime_utc {
+                        existing_dt
+                    } else {
+                        file_mtime_utc
+                    }
+                }
+                None => file_mtime_utc,
+            };
+
+            last_modified_str = chosen_lastmod_utc.format("%Y-%m-%d %H:%M:%S").to_string();
             existing_frontmatter.remove("lastmod");
 
             // Handle created date - check if it exists in frontmatter or use extracted one
-            let date_str = existing_frontmatter.get("createddate")
+            let date_str = existing_frontmatter
+                .get("createddate")
                 .and_then(|v| v.as_str())
                 .map(|s| s.to_string())
                 .or(created_date.clone());
             existing_frontmatter.remove("createddate");
 
             // Update existing frontmatter with new values
-            existing_frontmatter.insert("title".to_string(), serde_yaml::Value::String(format!("\"{}\"", title)));
-            existing_frontmatter.insert("lastmod".to_string(), serde_yaml::Value::String(last_modified_str.clone()));
-            existing_frontmatter.insert("enableToc".to_string(), serde_yaml::Value::String(enabletoc.clone()));
+            existing_frontmatter.insert(
+                "title".to_string(),
+                serde_yaml::Value::String(format!("\"{}\"", title)),
+            );
+            existing_frontmatter.insert(
+                "lastmod".to_string(),
+                serde_yaml::Value::String(last_modified_str.clone()),
+            );
+            existing_frontmatter.insert(
+                "enableToc".to_string(),
+                serde_yaml::Value::String(enabletoc.clone()),
+            );
 
             // Add created date if we have it
             if let Some(date) = date_str {
-                existing_frontmatter.insert("createddate".to_string(), serde_yaml::Value::String(date));
+                existing_frontmatter
+                    .insert("createddate".to_string(), serde_yaml::Value::String(date));
             }
-            
+
             // Handling tags
             let mut new_tags: Vec<serde_yaml::Value> = vec![];
             if !frontmatter_tags.is_empty() {
                 new_tags = frontmatter_tags
                     .lines()
-                    .map(|line| serde_yaml::Value::String(line.trim_start_matches("- ").to_string()))
+                    .map(|line| {
+                        serde_yaml::Value::String(line.trim_start_matches("- ").to_string())
+                    })
                     .collect();
             }
             // Handle tags from the existing frontmatter - always remove old tags key
             existing_frontmatter.remove("tags");
-            
+
             // Only proceed with tags if we have non-emoji, non-empty new tags
             let filtered_new_tags: Vec<serde_yaml::Value> = new_tags
                 .into_iter()
                 .filter(|v| {
                     if let serde_yaml::Value::String(s) = v {
-                        !s.is_empty() && 
-                        !EXCLUDED_TAG_EMOJIS.iter().any(|emoji| s.contains(*emoji)) &&
-                        s != "publish"
+                        !s.is_empty()
+                            && !EXCLUDED_TAG_EMOJIS.iter().any(|emoji| s.contains(*emoji))
+                            && s != "publish"
                     } else {
-                        false  // Only accept string tags
+                        false // Only accept string tags
                     }
                 })
                 .collect();
-            
+
             // Only insert tags key if we have actual content
             if !filtered_new_tags.is_empty() {
                 let tag_count = filtered_new_tags.len();
-                existing_frontmatter.insert("tags".to_string(), serde_yaml::Value::Sequence(filtered_new_tags));
+                existing_frontmatter.insert(
+                    "tags".to_string(),
+                    serde_yaml::Value::Sequence(filtered_new_tags),
+                );
                 println!("Added {} non-empty tags", tag_count);
             }
 
             // Redundant check removed - we now handle empty tags earlier
-            
+
             // Sorting and reconstructing frontmatter
-            let mut frontmatter_items: Vec<(&String, &serde_yaml::Value)> = existing_frontmatter.iter().collect();
+            let mut frontmatter_items: Vec<(&String, &serde_yaml::Value)> =
+                existing_frontmatter.iter().collect();
             frontmatter_items.sort_by(|a, b| a.0.cmp(b.0));
 
             let mut sorted_frontmatter = String::from("---\n");
@@ -463,17 +568,25 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
                         if seq.is_empty() {
                             continue;
                         }
-                        
+
                         // Format non-empty tag arrays
-                        sorted_frontmatter.push_str(&format!("{}: [{}]\n", key, 
+                        sorted_frontmatter.push_str(&format!(
+                            "{}: [{}]\n",
+                            key,
                             seq.iter()
-                               .filter_map(|v| {
-                                   if let serde_yaml::Value::String(s) = v {
-                                       if s.is_empty() { None } else { Some(s.clone()) }
-                                   } else { None }
-                               })
-                               .collect::<Vec<_>>()
-                               .join(", ")
+                                .filter_map(|v| {
+                                    if let serde_yaml::Value::String(s) = v {
+                                        if s.is_empty() {
+                                            None
+                                        } else {
+                                            Some(s.clone())
+                                        }
+                                    } else {
+                                        None
+                                    }
+                                })
+                                .collect::<Vec<_>>()
+                                .join(", ")
                         ));
                         continue;
                     }
@@ -490,13 +603,18 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
                         } else {
                             s.clone()
                         }
-                    },
-                    serde_yaml::Value::Sequence(seq) => {
-                        seq.iter()
-                            .filter_map(|v| if let serde_yaml::Value::String(s) = v { Some(s.clone()) } else { None })
-                            .collect::<Vec<_>>()
-                            .join(", ")
-                    },
+                    }
+                    serde_yaml::Value::Sequence(seq) => seq
+                        .iter()
+                        .filter_map(|v| {
+                            if let serde_yaml::Value::String(s) = v {
+                                Some(s.clone())
+                            } else {
+                                None
+                            }
+                        })
+                        .collect::<Vec<_>>()
+                        .join(", "),
                     _ => serde_yaml::to_string(value).unwrap_or_default(),
                 };
 
@@ -561,14 +679,11 @@ pub fn process_file(path: &Path, public_folder: &str, public_brain_image_path: &
             .map(|p| std::path::PathBuf::from(p))
             .unwrap_or_else(|_| path.parent().unwrap_or(Path::new(".")).to_path_buf());
 
-        let processed_content = inject_base_tables_if_present(
-            &content,
-            path.parent(),
-            &vault_root,
-        ).unwrap_or_else(|e| {
-            eprintln!("Failed to inject BASE tables: {}", e);
-            content
-        });
+        let processed_content = inject_base_tables_if_present(&content, path.parent(), &vault_root)
+            .unwrap_or_else(|e| {
+                eprintln!("Failed to inject BASE tables: {}", e);
+                content
+            });
 
         // Writing to the file
         let file_name = path.file_name().unwrap().to_str().unwrap().to_lowercase();
@@ -587,9 +702,9 @@ pub fn process_base_file(
     public_folder: &str,
     vault_root: &PathBuf,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    use crate::base_parser::{parse_base_file, extract_filter_expressions};
+    use crate::base_parser::{extract_filter_expressions, parse_base_file};
     use crate::base_query::{query_notes, sort_notes};
-    use crate::base_renderer::{render_table_view, render_cards_view, render_list_view};
+    use crate::base_renderer::{render_cards_view, render_list_view, render_table_view};
     use std::fs;
 
     println!("Processing BASE file: {}", base_path.display());
@@ -705,7 +820,9 @@ fn copy_base_source_files(
     filter_expressions: &[String],
     temp_dir: &Path,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    use crate::base_query::{extract_folder_from_filters, extract_extension_from_filters, extract_exclusion_paths};
+    use crate::base_query::{
+        extract_exclusion_paths, extract_extension_from_filters, extract_folder_from_filters,
+    };
     use std::fs;
 
     // Extract folder filter and exclusions
@@ -781,7 +898,8 @@ fn copy_files_recursive(
             if file_name.ends_with(".base")
                 || file_name == "Coffee Beans.md"
                 || file_name == "Coffee Beans (dataview).md"
-                || file_name == "Coffee Beans Recommendations.md" {
+                || file_name == "Coffee Beans Recommendations.md"
+            {
                 continue;
             }
 
@@ -801,9 +919,9 @@ pub fn inject_base_tables_if_present(
     source_dir: Option<&Path>,
     vault_root: &Path,
 ) -> Result<String, Box<dyn std::error::Error>> {
-    use crate::base_parser::{parse_base_file, extract_filter_expressions};
+    use crate::base_parser::{extract_filter_expressions, parse_base_file};
     use crate::base_query::{query_notes, sort_notes};
-    use crate::base_renderer::{render_table_view, render_cards_view, render_list_view};
+    use crate::base_renderer::{render_cards_view, render_list_view, render_table_view};
     use regex::Regex;
 
     // Pattern to match [[filename.base]] or [[filename.base#ViewName]]
@@ -848,7 +966,9 @@ pub fn inject_base_tables_if_present(
         };
 
         // Query matching notes
-        let base_dir = base_path.parent().unwrap_or(source_dir.unwrap_or(vault_root));
+        let base_dir = base_path
+            .parent()
+            .unwrap_or(source_dir.unwrap_or(vault_root));
         let mut notes = match query_notes(base_dir, vault_root, &filter_expressions) {
             Ok(n) => n,
             Err(e) => {

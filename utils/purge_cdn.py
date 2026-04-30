@@ -14,7 +14,7 @@ import os
 import re
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
@@ -34,24 +34,69 @@ def get_last_purge_time() -> datetime:
         ts = TIMESTAMP_FILE.read_text().strip()
         if ts:
             try:
-                return datetime.fromisoformat(ts)
+                dt = datetime.fromisoformat(ts)
+                # If file stored naive local, interpret as local and convert to UTC
+                if dt.tzinfo is None:
+                    local_tz = datetime.now().astimezone().tzinfo
+                    dt = dt.replace(tzinfo=local_tz).astimezone(timezone.utc)
+                else:
+                    dt = dt.astimezone(timezone.utc)
+                return dt
             except ValueError:
                 print(f"WARNING: corrupt .last_purge_time ({ts!r}), falling back to today")
-    return datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    # Fallback: start of today in local, then convert to UTC
+    local_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).astimezone()
+    return local_start.astimezone(timezone.utc)
 
 
 def save_purge_time(dt: datetime):
-    TIMESTAMP_FILE.write_text(dt.isoformat())
+    # Always store UTC with explicit offset to avoid ambiguity
+    TIMESTAMP_FILE.write_text(dt.astimezone(timezone.utc).isoformat())
 
 
 def parse_lastmod(text: str) -> datetime | None:
+    """Parse a variety of frontmatter lastmod formats.
+
+    Supported examples:
+    - 2026-04-30 15:17:31
+    - 2026-04-30
+    - '2026-04-30 15:17:31'
+    - 2026-04-30T15:17:31
+    - 2026-04-30T15:17:31Z
+    - 2026-04-30T15:17:31+02:00
+    - 2026-04-30 15:17:31 +0200
+    """
     m = LASTMOD_RE.search(text)
     if not m:
         return None
     raw = m.group(1).strip()
-    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d"):
+    # Strip surrounding quotes
+    if (raw.startswith("'") and raw.endswith("'")) or (raw.startswith('"') and raw.endswith('"')):
+        raw = raw[1:-1].strip()
+
+    # Try Python ISO parser first (handle T and offsets). Normalize Z
+    iso_candidate = raw.replace("Z", "+00:00")
+    try:
+        dt = datetime.fromisoformat(iso_candidate)
+        if dt.tzinfo is None:
+            # Treat naive ISO as UTC
+            dt = dt.replace(tzinfo=timezone.utc)
+        else:
+            dt = dt.astimezone(timezone.utc)
+        return dt
+    except ValueError:
+        pass
+
+    # Common explicit formats (with and without tz offset)
+    for fmt in (
+        "%Y-%m-%d %H:%M:%S %z",
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d",
+    ):
         try:
-            return datetime.strptime(raw, fmt)
+            dt = datetime.strptime(raw, fmt)
+            # All explicit-strptime results here are naive; interpret as UTC
+            return dt.replace(tzinfo=timezone.utc)
         except ValueError:
             continue
     return None
@@ -122,15 +167,20 @@ def main():
         print("BUNNY_API_KEY not set")
         sys.exit(1)
 
-    last_purge = get_last_purge_time()
-    purge_start = datetime.now()
-    print(f"Last purge: {last_purge.isoformat()}")
+    last_purge = get_last_purge_time()  # UTC aware
+    purge_start = datetime.now(timezone.utc)  # UTC aware
+    print(f"Last purge (UTC): {last_purge.isoformat()}")
 
     changed = []
     for md_file in sorted(CONTENT_DIR.glob("*.md")):
         text = md_file.read_text(errors="replace")
         lastmod = parse_lastmod(text)
-        if lastmod and lastmod > last_purge:
+        if lastmod is None:
+            # Helpful debug to catch formatting issues once
+            lm_line = next((ln for ln in text.splitlines() if ln.strip().startswith("lastmod:")), "lastmod: <missing>")
+            print(f"  NOTE: cannot parse lastmod in {md_file.name!s}: {lm_line}")
+            continue
+        if lastmod > last_purge:
             changed.append(md_file)
 
     if not changed:
