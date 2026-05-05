@@ -26,7 +26,12 @@ window.addEventListener('load', function() {
       try {
         // Get the URL of the link
         const linkUrl = new URL(link.href);
-        
+
+        // Only process http(s) URLs — skip javascript:, mailto:, tel:, etc.
+        if (linkUrl.protocol !== 'http:' && linkUrl.protocol !== 'https:') {
+          return;
+        }
+
         // Check if the link is external (different hostname) and not to our own domains
         if (linkUrl.hostname !== siteDomain && !isOwnDomain(linkUrl.hostname)) {
           // Only modify if the URL doesn't already have the ref parameter
@@ -61,7 +66,12 @@ window.addEventListener('load', function() {
     if (link && link.href) {
       try {
         const linkUrl = new URL(link.href);
-        
+
+        // Only process http(s) URLs — skip javascript:, mailto:, tel:, etc.
+        if (linkUrl.protocol !== 'http:' && linkUrl.protocol !== 'https:') {
+          return;
+        }
+
         // Only process external links that aren't to our own domains
         if (linkUrl.hostname !== siteDomain && !isOwnDomain(linkUrl.hostname) && !linkUrl.searchParams.has('ref')) {
           // Prevent the default action
