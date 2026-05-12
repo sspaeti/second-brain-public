@@ -94,7 +94,15 @@ purge-cdn-today: ## Purge all brain notes updated today (legacy, date-only granu
 		-H "AccessKey: $$BUNNY_API_KEY"; \
 	echo "Purged brain index + $$total notes updated $$today"
 
-upload: ## upload to server
+upload: ## upload to server (preserves old hashed /js/, /styles/, /indices/ and root styles.*.min.css so stale CDN/browser HTML keeps working)
+	rsync -avz --delete \
+		--filter='P /js/***' \
+		--filter='P /styles/***' \
+		--filter='P /indices/***' \
+		--filter='P /styles.*.min.css' \
+		public/ sspaeti@sspaeti.com:~/www/ssp/brain
+
+upload-clean: ## upload with full delete (removes orphaned hashed assets — pair with `make purge-cdn` or stale HTML will 404)
 	rsync -avz --delete public/ sspaeti@sspaeti.com:~/www/ssp/brain
 
 serve: prepare run
@@ -103,3 +111,4 @@ serve-old: prepare-python run
 
 upload-only: hugo-generate upload
 deploy: stop-brain prepare hugo-generate upload purge-cdn-changed
+deploy-clean: stop-brain prepare hugo-generate upload-clean purge-cdn ## deploy and remove orphaned hashed assets (full purge required — may briefly break stale HTML until purge propagates)
