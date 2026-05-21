@@ -22,6 +22,68 @@
   const sortDir = getAttribute("sort-dir", "up");
   const commentsAreReactions = getAttribute("comments-are-reactions", false);
   const queryWwwRedirects = getAttribute("query-www-redirects", false);
+
+  // Owner's Bluesky DID — used to filter out self-webmentions (bridgy-fed
+  // bridges your own bsky posts back as webmentions; we don't want to show
+  // them as comments on our own articles).
+  const OWN_BSKY_DID = "did:plc:edglm4muiyzty2snc55ysuqx";
+
+  // Extract the actor (DID or handle) from a bsky.app profile URL.
+  function getBskyActor(url) {
+    if (!url) return null;
+    const m = url.match(/bsky\.app\/profile\/([^/?#]+)/);
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+
+  function isOwnBskyPost(webmention) {
+    const url = webmention[preventSpoofingField] || webmention.url || "";
+    return url.includes(OWN_BSKY_DID);
+  }
+
+  // Fetch a Bluesky profile from the public AppView (no auth required).
+  async function fetchBskyProfile(actor) {
+    try {
+      const resp = await window.fetch(
+        `https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=${encodeURIComponent(actor)}`
+      );
+      if (!resp.ok) return null;
+      return await resp.json();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // Webmention.io returns empty author fields for bridgy-fed Bluesky entries;
+  // backfill name/photo/url from the public Bluesky API in one batched pass.
+  async function enrichBskyAuthors(webmentions) {
+    const needs = webmentions.filter(function(wm) {
+      const url = wm.url || "";
+      if (!url.includes("bsky.app/profile/")) return false;
+      const a = wm.author || {};
+      return !a.name || !a.photo;
+    });
+    if (needs.length === 0) return;
+
+    const actors = Array.from(new Set(
+      needs.map(function(wm) { return getBskyActor(wm.url); }).filter(Boolean)
+    ));
+
+    const profiles = {};
+    await Promise.all(actors.map(async function(actor) {
+      const p = await fetchBskyProfile(actor);
+      if (p) profiles[actor] = p;
+    }));
+
+    needs.forEach(function(wm) {
+      const actor = getBskyActor(wm.url);
+      const p = profiles[actor];
+      if (!p) return;
+      wm.author = wm.author || {};
+      if (!wm.author.name) wm.author.name = p.displayName || p.handle || actor;
+      if (!wm.author.photo) wm.author.photo = p.avatar || "";
+      if (!wm.author.url) wm.author.url = "https://bsky.app/profile/" + (p.handle || actor);
+    });
+  }
   
   // Translation mappings
   const propertyText = {
@@ -300,7 +362,15 @@
       console.error("Request failed", error);
       return;
     }
-    
+
+    // Drop self-webmentions (bridgy-fed bridges our own bsky posts back).
+    webmentionsData.children = (webmentionsData.children || []).filter(function(wm) {
+      return !isOwnBskyPost(wm);
+    });
+
+    // Backfill author info for Bluesky entries that came back without it.
+    await enrichBskyAuthors(webmentionsData.children);
+
     // Organize webmentions
     let reactions = [];
     let comments = [];
