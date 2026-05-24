@@ -12,6 +12,101 @@ pub struct ImageConfig {
     pub output_path: String,
 }
 
+pub struct MermaidConfig {
+    pub source: String,
+    pub output_path: String,
+    pub width: u32,
+    pub height: u32,
+}
+
+/// Render a Mermaid diagram source to a 1200x630 WebP suitable for OG images.
+/// Uses mmdc (mermaid-cli) to render PNG, then ImageMagick to composite onto a padded canvas.
+pub fn generate_mermaid_og_image(config: &MermaidConfig) -> Result<(), Box<dyn Error>> {
+    if Path::new(&config.output_path).exists() {
+        return Ok(());
+    }
+
+    if let Some(parent) = Path::new(&config.output_path).parent() {
+        if !parent.exists() {
+            fs::create_dir_all(parent)?;
+        }
+    }
+
+    let stem = config.output_path.trim_end_matches(".webp");
+    let tmp_mmd = format!("{}.tmp.mmd", stem);
+    let tmp_png = format!("{}.tmp.png", stem);
+
+    fs::write(&tmp_mmd, &config.source)?;
+
+    let bg = "#1F1F28";
+    // Render mermaid at close to the target display width (so text stays at its
+    // natural, readable size) with a high puppeteer scale factor for retina-sharp
+    // anti-aliasing. Wider viewports spread the diagram out and shrink text on
+    // downscale; -s only changes pixel density, not CSS layout.
+    let render_width = config.width.saturating_sub(100).max(800); // ~1100 for 1200 canvas
+    let render_w_str = render_width.to_string();
+    let mmdc_out = Command::new("mmdc")
+        .arg("-i").arg(&tmp_mmd)
+        .arg("-o").arg(&tmp_png)
+        .arg("-t").arg("dark")
+        .arg("-b").arg(bg)
+        .arg("-w").arg(&render_w_str)
+        .arg("-s").arg("3")
+        .arg("--quiet")
+        .output();
+
+    match mmdc_out {
+        Ok(out) if !out.status.success() => {
+            let err = String::from_utf8_lossy(&out.stderr).to_string();
+            let _ = fs::remove_file(&tmp_mmd);
+            return Err(format!("mmdc failed: {}", err).into());
+        }
+        Err(e) => {
+            let _ = fs::remove_file(&tmp_mmd);
+            return Err(format!("Failed to run mmdc: {}", e).into());
+        }
+        _ => {}
+    }
+
+    // Composite onto canvas: matching dark bg, ~50px padding each side, centered
+    let pad = 50u32;
+    let inner_w = config.width.saturating_sub(pad * 2);
+    let inner_h = config.height.saturating_sub(pad * 2);
+    let canvas = format!("{}x{}", config.width, config.height);
+    let resize = format!("{}x{}", inner_w, inner_h);
+    let canvas_fill = format!("xc:{}", bg);
+
+    let magick_out = Command::new("magick")
+        .arg("-size").arg(&canvas)
+        .arg(&canvas_fill)
+        .arg("(")
+            .arg(&tmp_png)
+            .arg("-filter").arg("Lanczos")
+            .arg("-resize").arg(&resize)
+        .arg(")")
+        .arg("-gravity").arg("center")
+        .arg("-composite")
+        .arg("-quality").arg("92")
+        .arg("-define").arg("webp:method=6")
+        .arg(&config.output_path)
+        .output();
+
+    let _ = fs::remove_file(&tmp_mmd);
+    let _ = fs::remove_file(&tmp_png);
+
+    match magick_out {
+        Ok(out) if !out.status.success() => {
+            Err(format!(
+                "magick composite failed: {}",
+                String::from_utf8_lossy(&out.stderr)
+            )
+            .into())
+        }
+        Err(e) => Err(format!("Failed to run magick: {}", e).into()),
+        _ => Ok(()),
+    }
+}
+
 pub fn generate_og_image(config: &ImageConfig) -> Result<(), Box<dyn Error>> {
     // Check if WebP file already exists
     let output_path = config.output_path.replace(".svg", ".webp");

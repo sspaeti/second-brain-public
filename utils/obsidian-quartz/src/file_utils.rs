@@ -10,7 +10,10 @@ use std::fs::copy;
 
 use serde_yaml::Value;
 
-use crate::svg_generator::{extract_title_from_md, generate_og_image, ImageConfig};
+use crate::svg_generator::{
+    extract_title_from_md, generate_mermaid_og_image, generate_og_image, ImageConfig,
+    MermaidConfig,
+};
 
 // Constant for emojis to exclude from tags
 pub const EXCLUDED_TAG_EMOJIS: [char; 6] = ['🗃', '🌻', '🗺', '🌍', '📬', '📚'];
@@ -143,6 +146,62 @@ fn extract_description(lines: &[String], frontmatter_end: usize) -> Option<Strin
     }
 
     Some(description.trim().to_string())
+}
+
+/// Parse an `ogimage` frontmatter value like "mermaid" or "mermaid2" into a 1-based block index.
+fn parse_mermaid_ogimage(value: &str) -> Option<usize> {
+    let v = value.trim();
+    if v.eq_ignore_ascii_case("mermaid") {
+        return Some(1);
+    }
+    let lower = v.to_ascii_lowercase();
+    if let Some(rest) = lower.strip_prefix("mermaid") {
+        if let Ok(n) = rest.parse::<usize>() {
+            if n >= 1 {
+                return Some(n);
+            }
+        }
+    }
+    None
+}
+
+/// Extract the Nth (1-based) ```mermaid ... ``` fenced block from a slice of lines.
+fn extract_mermaid_block(lines: &[String], n: usize) -> Option<String> {
+    let mut block_count = 0usize;
+    let mut in_target = false;
+    let mut in_other = false;
+    let mut content = String::new();
+
+    for line in lines {
+        let t = line.trim();
+        let is_mermaid_start =
+            t.starts_with("```mermaid") || t.starts_with("~~~mermaid");
+        let is_fence_end = t == "```" || t == "~~~";
+
+        if !in_target && !in_other && is_mermaid_start {
+            block_count += 1;
+            if block_count == n {
+                in_target = true;
+            } else {
+                in_other = true;
+            }
+            continue;
+        }
+
+        if (in_target || in_other) && is_fence_end {
+            if in_target {
+                return Some(content);
+            }
+            in_other = false;
+            continue;
+        }
+
+        if in_target {
+            content.push_str(line);
+            content.push('\n');
+        }
+    }
+    None
 }
 
 pub fn process_file(
@@ -323,6 +382,79 @@ pub fn process_file(
         if let Some(ref desc) = description {
             if !existing_frontmatter.contains_key("description") {
                 existing_frontmatter.insert("description".to_string(), Value::String(desc.clone()));
+            }
+        }
+
+        // If ogimage is a "mermaid" / "mermaidN" placeholder, render that block to a WebP
+        // and replace the value with the real path. On failure, drop the key so the
+        // title-based generator below can run as a fallback.
+        let mermaid_n = existing_frontmatter
+            .get("ogimage")
+            .and_then(|v| v.as_str())
+            .and_then(parse_mermaid_ogimage);
+
+        if let Some(n) = mermaid_n {
+            let body_slice: &[String] = if line_end_frontmatter < lines.len() {
+                &lines[line_end_frontmatter..]
+            } else {
+                &[]
+            };
+
+            match extract_mermaid_block(body_slice, n) {
+                Some(source) => {
+                    let file_stem = path
+                        .file_stem()
+                        .and_then(|s| s.to_str())
+                        .map(|s| s.to_lowercase().replace(" ", "-"))
+                        .unwrap_or_else(|| "default".to_string());
+
+                    let filename = if n == 1 {
+                        format!("{}.webp", file_stem)
+                    } else {
+                        format!("{}-{}.webp", file_stem, n)
+                    };
+                    let output_path = format!("content/_img/feature/mermaid/{}", filename);
+
+                    let cfg = MermaidConfig {
+                        source,
+                        output_path: output_path.clone(),
+                        width: OG_WIDTH,
+                        height: OG_HEIGHT,
+                    };
+
+                    match generate_mermaid_og_image(&cfg) {
+                        Ok(_) => {
+                            existing_frontmatter.insert(
+                                "ogimage".to_string(),
+                                Value::String(format!("mermaid/{}", filename)),
+                            );
+                            existing_frontmatter.insert(
+                                "ogwidth".to_string(),
+                                Value::Number(serde_yaml::Number::from(OG_WIDTH)),
+                            );
+                            existing_frontmatter.insert(
+                                "ogheight".to_string(),
+                                Value::Number(serde_yaml::Number::from(OG_HEIGHT)),
+                            );
+                        }
+                        Err(e) => {
+                            eprintln!(
+                                "Failed to generate mermaid OG image for {}: {}",
+                                path.display(),
+                                e
+                            );
+                            existing_frontmatter.remove("ogimage");
+                        }
+                    }
+                }
+                None => {
+                    eprintln!(
+                        "Mermaid block #{} not found in {}; falling back to title OG",
+                        n,
+                        path.display()
+                    );
+                    existing_frontmatter.remove("ogimage");
+                }
             }
         }
 

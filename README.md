@@ -18,6 +18,7 @@ This is a fork of the [Quartz](https://github.com/jackyzha0/quartz) repo ([v3](h
   - Examples: [Coffee Beans](https://ssp.sh/brain/coffee-beans-base), [Books](https://ssp.sh/brain/books-base)
 * YouTube links in Obsidian image syntax (`![title](https://youtube.com/watch?v=XXX)`) render as embedded video players instead of broken images
 * Callout blocks are normalized so compact and spaced forms render identically
+* **Mermaid → OG image**: set `ogimage: mermaid` (or `mermaid2`, `mermaid3`, …) in a note's frontmatter to render the Nth ` ```mermaid ` block as the social-media preview image (rendered via `mmdc` + ImageMagick to a 1200×630 WebP using a dark theme that matches the site's OG template)
 
 The content/notes themselves are not published in this repo, only on [ssp.sh/brain](https://ssp.sh/brain).
 
@@ -37,6 +38,7 @@ Key features:
 - **Filter expressions**: Supports folder filters and exclusion patterns (`!file.path.contains`)
 - **Smart descriptions**: Auto-extracts clean descriptions from first paragraph
 - **OG image generation**: Creates social media preview images with SVG→WebP conversion
+- **Mermaid OG images**: Renders a note's Mermaid diagram as its OG image via `ogimage: mermaid` / `mermaid<N>` (uses `mmdc` + ImageMagick, dark theme matches the site's OG template)
 
 See **[utils/obsidian-quartz/README.md](./utils/obsidian-quartz/README.md)** for details.
 
@@ -55,6 +57,17 @@ Custom render hooks in `layouts/_default/_markup/`:
 Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
+
+### 2026-05-24: Mermaid diagrams as OG images
+- **Mermaid OG rendering** (`utils/obsidian-quartz/src/svg_generator.rs`, `file_utils.rs`):
+  - Set `ogimage: mermaid` in note frontmatter to use the first ` ```mermaid ` block as the social-media preview image. Use `mermaid2`, `mermaid3`, … to target later blocks.
+  - Pipeline: extract block → render via `mmdc` (dark theme, `#1F1F28` background matching the OG template, 3× puppeteer scale for crisp anti-aliasing) → composite onto a 1200×630 canvas with 50px padding via ImageMagick (Lanczos filter, WebP quality 92).
+  - Output written to `content/_img/feature/mermaid/<slug>.webp` and the frontmatter `ogimage` value is rewritten to the resolved path so the existing `head.html` resolver works unchanged.
+  - On failure (block missing, `mmdc` errors) the `ogimage` key is dropped so the title-based generator takes over as a fallback.
+  - Existing-file cache: re-renders only when the target WebP doesn't already exist (delete it to force a refresh).
+- **Hugo template** (`layouts/partials/head.html`):
+  - Added `/mermaid/` to the `summary_large_image` Twitter-card detection (alongside the existing `/gen/` rule).
+- **External dependencies**: `@mermaid-js/mermaid-cli` (`mmdc`, Node + Chromium); ImageMagick (`magick`).
 
 ### 2026-04-17: Obsidian BASE file support for database views
 - **BASE File Publishing** (`utils/obsidian-quartz/src/base_*.rs`):
