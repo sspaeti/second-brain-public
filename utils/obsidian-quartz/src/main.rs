@@ -11,6 +11,7 @@ mod handle_link_index;
 use handle_link_index::convert_to_lower_case;
 
 mod enrich_with_blog;
+mod enrich_with_book;
 
 mod svg_generator;
 use svg_generator::{ImageConfig, generate_og_image, extract_title_from_md};
@@ -31,6 +32,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("Handling link indexes: DONE");
     } else if args.len() > 1 && args[1] == "enrich-with-blog" {
         enrich_with_blog::run()?;
+    } else if args.len() > 1 && args[1] == "enrich-with-book" {
+        enrich_with_book::run()?;
     } else {
         let second_brain_path = env::var("secondbrain")?;
         let public_folder_path_copy = env::var("public_secondbrain")?;

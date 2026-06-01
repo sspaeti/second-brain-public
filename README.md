@@ -58,6 +58,31 @@ Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
 
+### 2026-06-01: Interactive graph shows blog posts and book chapters
+
+The local graph on every brain note now surfaces connections to two sister sites — the [blog](https://ssp.sh/blog) and the [DEDP book](https://www.dedp.online) — alongside brain↔brain wikilinks. This makes the second brain a true hub: every note shows what posts cite it and which book chapters reference it.
+
+- **Node types** (legend shown on every local graph that has connections):
+  - **Current** (rose) — the page you're on
+  - **Note** (orange) — brain note linked via wikilink
+  - **Blog** (`#60a5fa` blue) — blog post at `ssp.sh/blog/<slug>`
+  - **Book** (`#a78bfa` purple) — DEDP book chapter at `dedp.online/<path>.html`
+  - **`···` Outgoing** — dotted line marks brain→external edges (e.g., the brain note has `[text](https://ssp.sh/blog/X)`). Incoming edges from blog/book stay solid.
+- **Click behavior**: blog and book nodes open in a new tab, brain nodes use the existing SPA navigation. Search (`Ctrl+K`) excludes blog and book entries — they live in the graph only.
+- **Edge direction styling**: outgoing brain→external is dotted, incoming external→brain is solid, brain↔brain is solid.
+- **Data flow**:
+  - Blog repo's `helper-scripts/enrich-link-index.py` already populates `static/indices/linkIndex.json` with brain↔blog edges (both directions).
+  - DEDP book's `utils/dedp-link-index` Rust CLI generates `linkIndex.js` (`window.DEDP_LINK_INDEX = {...}`) with chapter→brain edges (`type: "brain"`, target `brain:<slug>`).
+  - Two new `obsidian-quartz` subcommands import these into the brain's indices: `enrich-with-blog` and `enrich-with-book`.
+- **Frontmatter URL resolution for blog**: blog posts use `url: /blog/X` frontmatter overrides — the script parses each `index.en.md` / `index.md` and extracts the actual URL instead of guessing from the folder name.
+- **Idempotency**: re-running `make prepare` adds 0 new edges if nothing has changed; nodes with the same slug as a brain note are never overwritten (`Map.entry().or_insert_with` semantics).
+- **Files**:
+  - `utils/obsidian-quartz/src/enrich_with_blog.rs`, `enrich_with_book.rs` — the importers
+  - `assets/js/graph.js` — click routing, dasharray on outgoing edges, conditional legend
+  - `assets/js/full-text-search.js` — skip `/blog/` and `/book/` keys
+  - `data/graphConfig.yaml` — node colors via `paths:`
+  - `Makefile` — chains `make -C ../sspaeti-hugo-blog prepare` and `make -C ../../book/dedp link-index` before each enrich step (leading `-` so a missing sister repo is non-fatal)
+
 ### 2026-05-24: Mermaid diagrams as OG images
 - **Mermaid OG rendering** (`utils/obsidian-quartz/src/svg_generator.rs`, `file_utils.rs`):
   - Set `ogimage: mermaid` in note frontmatter to use the first ` ```mermaid ` block as the social-media preview image. Use `mermaid2`, `mermaid3`, … to target later blocks.

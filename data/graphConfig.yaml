@@ -11,9 +11,9 @@ localGraph:
     enableZoom: true
     depth: 1 # set to -1 to show full graph
     scale: 1.5
-    repelForce: 5
+    repelForce: 8
     centerForce: 2
-    linkDistance: 1
+    linkDistance: 2
     fontSize: 0.6
     opacityScale: 4
 
@@ -35,3 +35,4 @@ globalGraph:
 
 paths:
   - /blog/: "#60a5fa"
+  - /book/: "#a78bfa"

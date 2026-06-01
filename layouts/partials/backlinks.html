@@ -8,18 +8,45 @@
     {{$curPage := strings.TrimPrefix $host (strings.TrimRight "/" .Page.RelPermalink)}}
     {{$inbound := index $linkIndex.index.backlinks $curPage}}
     {{if $inbound}}
-    {{$backlinks := dict "SENTINEL" "SENTINEL"}}
+    {{$brainLinks := dict "SENTINEL" "SENTINEL"}}
+    {{$blogLinks := dict "SENTINEL" "SENTINEL"}}
+    {{$bookLinks := dict "SENTINEL" "SENTINEL"}}
     {{range $k, $v := $inbound}}
       {{$cleanedInbound := replace $v.source " " "-"}}
       {{$ctx := $v.text}}
-      {{$backlinks = merge $backlinks (dict $cleanedInbound $ctx)}}
+      {{if hasPrefix $cleanedInbound "/blog/"}}
+        {{$blogLinks = merge $blogLinks (dict $cleanedInbound $ctx)}}
+      {{else if hasPrefix $cleanedInbound "/book/"}}
+        {{$bookLinks = merge $bookLinks (dict $cleanedInbound $ctx)}}
+      {{else}}
+        {{$brainLinks = merge $brainLinks (dict $cleanedInbound $ctx)}}
+      {{end}}
     {{end}}
-    {{- range $lnk, $ctx := $backlinks -}}
+    {{- range $lnk, $ctx := $brainLinks -}}
+      {{with (index $contentTable $lnk)}}
+      {{$title := index (index . "title")}}
       {{$l := printf "%s%s/" $host $lnk}}
       {{$l = cond (eq $l "//") "/" $l}}
-      {{with (index $contentTable $lnk)}}
       <li>
-        <a href="{{$l}}" data-ctx="{{$ctx}}" data-src="{{$lnk}}" class="internal-link">{{index (index . "title")}}</a>
+        <a href="{{$l}}" data-ctx="{{$ctx}}" data-src="{{$lnk}}" class="internal-link">{{$title}}</a>
+      </li>
+      {{end}}
+    {{- end -}}
+    {{- range $lnk, $ctx := $blogLinks -}}
+      {{with (index $contentTable $lnk)}}
+      {{$title := index (index . "title")}}
+      {{$l := printf "https://www.ssp.sh%s/" $lnk}}
+      <li>
+        <a href="{{$l}}" data-ctx="{{$ctx}}" data-src="{{$lnk}}" target="_blank" rel="noopener">Blog: {{$title}}</a>
+      </li>
+      {{end}}
+    {{- end -}}
+    {{- range $lnk, $ctx := $bookLinks -}}
+      {{with (index $contentTable $lnk)}}
+      {{$title := index (index . "title")}}
+      {{$l := printf "https://www.dedp.online%s.html" (strings.TrimPrefix "/book" $lnk)}}
+      <li>
+        <a href="{{$l}}" data-ctx="{{$ctx}}" data-src="{{$lnk}}" target="_blank" rel="noopener">Book: {{$title}}</a>
       </li>
       {{end}}
     {{- end -}}

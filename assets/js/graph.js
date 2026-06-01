@@ -8,6 +8,7 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
   opacityScale,
   scale,
   repelForce,
+  linkDistance,
   fontSize} = graphConfig;
 
   const container = targetContainer || document.getElementById("graph-container")
@@ -104,9 +105,10 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
       d3
         .forceLink(data.links)
         .id((d) => d.id)
-        .distance(40),
+        .distance(40 * linkDistance),
     )
     .force("center", d3.forceCenter())
+    .force("collide", d3.forceCollide().radius(12).strength(0.7))
 
   const svg = d3
     .select(container)
@@ -115,8 +117,22 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
     .attr("height", height)
     .attr('viewBox', [-width / 2 * 1 / scale, -height / 2 * 1 / scale, width * 1 / scale, height * 1 / scale])
 
+  const isExternalId = (id) => id.startsWith("/blog/") || id.startsWith("/book/")
+  const endpointIds = (l) => [
+    typeof l.source === "string" ? l.source : l.source.id,
+    typeof l.target === "string" ? l.target : l.target.id,
+  ]
+  const isBrainToExternal = (l) => {
+    const [s, t] = endpointIds(l)
+    return !isExternalId(s) && isExternalId(t)
+  }
+  const isCrossSite = (l) => {
+    const [s, t] = endpointIds(l)
+    return isExternalId(s) !== isExternalId(t)
+  }
+
   if (enableLegend) {
-    const pathLegendLabels = { "/blog/": "Blog" }
+    const pathLegendLabels = { "/blog/": "Blog", "/book/": "Book" }
     const presentPaths = pathColors.filter((pc) => {
       const path = Object.keys(pc)[0]
       return data.nodes.some((n) => n.id && n.id.startsWith(path))
@@ -129,7 +145,8 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
         return { type: "dot", color: pc[path], label: pathLegendLabels[path] || path }
       }),
     ]
-    if (presentPaths.some((pc) => Object.keys(pc)[0] === "/blog/")) {
+    const hasOutgoing = data.links.some(isBrainToExternal)
+    if (hasOutgoing) {
       entries.push({ type: "line", stroke: "var(--g-link)", dasharray: "2,3", label: "Outgoing" })
     }
     const legendX = -width / (2 * scale) + 14
@@ -166,17 +183,6 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
     })
   }
 
-  const isBrainToBlog = (l) => {
-    const s = typeof l.source === "string" ? l.source : l.source.id
-    const t = typeof l.target === "string" ? l.target : l.target.id
-    return !s.startsWith("/blog/") && t.startsWith("/blog/")
-  }
-  const isCrossSite = (l) => {
-    const s = typeof l.source === "string" ? l.source : l.source.id
-    const t = typeof l.target === "string" ? l.target : l.target.id
-    return s.startsWith("/blog/") !== t.startsWith("/blog/")
-  }
-
   // draw links between nodes
   const link = svg
     .append("g")
@@ -185,8 +191,9 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
     .join("line")
     .attr("class", (d) => isCrossSite(d) ? "link link-cross" : "link")
     .attr("stroke", "var(--g-link)")
-    .attr("stroke-width", 2)
-    .attr("stroke-dasharray", (d) => isBrainToBlog(d) ? "2,3" : null)
+    .attr("stroke-width", 1.25)
+    .attr("stroke-opacity", 0.45)
+    .attr("stroke-dasharray", (d) => isBrainToExternal(d) ? "2,3" : null)
     .attr("data-source", (d) => d.source.id)
     .attr("data-target", (d) => d.target.id)
 
@@ -213,6 +220,10 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
         window.open(`https://www.ssp.sh${d.id}/`, "_blank", "noopener")
         return
       }
+      if (d.id.startsWith("/book/")) {
+        window.open(`https://www.dedp.online${d.id.replace(/^\/book/, "")}.html`, "_blank", "noopener")
+        return
+      }
       // SPA navigation
       window.Million.navigate(new URL(`${baseUrl}${decodeURI(d.id).replace(/\s+/g, "-")}/`), ".singlePage")
     })
@@ -225,7 +236,7 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
       ])
       const neighbourNodes = svg.selectAll(".node").filter((d) => neighbours.includes(d.id))
       const currentId = d.id
-      if (!d.id.startsWith("/blog/")) {
+      if (!d.id.startsWith("/blog/") && !d.id.startsWith("/book/")) {
         window.Million.prefetch(new URL(`${baseUrl}${decodeURI(d.id).replace(/\s+/g, "-")}/`))
       }
       const linkNodes = svg
@@ -279,6 +290,7 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
     .attr("text-anchor", "middle")
     .text((d) => content[d.id]?.title || d.id.replace("-", " "))
     .style('opacity', (opacityScale - 1) / 3.75)
+    .style("fill", "currentColor")
     .style("pointer-events", "none")
     .style('font-size', fontSize+'em')
     .raise()

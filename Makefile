@@ -24,6 +24,8 @@ prepare-python: ## prepare commands
 	python utils/lower_case.py #change linkIndex to lowercase for proper linking
 	-$(MAKE) -C ../sspaeti-hugo-blog prepare #refresh blog indices so cross-edges are current
 	obsidian-quartz enrich-with-blog #merge blog<->brain cross-edges into brain indices
+	-$(MAKE) -C ../../book/dedp link-index #refresh book linkIndex.js so book->brain edges are current
+	obsidian-quartz enrich-with-book #merge book->brain incoming edges into brain indices
 
 # run with Rust: build with `cargo build --release`
 prepare: ## prepare commands
@@ -36,6 +38,8 @@ prepare: ## prepare commands
 	python utils/lower_case.py #change linkIndex to lowercase for proper linking
 	-$(MAKE) -C ../sspaeti-hugo-blog prepare #refresh blog indices so cross-edges are current
 	obsidian-quartz enrich-with-blog #merge blog<->brain cross-edges into brain indices
+	-$(MAKE) -C ../../book/dedp link-index #refresh book linkIndex.js so book->brain edges are current
+	obsidian-quartz enrich-with-book #merge book->brain incoming edges into brain indices
 
 word-count:
 	find content -type f -not -path '*/\.*' -name '*.md' -exec cat {} \; | wc -w

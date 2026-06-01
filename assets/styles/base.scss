@@ -411,9 +411,32 @@ hr {
   position: sticky;
   top: 0;
   max-height: 100vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--outlinegray) transparent;
   padding-right: 1vw;
-  padding-top: 5vh;
+  padding-top: 3vh;
+  padding-bottom: 2vh;
   min-width: 10rem;
+  // soft fade at the bottom hints there's more to scroll
+  mask-image: linear-gradient(to bottom, black calc(100% - 2.5rem), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 2.5rem), transparent 100%);
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--outlinegray);
+    border-radius: 3px;
+  }
+  // on mobile the sidebar stacks below the article, so sticky + fade-clip aren't needed
+  @media all and (max-width: 780px) {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+    mask-image: none;
+    -webkit-mask-image: none;
+    padding-top: 0;
+  }
   & > ul {
     list-style: none;
     padding: 0;

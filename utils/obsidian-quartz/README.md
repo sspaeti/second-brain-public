@@ -25,6 +25,7 @@ A Rust CLI tool that processes Obsidian vault notes tagged with `#publish` and o
 - **Callout Normalization**: Inserts blank blockquote lines between callout headers and content so Hugo/Goldmark renders title and body as separate `<p>` elements
 - **Link Index**: Converts `linkIndex.json` keys to lowercase for Hugo compatibility
 - **Blog Cross-Site Enrichment**: Imports blog↔brain edges from `sspaeti-hugo-blog/static/indices/linkIndex.json` so blog posts appear as nodes in the brain's interactive graph. Reads each blog post's frontmatter `url:` to resolve the canonical `/blog/<slug>` (handles posts whose folder name doesn't match their URL), filters to cross-site edges only (skips blog↔blog), drops edges with unpublished brain targets, normalizes any pre-existing `/blog/foo/#anchor` references to canonical form, and appends idempotently (re-runs are no-ops). Blog node entries get `type: "blog"` for downstream filtering (e.g., excluding them from full-text search).
+- **Book Cross-Site Enrichment**: Imports incoming chapter→brain edges from the DEDP book's `linkIndex.js` (`window.DEDP_LINK_INDEX = {...}` — the JS wrapper is stripped before JSON parsing). Brain target IDs use the `brain:<slug>` convention in the book index and are mapped to `/<slug>` to match brain's node IDs. Chapter sources become `/book/<chapter-path>` nodes whose click handler in `graph.js` resolves to `https://www.dedp.online/<chapter-path>.html`. Filters to edges of `type: "brain"` only (skips chapter↔chapter), drops edges where the brain side isn't published, and is idempotent. Book node entries get `type: "book"` for downstream filtering.
 - **Filename Lowercasing**: All output filenames are lowercased
 - **BASE File Support**: Publishes Obsidian Database Folder plugin `.base` files as standalone Hugo pages with database views:
   - Detects BASE files with `publish: true` property
@@ -47,6 +48,7 @@ src/
   svg_generator.rs      # OG image generation (SVG -> WebP via ImageMagick)
   handle_link_index.rs  # Lowercases Hugo linkIndex.json for compatibility
   enrich_with_blog.rs   # Imports blog↔brain cross-edges from the sister blog repo into brain indices
+  enrich_with_book.rs   # Imports incoming chapter->brain edges from the DEDP book repo into brain indices
   base_parser.rs        # Parse BASE YAML files into Rust structs
   base_query.rs         # Query and filter notes based on BASE filter expressions
   base_renderer.rs      # Render BASE notes as HTML tables/cards/lists
@@ -69,9 +71,21 @@ obsidian-quartz convert_to_lower_case
 
 # Merge blog↔brain cross-site edges into brain indices (reads ../sspaeti-hugo-blog/static/indices/*.json)
 obsidian-quartz enrich-with-blog
+
+# Merge incoming chapter->brain edges from the DEDP book (reads ../../book/dedp/linkIndex.js)
+obsidian-quartz enrich-with-book
 ```
 
-The brain `Makefile` chains `make -C ../sspaeti-hugo-blog prepare` so the blog's indices are refreshed before `enrich-with-blog` runs. If the blog repo is missing or its build fails, the enrich step warns and exits cleanly — the brain-only graph still works.
+The brain `Makefile` chains both sister builds before running each enrich step:
+
+```
+-$(MAKE) -C ../sspaeti-hugo-blog prepare
+obsidian-quartz enrich-with-blog
+-$(MAKE) -C ../../book/dedp link-index
+obsidian-quartz enrich-with-book
+```
+
+The leading `-` makes each `make` non-fatal: if a sister repo is missing or its build fails, the corresponding enrich step warns and exits cleanly, leaving the brain-only graph intact.
 
 ## How It Works
 
