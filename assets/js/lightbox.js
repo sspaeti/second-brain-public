@@ -38,6 +38,8 @@
     if (e.key === 'Escape') closeLightbox();
   });
 
+  window.closeLightbox = closeLightbox;
+
   window.openLightbox = function (sourceElement) {
     const isGraph = sourceElement.classList.contains('graph-wrapper') ||
                     sourceElement.querySelector('#graph-container');

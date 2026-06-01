@@ -218,14 +218,17 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
     .on("click", (_, d) => {
       if (d.id.startsWith("/blog/")) {
         window.open(`https://www.ssp.sh${d.id}/`, "_blank", "noopener")
+        window.closeLightbox?.()
         return
       }
       if (d.id.startsWith("/book/")) {
         window.open(`https://www.dedp.online${d.id.replace(/^\/book/, "")}.html`, "_blank", "noopener")
+        window.closeLightbox?.()
         return
       }
       // SPA navigation
       window.Million.navigate(new URL(`${baseUrl}${decodeURI(d.id).replace(/\s+/g, "-")}/`), ".singlePage")
+      window.closeLightbox?.()
     })
     .on("mouseover", function (_, d) {
       svg.selectAll(".node").transition().duration(100).attr("fill", "var(--g-node-inactive)")
