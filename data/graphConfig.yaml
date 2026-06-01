@@ -6,7 +6,7 @@ enableGlobalGraph: false
 ### Local Graph ###
 
 localGraph:
-    enableLegend: false
+    enableLegend: true
     enableDrag: true
     enableZoom: true
     depth: 1 # set to -1 to show full graph
@@ -34,4 +34,4 @@ globalGraph:
 ### For all graphs ###
 
 paths:
-  - /moc: "#4388cc"
+  - /blog/: "#60a5fa"

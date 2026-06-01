@@ -20,8 +20,10 @@ prepare-python: ## prepare commands
 	find /home/sspaeti/git/sspaeti.com/second-brain-public/content -type f -not -name ".git" -not -path "*/_img/*" -delete
 	python utils/find-publish-notes.py #copy all notes from my secondbrain with hashtag #publish to quartz
 	rm -rf public
-	hugo-obsidian -input=content -output=/home/sspaeti/git/sspaeti.com/second-brain-public/assets/indices -index=true -root=. 
+	hugo-obsidian -input=content -output=/home/sspaeti/git/sspaeti.com/second-brain-public/assets/indices -index=true -root=.
 	python utils/lower_case.py #change linkIndex to lowercase for proper linking
+	-$(MAKE) -C ../sspaeti-hugo-blog prepare #refresh blog indices so cross-edges are current
+	obsidian-quartz enrich-with-blog #merge blog<->brain cross-edges into brain indices
 
 # run with Rust: build with `cargo build --release`
 prepare: ## prepare commands
@@ -29,9 +31,11 @@ prepare: ## prepare commands
 	obsidian-quartz #copy all notes from my secondbrain with hashtag #publish to /content
 	cp static/second-brain.jpeg static/feature #the one in feature is used for _index note
 	rm -rf public
-	hugo-obsidian -input=content -output=/home/sspaeti/git/sspaeti.com/second-brain-public/assets/indices -index=true -root=. 
+	hugo-obsidian -input=content -output=/home/sspaeti/git/sspaeti.com/second-brain-public/assets/indices -index=true -root=.
 	# obsidian-quartz convert_to_lower_case #change linkIndex to lowercase for proper linking
 	python utils/lower_case.py #change linkIndex to lowercase for proper linking
+	-$(MAKE) -C ../sspaeti-hugo-blog prepare #refresh blog indices so cross-edges are current
+	obsidian-quartz enrich-with-blog #merge blog<->brain cross-edges into brain indices
 
 word-count:
 	find content -type f -not -path '*/\.*' -name '*.md' -exec cat {} \; | wc -w

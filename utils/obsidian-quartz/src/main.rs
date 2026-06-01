@@ -10,6 +10,8 @@ use file_utils::process_file;
 mod handle_link_index;
 use handle_link_index::convert_to_lower_case;
 
+mod enrich_with_blog;
+
 mod svg_generator;
 use svg_generator::{ImageConfig, generate_og_image, extract_title_from_md};
 
@@ -27,6 +29,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         let link_index_path = Path::new("assets/indices/linkIndex.json");
         convert_to_lower_case(link_index_path)?;
         println!("Handling link indexes: DONE");
+    } else if args.len() > 1 && args[1] == "enrich-with-blog" {
+        enrich_with_blog::run()?;
     } else {
         let second_brain_path = env::var("secondbrain")?;
         let public_folder_path_copy = env::var("public_secondbrain")?;

@@ -20,6 +20,7 @@
 
   const { content } = await fetchData
   for (const [key, value] of Object.entries(content)) {
+    if (key.startsWith("/blog/")) continue
     contentIndex.add({
       id: key,
       title: value.title,

@@ -116,24 +116,65 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
     .attr('viewBox', [-width / 2 * 1 / scale, -height / 2 * 1 / scale, width * 1 / scale, height * 1 / scale])
 
   if (enableLegend) {
-    const legend = [{ Current: "var(--g-node-active)" }, { Note: "var(--g-node)" }, ...pathColors]
-    legend.forEach((legendEntry, i) => {
-      const key = Object.keys(legendEntry)[0]
-      const colour = legendEntry[key]
-      svg
-        .append("circle")
-        .attr("cx", -width / 2 + 20)
-        .attr("cy", height / 2 - 30 * (i + 1))
-        .attr("r", 6)
-        .style("fill", colour)
+    const pathLegendLabels = { "/blog/": "Blog" }
+    const presentPaths = pathColors.filter((pc) => {
+      const path = Object.keys(pc)[0]
+      return data.nodes.some((n) => n.id && n.id.startsWith(path))
+    })
+    const entries = [
+      { type: "dot", color: "var(--g-node-active)", label: "Current" },
+      { type: "dot", color: "var(--g-node)", label: "Note" },
+      ...presentPaths.map((pc) => {
+        const path = Object.keys(pc)[0]
+        return { type: "dot", color: pc[path], label: pathLegendLabels[path] || path }
+      }),
+    ]
+    if (presentPaths.some((pc) => Object.keys(pc)[0] === "/blog/")) {
+      entries.push({ type: "line", stroke: "var(--g-link)", dasharray: "2,3", label: "Outgoing" })
+    }
+    const legendX = -width / (2 * scale) + 14
+    const legendBaseY = height / (2 * scale) - 8
+    const legendStep = 15
+    entries.forEach((entry, i) => {
+      const y = legendBaseY - legendStep * (entries.length - 1 - i)
+      if (entry.type === "dot") {
+        svg
+          .append("circle")
+          .attr("cx", legendX)
+          .attr("cy", y)
+          .attr("r", 4)
+          .style("fill", entry.color)
+      } else {
+        svg
+          .append("line")
+          .attr("x1", legendX - 6)
+          .attr("y1", y)
+          .attr("x2", legendX + 6)
+          .attr("y2", y)
+          .attr("stroke", entry.stroke)
+          .attr("stroke-width", 1.5)
+          .attr("stroke-dasharray", entry.dasharray)
+      }
       svg
         .append("text")
-        .attr("x", -width / 2 + 40)
-        .attr("y", height / 2 - 30 * (i + 1))
-        .text(key)
-        .style("font-size", "15px")
+        .attr("x", legendX + 11)
+        .attr("y", y)
+        .text(entry.label)
+        .style("font-size", "9.5px")
+        .style("fill", "var(--gray)")
         .attr("alignment-baseline", "middle")
     })
+  }
+
+  const isBrainToBlog = (l) => {
+    const s = typeof l.source === "string" ? l.source : l.source.id
+    const t = typeof l.target === "string" ? l.target : l.target.id
+    return !s.startsWith("/blog/") && t.startsWith("/blog/")
+  }
+  const isCrossSite = (l) => {
+    const s = typeof l.source === "string" ? l.source : l.source.id
+    const t = typeof l.target === "string" ? l.target : l.target.id
+    return s.startsWith("/blog/") !== t.startsWith("/blog/")
   }
 
   // draw links between nodes
@@ -142,9 +183,10 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
     .selectAll("line")
     .data(data.links)
     .join("line")
-    .attr("class", "link")
+    .attr("class", (d) => isCrossSite(d) ? "link link-cross" : "link")
     .attr("stroke", "var(--g-link)")
     .attr("stroke-width", 2)
+    .attr("stroke-dasharray", (d) => isBrainToBlog(d) ? "2,3" : null)
     .attr("data-source", (d) => d.source.id)
     .attr("data-target", (d) => d.target.id)
 
@@ -167,6 +209,10 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
     .attr("fill", color)
     .style("cursor", "pointer")
     .on("click", (_, d) => {
+      if (d.id.startsWith("/blog/")) {
+        window.open(`https://www.ssp.sh${d.id}/`, "_blank", "noopener")
+        return
+      }
       // SPA navigation
       window.Million.navigate(new URL(`${baseUrl}${decodeURI(d.id).replace(/\s+/g, "-")}/`), ".singlePage")
     })
@@ -179,7 +225,9 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
       ])
       const neighbourNodes = svg.selectAll(".node").filter((d) => neighbours.includes(d.id))
       const currentId = d.id
-      window.Million.prefetch(new URL(`${baseUrl}${decodeURI(d.id).replace(/\s+/g, "-")}/`))
+      if (!d.id.startsWith("/blog/")) {
+        window.Million.prefetch(new URL(`${baseUrl}${decodeURI(d.id).replace(/\s+/g, "-")}/`))
+      }
       const linkNodes = svg
         .selectAll(".link")
         .filter((d) => d.source.id === currentId || d.target.id === currentId)
