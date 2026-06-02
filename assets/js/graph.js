@@ -117,20 +117,6 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
     .attr("height", height)
     .attr('viewBox', [-width / 2 * 1 / scale, -height / 2 * 1 / scale, width * 1 / scale, height * 1 / scale])
 
-  const isExternalId = (id) => id.startsWith("/blog/") || id.startsWith("/book/")
-  const endpointIds = (l) => [
-    typeof l.source === "string" ? l.source : l.source.id,
-    typeof l.target === "string" ? l.target : l.target.id,
-  ]
-  const isBrainToExternal = (l) => {
-    const [s, t] = endpointIds(l)
-    return !isExternalId(s) && isExternalId(t)
-  }
-  const isCrossSite = (l) => {
-    const [s, t] = endpointIds(l)
-    return isExternalId(s) !== isExternalId(t)
-  }
-
   let activeFilter = null
   const filterDim = 0.18
 
@@ -211,11 +197,10 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
     .selectAll("line")
     .data(data.links)
     .join("line")
-    .attr("class", (d) => isCrossSite(d) ? "link link-cross" : "link")
+    .attr("class", "link")
     .attr("stroke", "var(--g-link)")
     .attr("stroke-width", 1.25)
     .attr("stroke-opacity", 0.45)
-    .attr("stroke-dasharray", (d) => isBrainToExternal(d) ? "2,3" : null)
     .attr("data-source", (d) => d.source.id)
     .attr("data-target", (d) => d.target.id)
 
