@@ -131,6 +131,34 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
     return isExternalId(s) !== isExternalId(t)
   }
 
+  let activeFilter = null
+  const filterDim = 0.18
+
+  const matchesFilter = (d) => {
+    if (!activeFilter) return true
+    if (activeFilter === "note") return !d.id.startsWith("/blog/") && !d.id.startsWith("/book/")
+    return d.id.startsWith(activeFilter)
+  }
+
+  const linkMatchesFilter = (l) => {
+    if (!activeFilter) return true
+    const sId = typeof l.source === "string" ? l.source : l.source.id
+    const tId = typeof l.target === "string" ? l.target : l.target.id
+    return matchesFilter({ id: sId }) && matchesFilter({ id: tId })
+  }
+
+  const applyFilter = () => {
+    graphNode.transition().duration(200).style("opacity", (d) => matchesFilter(d) ? 1 : filterDim)
+    link.transition().duration(200).style("opacity", (l) => linkMatchesFilter(l) ? 1 : filterDim)
+    svg.selectAll(".legend-entry").each(function () {
+      const f = d3.select(this).attr("data-filter")
+      const isActive = f && f === activeFilter
+      d3.select(this).select("circle")
+        .attr("stroke", isActive ? "var(--g-node-active)" : null)
+        .attr("stroke-width", isActive ? 1.5 : null)
+    })
+  }
+
   if (enableLegend) {
     const pathLegendLabels = { "/blog/": "Blog", "/book/": "Book" }
     const presentPaths = pathColors.filter((pc) => {
@@ -138,48 +166,42 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
       return data.nodes.some((n) => n.id && n.id.startsWith(path))
     })
     const entries = [
-      { type: "dot", color: "var(--g-node-active)", label: "Current" },
-      { type: "dot", color: "var(--g-node)", label: "Note" },
+      { color: "var(--g-node-active)", label: "Current" },
+      { color: "var(--g-node)", label: "Note", filter: "note" },
       ...presentPaths.map((pc) => {
         const path = Object.keys(pc)[0]
-        return { type: "dot", color: pc[path], label: pathLegendLabels[path] || path }
+        return { color: pc[path], label: pathLegendLabels[path] || path, filter: path }
       }),
     ]
-    const hasOutgoing = data.links.some(isBrainToExternal)
-    if (hasOutgoing) {
-      entries.push({ type: "line", stroke: "var(--g-link)", dasharray: "2,3", label: "Outgoing" })
-    }
     const legendX = -width / (2 * scale) + 14
     const legendBaseY = height / (2 * scale) - 8
     const legendStep = 15
     entries.forEach((entry, i) => {
       const y = legendBaseY - legendStep * (entries.length - 1 - i)
-      if (entry.type === "dot") {
-        svg
-          .append("circle")
-          .attr("cx", legendX)
-          .attr("cy", y)
-          .attr("r", 4)
-          .style("fill", entry.color)
-      } else {
-        svg
-          .append("line")
-          .attr("x1", legendX - 6)
-          .attr("y1", y)
-          .attr("x2", legendX + 6)
-          .attr("y2", y)
-          .attr("stroke", entry.stroke)
-          .attr("stroke-width", 1.5)
-          .attr("stroke-dasharray", entry.dasharray)
-      }
-      svg
-        .append("text")
+      const g = svg
+        .append("g")
+        .attr("class", "legend-entry")
+        .attr("data-filter", entry.filter || "")
+        .style("cursor", entry.filter ? "pointer" : "default")
+      g.append("circle")
+        .attr("cx", legendX)
+        .attr("cy", y)
+        .attr("r", 4)
+        .style("fill", entry.color)
+      g.append("text")
         .attr("x", legendX + 11)
         .attr("y", y)
         .text(entry.label)
         .style("font-size", "9.5px")
         .style("fill", "var(--gray)")
         .attr("alignment-baseline", "middle")
+      if (entry.filter) {
+        g.on("click", (event) => {
+          event.stopPropagation()
+          activeFilter = activeFilter === entry.filter ? null : entry.filter
+          applyFilter()
+        })
+      }
     })
   }
 
