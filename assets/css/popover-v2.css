@@ -115,51 +115,95 @@
   text-decoration-color: #8BA4B0;
 }
 
-/* Dark mode for blog (uBlogger: body[theme="dark"]) and book (mdBook: html.coal/navy/ayu).
-   Brain already handles itself via [saved-theme="dark"] above + its remapped CSS vars.
-   Blog/book don't define --light/--dark, so the popover otherwise defaults to white. */
-body[theme="dark"] .popover-v2 > .popover-v2-inner,
-html.coal .popover-v2 > .popover-v2-inner,
-html.navy .popover-v2 > .popover-v2-inner,
-html.ayu  .popover-v2 > .popover-v2-inner {
-  background-color: #1e1e2e;
-  color: #cdd6f4;
-  border-color: #45475a;
+/* Blog dark mode (uBlogger sets body[theme="dark"]).
+   Mirrors blog _override.scss colors: inner article bg #1F1F28, fujiWhite text. */
+body[theme="dark"] .popover-v2 > .popover-v2-inner {
+  background-color: #1F1F28;
+  color: #DCD7BA;
+  border-color: #54546D;
 }
-
-body[theme="dark"] .popover-v2 .meta,
-html.coal .popover-v2 .meta,
-html.navy .popover-v2 .meta,
-html.ayu  .popover-v2 .meta {
-  color: #a6adc8;
+body[theme="dark"] .popover-v2 .meta {
+  color: #C8C093;
 }
-
 body[theme="dark"] .popover-v2 .e-content a.internal-link:not(.broken),
-body[theme="dark"] .popover-v2 .e-content a:not(.internal-link):not(.hanchor):not([href^="http"]),
+body[theme="dark"] .popover-v2 .e-content a:not(.internal-link):not(.hanchor):not([href^="http"]) {
+  color: #DCD7BA;
+  text-decoration-color: #658594; /* dragonBlue — same as blog body links */
+}
+body[theme="dark"] .popover-v2 .e-content a[href^="http"]:not(.hanchor) {
+  color: #DCD7BA;
+  text-decoration-color: #D27E99; /* sakuraPink — matches blog external links */
+}
+body[theme="dark"] .popover-v2 .e-content a.internal-link.broken {
+  color: #7E8A8A;
+  text-decoration-color: #7E8A8A;
+}
+
+/* Book (mdBook): use the book's per-theme CSS variables so the popover
+   adapts to whichever theme is active (light, ayu, burgundy, coal,
+   kanagawa, navy, pinkrose, rust, tokyonight). */
+html.light .popover-v2 > .popover-v2-inner,
+html.ayu .popover-v2 > .popover-v2-inner,
+html.burgundy .popover-v2 > .popover-v2-inner,
+html.coal .popover-v2 > .popover-v2-inner,
+html.kanagawa .popover-v2 > .popover-v2-inner,
+html.navy .popover-v2 > .popover-v2-inner,
+html.pinkrose .popover-v2 > .popover-v2-inner,
+html.rust .popover-v2 > .popover-v2-inner,
+html.tokyonight .popover-v2 > .popover-v2-inner {
+  background-color: var(--bg);
+  color: var(--fg);
+  border-color: var(--quote-border, var(--icons));
+}
+html.light .popover-v2 .meta,
+html.ayu .popover-v2 .meta,
+html.burgundy .popover-v2 .meta,
+html.coal .popover-v2 .meta,
+html.kanagawa .popover-v2 .meta,
+html.navy .popover-v2 .meta,
+html.pinkrose .popover-v2 .meta,
+html.rust .popover-v2 .meta,
+html.tokyonight .popover-v2 .meta {
+  color: var(--icons);
+}
+/* Inside the popover, brain content links keep brain's class="internal-link" semantics.
+   Working internal → full --links color; external (http) → --inline-code-color; broken → muted. */
+html.light .popover-v2 .e-content a.internal-link:not(.broken),
+html.ayu .popover-v2 .e-content a.internal-link:not(.broken),
+html.burgundy .popover-v2 .e-content a.internal-link:not(.broken),
 html.coal .popover-v2 .e-content a.internal-link:not(.broken),
-html.coal .popover-v2 .e-content a:not(.internal-link):not(.hanchor):not([href^="http"]),
+html.kanagawa .popover-v2 .e-content a.internal-link:not(.broken),
 html.navy .popover-v2 .e-content a.internal-link:not(.broken),
-html.navy .popover-v2 .e-content a:not(.internal-link):not(.hanchor):not([href^="http"]),
-html.ayu  .popover-v2 .e-content a.internal-link:not(.broken),
-html.ayu  .popover-v2 .e-content a:not(.internal-link):not(.hanchor):not([href^="http"]) {
-  color: #cdd6f4;
-  text-decoration-color: #89b4fa;
+html.pinkrose .popover-v2 .e-content a.internal-link:not(.broken),
+html.rust .popover-v2 .e-content a.internal-link:not(.broken),
+html.tokyonight .popover-v2 .e-content a.internal-link:not(.broken) {
+  color: var(--fg);
+  text-decoration-color: var(--links);
 }
-
-body[theme="dark"] .popover-v2 .e-content a[href^="http"]:not(.hanchor),
+html.light .popover-v2 .e-content a[href^="http"]:not(.hanchor),
+html.ayu .popover-v2 .e-content a[href^="http"]:not(.hanchor),
+html.burgundy .popover-v2 .e-content a[href^="http"]:not(.hanchor),
 html.coal .popover-v2 .e-content a[href^="http"]:not(.hanchor),
+html.kanagawa .popover-v2 .e-content a[href^="http"]:not(.hanchor),
 html.navy .popover-v2 .e-content a[href^="http"]:not(.hanchor),
-html.ayu  .popover-v2 .e-content a[href^="http"]:not(.hanchor) {
-  color: #cdd6f4;
-  text-decoration-color: #f38ba8;
+html.pinkrose .popover-v2 .e-content a[href^="http"]:not(.hanchor),
+html.rust .popover-v2 .e-content a[href^="http"]:not(.hanchor),
+html.tokyonight .popover-v2 .e-content a[href^="http"]:not(.hanchor) {
+  color: var(--fg);
+  text-decoration-color: var(--inline-code-color);
 }
-
-body[theme="dark"] .popover-v2 .e-content a.internal-link.broken,
+html.light .popover-v2 .e-content a.internal-link.broken,
+html.ayu .popover-v2 .e-content a.internal-link.broken,
+html.burgundy .popover-v2 .e-content a.internal-link.broken,
 html.coal .popover-v2 .e-content a.internal-link.broken,
+html.kanagawa .popover-v2 .e-content a.internal-link.broken,
 html.navy .popover-v2 .e-content a.internal-link.broken,
-html.ayu  .popover-v2 .e-content a.internal-link.broken {
-  color: #6c7086;
-  text-decoration-color: #6c7086;
+html.pinkrose .popover-v2 .e-content a.internal-link.broken,
+html.rust .popover-v2 .e-content a.internal-link.broken,
+html.tokyonight .popover-v2 .e-content a.internal-link.broken {
+  color: var(--icons);
+  text-decoration-color: var(--icons);
+  text-decoration-style: dashed;
 }
 
 @media (max-width: 768px) {
