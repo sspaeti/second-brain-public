@@ -1,0 +1,222 @@
+@keyframes popover-v2-dropin {
+  0%   { opacity: 0; visibility: hidden; }
+  1%   { opacity: 0; }
+  100% { opacity: 1; visibility: visible; }
+}
+
+.popover-v2 {
+  z-index: 999;
+  position: fixed;
+  overflow: visible;
+  padding: 1rem;
+  left: 0;
+  top: 0;
+  will-change: transform;
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s ease;
+}
+
+.popover-v2 > .popover-v2-inner {
+  position: relative;
+  width: 30rem;
+  max-height: 20rem;
+  padding: 1rem;
+  font-weight: initial;
+  font-style: initial;
+  line-height: normal;
+  font-size: 0.9rem;
+  font-family: var(--bodyFont, inherit);
+  border: 1px solid var(--lightgray, #ddd);
+  background-color: var(--light, #fff);
+  color: var(--dark, #222);
+  border-radius: 5px;
+  box-shadow: 6px 6px 36px 0 rgba(0, 0, 0, 0.25);
+  overflow: auto;
+  overscroll-behavior: contain;
+  white-space: normal;
+  cursor: default;
+}
+
+.popover-v2 > .popover-v2-inner[data-content-type*="pdf"],
+.popover-v2 > .popover-v2-inner[data-content-type*="image"] {
+  padding: 0;
+  max-height: 100%;
+}
+
+.popover-v2 > .popover-v2-inner[data-content-type*="image"] img {
+  margin: 0;
+  border-radius: 0;
+  display: block;
+  max-width: 100%;
+}
+
+.popover-v2 > .popover-v2-inner[data-content-type*="pdf"] iframe {
+  width: 100%;
+  min-height: 20rem;
+  border: 0;
+}
+
+.popover-v2 h1,
+.popover-v2 h2,
+.popover-v2 h3 { font-size: 1rem; margin-top: 0.4rem; }
+.popover-v2 p { margin: 0.4rem 0; }
+.popover-v2 img { max-width: 100%; }
+
+.popover-v2 .meta {
+  opacity: 0.7;
+  font-style: italic;
+  font-size: 0.85rem;
+  color: var(--gray, #4e4e4e);
+}
+.popover-v2 .meta .meta-label-full  { display: none; }
+.popover-v2 .meta .meta-label-short { display: inline; }
+
+.popover-v2 .e-content a[href^="http"]:not(.hanchor) {
+  color: var(--gray);
+  text-decoration: underline;
+  text-decoration-color: var(--secondary);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
+}
+
+.popover-v2 .e-content a.internal-link:not(.broken),
+.popover-v2 .e-content a:not(.internal-link):not(.hanchor):not([href^="http"]) {
+  color: var(--gray);
+  background-color: transparent;
+  text-decoration: underline;
+  text-decoration-color: var(--tertiary);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
+}
+
+.popover-v2 .e-content a.internal-link.broken {
+  color: #000;
+  background-color: transparent;
+  text-decoration: underline dashed;
+  text-decoration-color: #555;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  cursor: not-allowed;
+}
+
+[saved-theme="dark"] .popover-v2 .e-content a[href^="http"]:not(.hanchor) {
+  text-decoration-color: var(--primary);
+}
+[saved-theme="dark"] .popover-v2 .e-content a.internal-link:not(.broken),
+[saved-theme="dark"] .popover-v2 .e-content a:not(.internal-link):not(.hanchor):not([href^="http"]) {
+  text-decoration-color: var(--secondary);
+}
+[saved-theme="dark"] .popover-v2 .e-content a.internal-link.broken {
+  color: #8BA4B0;
+  opacity: 0.7;
+  text-decoration-color: #8BA4B0;
+}
+
+/* Blog dark mode (uBlogger sets body[theme="dark"]).
+   Mirrors blog _override.scss colors: inner article bg #1F1F28, fujiWhite text. */
+body[theme="dark"] .popover-v2 > .popover-v2-inner {
+  background-color: #1F1F28;
+  color: #DCD7BA;
+  border-color: #54546D;
+}
+body[theme="dark"] .popover-v2 .meta {
+  color: #C8C093;
+}
+body[theme="dark"] .popover-v2 .e-content a.internal-link:not(.broken),
+body[theme="dark"] .popover-v2 .e-content a:not(.internal-link):not(.hanchor):not([href^="http"]) {
+  color: #DCD7BA;
+  text-decoration-color: #658594; /* dragonBlue — same as blog body links */
+}
+body[theme="dark"] .popover-v2 .e-content a[href^="http"]:not(.hanchor) {
+  color: #DCD7BA;
+  text-decoration-color: #D27E99; /* sakuraPink — matches blog external links */
+}
+body[theme="dark"] .popover-v2 .e-content a.internal-link.broken {
+  color: #7E8A8A;
+  text-decoration-color: #7E8A8A;
+}
+
+/* Book (mdBook): use the book's per-theme CSS variables so the popover
+   adapts to whichever theme is active (light, ayu, burgundy, coal,
+   kanagawa, navy, pinkrose, rust, tokyonight). */
+html.light .popover-v2 > .popover-v2-inner,
+html.ayu .popover-v2 > .popover-v2-inner,
+html.burgundy .popover-v2 > .popover-v2-inner,
+html.coal .popover-v2 > .popover-v2-inner,
+html.kanagawa .popover-v2 > .popover-v2-inner,
+html.navy .popover-v2 > .popover-v2-inner,
+html.pinkrose .popover-v2 > .popover-v2-inner,
+html.rust .popover-v2 > .popover-v2-inner,
+html.tokyonight .popover-v2 > .popover-v2-inner {
+  background-color: var(--bg);
+  color: var(--fg);
+  border-color: var(--quote-border, var(--icons));
+}
+html.light .popover-v2 .meta,
+html.ayu .popover-v2 .meta,
+html.burgundy .popover-v2 .meta,
+html.coal .popover-v2 .meta,
+html.kanagawa .popover-v2 .meta,
+html.navy .popover-v2 .meta,
+html.pinkrose .popover-v2 .meta,
+html.rust .popover-v2 .meta,
+html.tokyonight .popover-v2 .meta {
+  color: var(--icons);
+}
+/* Inside the popover, brain content links keep brain's class="internal-link" semantics.
+   Working internal → full --links color; external (http) → --inline-code-color; broken → muted. */
+html.light .popover-v2 .e-content a.internal-link:not(.broken),
+html.ayu .popover-v2 .e-content a.internal-link:not(.broken),
+html.burgundy .popover-v2 .e-content a.internal-link:not(.broken),
+html.coal .popover-v2 .e-content a.internal-link:not(.broken),
+html.kanagawa .popover-v2 .e-content a.internal-link:not(.broken),
+html.navy .popover-v2 .e-content a.internal-link:not(.broken),
+html.pinkrose .popover-v2 .e-content a.internal-link:not(.broken),
+html.rust .popover-v2 .e-content a.internal-link:not(.broken),
+html.tokyonight .popover-v2 .e-content a.internal-link:not(.broken) {
+  color: var(--fg);
+  text-decoration-color: var(--links);
+}
+html.light .popover-v2 .e-content a[href^="http"]:not(.hanchor),
+html.ayu .popover-v2 .e-content a[href^="http"]:not(.hanchor),
+html.burgundy .popover-v2 .e-content a[href^="http"]:not(.hanchor),
+html.coal .popover-v2 .e-content a[href^="http"]:not(.hanchor),
+html.kanagawa .popover-v2 .e-content a[href^="http"]:not(.hanchor),
+html.navy .popover-v2 .e-content a[href^="http"]:not(.hanchor),
+html.pinkrose .popover-v2 .e-content a[href^="http"]:not(.hanchor),
+html.rust .popover-v2 .e-content a[href^="http"]:not(.hanchor),
+html.tokyonight .popover-v2 .e-content a[href^="http"]:not(.hanchor) {
+  color: var(--fg);
+  text-decoration-color: var(--inline-code-color);
+}
+html.light .popover-v2 .e-content a.internal-link.broken,
+html.ayu .popover-v2 .e-content a.internal-link.broken,
+html.burgundy .popover-v2 .e-content a.internal-link.broken,
+html.coal .popover-v2 .e-content a.internal-link.broken,
+html.kanagawa .popover-v2 .e-content a.internal-link.broken,
+html.navy .popover-v2 .e-content a.internal-link.broken,
+html.pinkrose .popover-v2 .e-content a.internal-link.broken,
+html.rust .popover-v2 .e-content a.internal-link.broken,
+html.tokyonight .popover-v2 .e-content a.internal-link.broken {
+  color: var(--icons);
+  text-decoration-color: var(--icons);
+  text-decoration-style: dashed;
+}
+
+@media (max-width: 768px) {
+  .popover-v2 { display: none !important; }
+}
+
+.popover-v2.active-popover {
+  animation: popover-v2-dropin 0.3s ease;
+  animation-fill-mode: forwards;
+  animation-delay: 0.15s;
+}
+
+.popover-v2:hover {
+  visibility: visible;
+  opacity: 1;
+}

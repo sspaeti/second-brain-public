@@ -1,5 +1,19 @@
 RewriteEngine On
 
+# Cross-origin allowlist for popover previews (blog, book, brain).
+# `always` keyword is required so the headers also appear on 3xx
+# redirect responses (e.g. ssp.sh → www.ssp.sh canonical-host 301) —
+# without it browsers block the redirect during the CORS check.
+# Vary: Origin is load-bearing for the Bunny CDN — without it Bunny may
+# serve one origin's cached response to another, breaking CORS for the
+# second origin. After deploying, purge brain pull-zone cache once so
+# pre-CORS entries are evicted.
+<IfModule mod_headers.c>
+  SetEnvIf Origin "^https://(www\.)?(ssp\.sh|dedp\.online)$" CORS_ALLOWED_ORIGIN=$0
+  Header always set Access-Control-Allow-Origin "%{CORS_ALLOWED_ORIGIN}e" env=CORS_ALLOWED_ORIGIN
+  Header always merge Vary "Origin"
+</IfModule>
+
 # Redirect renamed brain articles to new URL
 # List all renames below manually
 RewriteRule ^onetable/?$ https://www.ssp.sh/brain/xtable [R=301,L]

@@ -152,8 +152,9 @@
     clearActivePopover();
   }
 
-  window.initPopoverV2 = function initPopoverV2() {
-    const links = document.querySelectorAll("a.internal-link[href]");
+  window.initPopoverV2 = function initPopoverV2(opts) {
+    const selector = (opts && opts.selector) || "a.internal-link[href]";
+    const links = document.querySelectorAll(selector);
     links.forEach((link) => {
       link.addEventListener("mouseenter", onMouseEnter);
       link.addEventListener("mouseleave", onMouseLeave);
