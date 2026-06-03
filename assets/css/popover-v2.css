@@ -115,6 +115,53 @@
   text-decoration-color: #8BA4B0;
 }
 
+/* Dark mode for blog (uBlogger: body[theme="dark"]) and book (mdBook: html.coal/navy/ayu).
+   Brain already handles itself via [saved-theme="dark"] above + its remapped CSS vars.
+   Blog/book don't define --light/--dark, so the popover otherwise defaults to white. */
+body[theme="dark"] .popover-v2 > .popover-v2-inner,
+html.coal .popover-v2 > .popover-v2-inner,
+html.navy .popover-v2 > .popover-v2-inner,
+html.ayu  .popover-v2 > .popover-v2-inner {
+  background-color: #1e1e2e;
+  color: #cdd6f4;
+  border-color: #45475a;
+}
+
+body[theme="dark"] .popover-v2 .meta,
+html.coal .popover-v2 .meta,
+html.navy .popover-v2 .meta,
+html.ayu  .popover-v2 .meta {
+  color: #a6adc8;
+}
+
+body[theme="dark"] .popover-v2 .e-content a.internal-link:not(.broken),
+body[theme="dark"] .popover-v2 .e-content a:not(.internal-link):not(.hanchor):not([href^="http"]),
+html.coal .popover-v2 .e-content a.internal-link:not(.broken),
+html.coal .popover-v2 .e-content a:not(.internal-link):not(.hanchor):not([href^="http"]),
+html.navy .popover-v2 .e-content a.internal-link:not(.broken),
+html.navy .popover-v2 .e-content a:not(.internal-link):not(.hanchor):not([href^="http"]),
+html.ayu  .popover-v2 .e-content a.internal-link:not(.broken),
+html.ayu  .popover-v2 .e-content a:not(.internal-link):not(.hanchor):not([href^="http"]) {
+  color: #cdd6f4;
+  text-decoration-color: #89b4fa;
+}
+
+body[theme="dark"] .popover-v2 .e-content a[href^="http"]:not(.hanchor),
+html.coal .popover-v2 .e-content a[href^="http"]:not(.hanchor),
+html.navy .popover-v2 .e-content a[href^="http"]:not(.hanchor),
+html.ayu  .popover-v2 .e-content a[href^="http"]:not(.hanchor) {
+  color: #cdd6f4;
+  text-decoration-color: #f38ba8;
+}
+
+body[theme="dark"] .popover-v2 .e-content a.internal-link.broken,
+html.coal .popover-v2 .e-content a.internal-link.broken,
+html.navy .popover-v2 .e-content a.internal-link.broken,
+html.ayu  .popover-v2 .e-content a.internal-link.broken {
+  color: #6c7086;
+  text-decoration-color: #6c7086;
+}
+
 @media (max-width: 768px) {
   .popover-v2 { display: none !important; }
 }
