@@ -3,7 +3,9 @@
     "allow": [
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(cargo build:*)",
-      "Bash(make prepare:*)"
+      "Bash(make prepare:*)",
+      "Bash(node --check assets/js/popover-v2.js)",
+      "Bash(make)"
     ],
     "deny": [],
     "ask": []

@@ -171,9 +171,13 @@
   <script src="{{ $floatingUIDOM.RelPermalink }}"></script>
 
 
-  {{ $popover := resources.Get "js/popover.js" | resources.Fingerprint "md5" |
-  resources.Minify }}
-  <script src="{{$popover.Permalink}}"></script>
+  {{ if $data.enableLinkPreviewV2 | default $.Site.Data.config.enableLinkPreviewV2 }}
+    {{ $popoverV2 := resources.Get "js/popover-v2.js" | resources.Fingerprint "md5" | resources.Minify }}
+    <script src="{{$popoverV2.Permalink}}"></script>
+  {{ else }}
+    {{ $popover := resources.Get "js/popover.js" | resources.Fingerprint "md5" | resources.Minify }}
+    <script src="{{$popover.Permalink}}"></script>
+  {{ end }}
 
   <!-- Optional scripts -->
 
@@ -235,7 +239,9 @@
       addCollapsibleCallouts();
       {{ end }}
      
-      {{if $data.enableLinkPreview | default $.Site.Data.config.enableLinkPreview}}
+      {{if $data.enableLinkPreviewV2 | default $.Site.Data.config.enableLinkPreviewV2}}
+      if (window.initPopoverV2) { window.initPopoverV2(); }
+      {{else if $data.enableLinkPreview | default $.Site.Data.config.enableLinkPreview}}
       initPopover(
         {{strings.TrimRight "/" .Site.BaseURL }},
         {{$data.enableContextualBacklinks | default $.Site.Data.config.enableContextualBacklinks}},
