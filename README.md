@@ -58,6 +58,28 @@ Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
 
+### 2026-06-03: Hover popover previews + scoped CORS for cross-site embedding
+
+A fetch-based hover popover replaces the legacy `popover.js`. Hovering any internal link opens a scrollable preview of the destination note (title, meta line including reading time, full content) rendered from the actual brain HTML — no precomputed JSON index, so notes always show current content. The same JS/CSS is consumed by the [blog](https://www.ssp.sh) and the [DEDP book](https://www.dedp.online) via build-time copy, giving readers on those sites the same brain-link hover experience.
+
+- **Popover implementation** (`assets/js/popover-v2.js`, `assets/css/popover-v2.css`):
+  - Selector parametrized via `window.initPopoverV2({selector: "..."})`. Brain uses the default `a.internal-link[href]`; blog/book pass `a[href*="ssp.sh/brain"]`.
+  - Branches on `Content-Type`: HTML extracts elements with class `popover-hint` (title, meta, content body — marked in `single.html` / `textprocessing.html` so site chrome, TOC, tags, footer, graph, backlinks are excluded); image responses render `<img>`; PDF responses embed `<iframe>`.
+  - Anchor scroll: links to `#heading` scroll the inner div to the prefixed `#popover-internal-<heading>`.
+  - Per-pathname cache; outer 1rem padding + `:hover` keeps the popover open while the cursor crosses from the link to the popover for scrolling.
+  - Behind feature flag `enableLinkPreviewV2` in `data/config.yaml`. The v1 popover code path remains available for rollback.
+  - Light + dark mode rules cover brain (`[saved-theme="dark"]`), blog (uBlogger `body[theme="dark"]`), and all 9 book themes (`html.ayu`, `html.burgundy`, `html.coal`, `html.kanagawa`, `html.light`, `html.navy`, `html.pinkrose`, `html.rust`, `html.tokyonight`) — book uses `var(--bg)` / `var(--fg)` / `var(--links)` / `var(--inline-code-color)` so the popover adapts to whichever theme the reader picks.
+- **CORS** (`static/.htaccess`): `SetEnvIf Origin "^https://(www\.)?(ssp\.sh|dedp\.online)$"` + `Header always set Access-Control-Allow-Origin` + `Header always merge Vary "Origin"`. The `always` keyword is required so headers apply to 3xx canonical-host redirects (otherwise the browser blocks the redirect before the final 200). After deploy, the Bunny brain pull-zone cache must be purged once to evict pre-CORS entries.
+- **Image wikilinks** (`layouts/partials/textprocessing.html`, `utils/obsidian-quartz/src/file_utils.rs`): `[[image.ext]]` (without `!`) now renders as a working `<a href>` (was a broken `<a>` with no href). The rust util's regex relaxed from `\[\[...\]\]` requiring `!` to `!?\[\[...\]\]`, so the asset gets copied to public output regardless of which form is used. Combined with the popover's image branch, hovering an `[[img.webp]]` link shows the image directly in the popover.
+- **Reading time**: `layouts/_default/single.html` now renders `{{ .ReadingTime }} min read` in the meta line for both the page and the popover preview.
+- **Files**:
+  - `assets/js/popover-v2.js`, `assets/css/popover-v2.css` — canonical popover (copied verbatim to blog and book by their `sync-popover` Makefile targets, alongside `floating-ui.core.umd.min.js` and `floating-ui.dom.umd.min.js`)
+  - `layouts/partials/head.html` — flag-gated v1/v2 toggle, loads CSS + JS, calls init
+  - `layouts/partials/textprocessing.html`, `layouts/_default/single.html` — `popover-hint` markers on title/meta/content; non-`!` image wikilink handling; reading time in meta
+  - `static/.htaccess` — scoped CORS for `(www.)?(ssp.sh|dedp.online)` with `Header always`
+  - `utils/obsidian-quartz/src/file_utils.rs` — image-copy regex catches non-`!` wikilinks
+  - `data/config.yaml` — `enableLinkPreviewV2: true`
+
 ### 2026-06-01: Interactive graph shows blog posts and book chapters
 
 The local graph on every brain note now surfaces connections to two sister sites — the [blog](https://ssp.sh/blog) and the [DEDP book](https://www.dedp.online) — alongside brain↔brain wikilinks. This makes the second brain a true hub: every note shows what posts cite it and which book chapters reference it.
