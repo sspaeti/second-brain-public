@@ -3,6 +3,7 @@ website: https://www.ssp.sh/brain/
 enableToc: true
 openToc: true
 enableLinkPreview: true
+enableLinkPreviewV2: false
 enableLatex: true
 enableCodeBlockTitle: true
 enableCodeBlockCopy: true
