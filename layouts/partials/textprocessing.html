@@ -40,7 +40,13 @@
       {{$block = strings.TrimRight "/" (cond (eq $block "") $block (printf "#%s" $block)) | urlize | lower}}
       {{$href := strings.TrimRight "/" ($page.GetPage $title).RelPermalink}}
       {{$display := default $title (index $split 1)}}
-      {{if not $href}}
+      {{$lowerTitle := lower $title}}
+      {{$isImage := or (hasSuffix $lowerTitle ".png") (hasSuffix $lowerTitle ".jpg") (hasSuffix $lowerTitle ".jpeg") (hasSuffix $lowerTitle ".gif") (hasSuffix $lowerTitle ".webp") (hasSuffix $lowerTitle ".svg") (hasSuffix $lowerTitle ".mp4") }}
+      {{if and (not $href) $isImage}}
+        {{$assetHref := relURL $title}}
+        {{$link := printf "<a href=\"%s\" rel=\"noopener\" class=\"internal-link image-link\" data-src=\"%s\">%s</a>" $assetHref $assetHref $display}}
+        {{$content = replace $content . $link}}
+      {{else if not $href}}
         {{$link := printf "<a class=\"internal-link broken\">%s</a>" $display}}
         {{$content = replace $content . $link}}
       {{else}}
