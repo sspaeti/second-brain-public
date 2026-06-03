@@ -80,3 +80,11 @@
   animation-fill-mode: forwards;
   animation-delay: 0.15s;
 }
+
+// Keep the popover open while the mouse is over it, so the user can move
+// onto it from the link and scroll. The outer 1rem padding above acts as a
+// hover buffer that catches the mouse during the cross from link to popover.
+.popover-v2:hover {
+  visibility: visible;
+  opacity: 1;
+}
