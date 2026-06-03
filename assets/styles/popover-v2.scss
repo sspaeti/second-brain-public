@@ -70,6 +70,20 @@
   p { margin: 0.4rem 0; }
   img { max-width: 100%; }
 
+  // Subdued meta line inside the popover. base.scss only styles
+  // `article > .meta`; inside the popover the meta lives under
+  // .popover-v2-inner, so re-apply greying here and force the short label
+  // form (popover is narrow regardless of viewport width).
+  .meta {
+    opacity: 0.7;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: var(--gray, #4e4e4e);
+
+    .meta-label-full { display: none; }
+    .meta-label-short { display: inline; }
+  }
+
   @media (max-width: 768px) {
     display: none !important;
   }
