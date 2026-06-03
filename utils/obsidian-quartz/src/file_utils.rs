@@ -229,7 +229,7 @@ pub fn process_file(
     let mut frontmatter_string = String::new();
     let mut enabletoc_value = String::new(); // To store the existing enableToc value
 
-    let re = Regex::new(r"\s*!\[\[(.*?(?:png|jpg|gif|webp|mp4))\]\](.*)").unwrap();
+    let re = Regex::new(r"\s*!?\[\[(.*?(?:png|jpe?g|gif|webp|svg|mp4))\]\](.*)").unwrap();
     let created_re = Regex::new(r"Created:?\s+\[\[.*?(\d{4}-\d{2}-\d{2}).*?\]\]").unwrap();
 
     // Ugly fix as enableToc not working: Check if the file name is _index.md right after obtaining the file name
