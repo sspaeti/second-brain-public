@@ -84,8 +84,59 @@
     .meta-label-short { display: inline; }
   }
 
+  // Link styling inside the popover content. The site's main rules are
+  // scoped to `article p ...` so they do not reach into the popover —
+  // broken internal links would otherwise look identical to working ones
+  // (or to plain text). Mirror the rules from custom.scss for the popover.
+  .e-content {
+    a[href^="http"]:not(.hanchor) {
+      color: var(--gray);
+      text-decoration: underline;
+      text-decoration-color: var(--secondary);
+      text-underline-offset: 3px;
+      text-decoration-thickness: 2px;
+    }
+
+    a.internal-link:not(.broken),
+    a:not(.internal-link):not(.hanchor):not([href^="http"]) {
+      color: var(--gray);
+      background-color: transparent;
+      text-decoration: underline;
+      text-decoration-color: var(--tertiary);
+      text-underline-offset: 3px;
+      text-decoration-thickness: 2px;
+    }
+
+    a.internal-link.broken {
+      color: #000;
+      background-color: transparent;
+      text-decoration: underline dashed;
+      text-decoration-color: #555;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      cursor: not-allowed;
+    }
+  }
+
   @media (max-width: 768px) {
     display: none !important;
+  }
+}
+
+// Dark-theme overrides for popover link colors. Mirrors the
+// `[saved-theme="dark"] article p ...` block in custom.scss.
+[saved-theme="dark"] .popover-v2 .e-content {
+  a[href^="http"]:not(.hanchor) {
+    text-decoration-color: var(--primary);
+  }
+  a.internal-link:not(.broken),
+  a:not(.internal-link):not(.hanchor):not([href^="http"]) {
+    text-decoration-color: var(--secondary);
+  }
+  a.internal-link.broken {
+    color: #8BA4B0;
+    opacity: 0.7;
+    text-decoration-color: #8BA4B0;
   }
 }
 
