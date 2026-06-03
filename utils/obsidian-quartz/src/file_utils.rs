@@ -229,7 +229,12 @@ pub fn process_file(
     let mut frontmatter_string = String::new();
     let mut enabletoc_value = String::new(); // To store the existing enableToc value
 
-    let re = Regex::new(r"\s*!?\[\[(.*?(?:png|jpe?g|gif|webp|svg|mp4))\]\](.*)").unwrap();
+    // `[^\[\]]+?` instead of `.*?` so the inner pattern cannot span across
+    // adjacent wikilinks on the same line — without this, a line like
+    // `[[Kestra]] ... ![[image.webp]]` lets the non-greedy `.*?` swallow
+    // everything from `[[Kestra` to `image.webp`, capturing gibberish that
+    // never matches `images_map`, so the actual image isn't copied.
+    let re = Regex::new(r"!?\[\[([^\[\]]+?(?:png|jpe?g|gif|webp|svg|mp4))\]\]").unwrap();
     let created_re = Regex::new(r"Created:?\s+\[\[.*?(\d{4}-\d{2}-\d{2}).*?\]\]").unwrap();
 
     // Ugly fix as enableToc not working: Check if the file name is _index.md right after obtaining the file name
