@@ -152,12 +152,18 @@
     clearActivePopover();
   }
 
+  // Close popover on navigation: clicking a link doesn't fire mouseleave,
+  // and SPA transitions keep popover nodes (they live on document.body,
+  // outside the swapped .singlePage container).
+  window.addEventListener("million:navigate", clearActivePopover);
+
   window.initPopoverV2 = function initPopoverV2(opts) {
     const selector = (opts && opts.selector) || "a.internal-link[href]";
     const links = document.querySelectorAll(selector);
     links.forEach((link) => {
       link.addEventListener("mouseenter", onMouseEnter);
       link.addEventListener("mouseleave", onMouseLeave);
+      link.addEventListener("click", clearActivePopover);
     });
   };
 })();
