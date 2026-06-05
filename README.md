@@ -28,7 +28,7 @@ The content/notes themselves are not published in this repo, only on [ssp.sh/bra
 
 ## Utils
 
-### Content processing: obsidian-quartz
+### `obsidian-quartz`: Content processing
 
 Rust CLI tool that processes Obsidian vault notes and outputs Hugo-compatible markdown. Handles frontmatter, tags, images, OG image generation, callout normalization, BASE database views, and more.
 
@@ -42,9 +42,18 @@ Key features:
 
 See **[utils/obsidian-quartz/README.md](./utils/obsidian-quartz/README.md)** for details.
 
-### Backlink and graph creation
+### `hugo-obsidian`: Backlink and graph creation
 
-The tool used is `hugo-obsidian`, a small Go program written by Jacky. Here's the [source](https://github.com/jackyzha0/hugo-obsidian). It is not maintained anymore (as there is now a [v4](https://github.com/jackyzha0/quartz/tree/v4) without it) and it had bugs and didn't show all my backlinks. That's why I forked it and fixed the backlinks. You can find it here: [sspaeti/hugo-obsidian](https://github.com/sspaeti/hugo-obsidian).
+The tool used is `hugo-obsidian`, a small Go program written by Jacky. Here's the [source](https://github.com/jackyzha0/hugo-obsidian). It is not maintained anymore (as there is now a [v4](https://github.com/jackyzha0/quartz/tree/v4) without it) and it had bugs and didn't show all my backlinks. That's why I forked it and fixed the backlinks. You can find it here: [sspaeti/hugo-obsidian](utils/hugo-obsidian).
+
+It scans the `content/` folder for wikilinks and emits two artifacts Hugo consumes to render the interactive graph and per-note backlink lists:
+- `assets/indices/linkIndex.json` — every `[[wikilink]]` as a `source → target` edge, lowercased and de-duplicated (powers the graph and "Links to this note" sections)
+- `assets/indices/contentIndex.json` — slug → title/content map used for search and link previews
+
+Key fork additions over upstream: case-insensitive link matching, block-reference (`^hash`) handling, slash-in-title normalization, and performance tuning for large vaults.
+
+> [!NOTE]
+> `sspaeti/hugo-obsidian` has been integrated directly in this repository at [utils/hugo-obsidian](utils/hugo-obsidian). See **[utils/hugo-obsidian/README.md](./utils/hugo-obsidian/README.md)** for installation, CLI flags, and the full changelog.
 
 ### Hugo render hooks
 
@@ -166,3 +175,27 @@ The local graph on every brain note now surfaces connections to two sister sites
 - Modified [`assets/js/router.js`](assets/js/router.js) to intercept clicks between `/brain/` and other sections, forcing full page loads instead of SPA navigation
 - Prevents "null" page errors when navigating from brain to main blog
 - Compatible with [`assets/js/external-links.js`](assets/js/external-links.js) which handles truly external links
+
+## Inconsistencies (later TODO's)
+
+### Slug rules — 5 spots, only 1 canonical
+
+Brain note `no meetings (async).md` → URL slug `/no-meetings-async`. Five files do slug work. Two can disagree. One is source of truth.
+
+Canonical: `utils/hugo-obsidian/util.go::UnicodeSanitize`. Strips `()`, `&`, `@`, `–`, `'`, etc. Collapses `-`/whitespace runs to one `-`.
+
+| # | File | Lang | Role |
+|---|------|------|------|
+| 1 | `utils/hugo-obsidian/util.go::UnicodeSanitize` | Go | **Canonical**. Brain + blog hugo-obsidian use it. |
+| 2 | `utils/obsidian-quartz/src/enrich_with_blog.rs::unicode_sanitize` | Rust | **Mirror** of #1. Tight loop, no shell-out. |
+| 3 | `utils/obsidian-quartz/src/file_utils.rs:826` | Rust | Filename lowercase only. #1 slugifies after. |
+| 4 | `sspaeti-hugo-blog/helper-scripts/enrich-link-index.py:41` | Python | **Divergent**. Only `.lower().replace(" ", "-")`. Keeps parens. Source of paren-drop bugs. |
+| 5 | `utils/obsidian-quartz/src/file_utils.rs:925` | Rust | BASE-page filename. Same as #3. |
+
+Real disagreement: #1 vs #4. #2 compensates by re-canonicalising before matching brain IDs. #3 + #5 not slug generators — feed into #1.
+
+Future cleanup: add `sluggify` subcommand to hugo-obsidian (Go). Blog Python shell out. Collapses #4 into #1. Kills need for #2.
+
+Pending symmetric bug: `utils/obsidian-quartz/src/enrich_with_book.rs:154`. Same `brain_ids.contains()` pattern as fixed blog enricher. Same silent-drop on paren'd notes until same fix applied.
+
+In-code pointers exist between #1 and #2 (`MIRRORED IN` / `KEEP IN SYNC WITH`).
