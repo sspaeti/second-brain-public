@@ -117,7 +117,9 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
     .attr("height", height)
     .attr('viewBox', [-width / 2 * 1 / scale, -height / 2 * 1 / scale, width * 1 / scale, height * 1 / scale])
 
-  let activeFilter = null
+  // Filter state lives on window so it persists across drawGraph calls —
+  // small graph in the page sidebar and full-screen lightbox share it.
+  let activeFilter = window.__graphActiveFilter || null
   const filterDim = 0.18
 
   const matchesFilter = (d) => {
@@ -185,6 +187,7 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
         g.on("click", (event) => {
           event.stopPropagation()
           activeFilter = activeFilter === entry.filter ? null : entry.filter
+          window.__graphActiveFilter = activeFilter
           applyFilter()
         })
       }
@@ -326,6 +329,10 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
         }),
     )
   }
+
+  // If a filter was set before this graph rendered (e.g. user filtered in
+  // the small graph then opened the lightbox), apply it once on first render.
+  if (activeFilter) applyFilter()
 
   // progress the simulation
   simulation.on("tick", () => {
