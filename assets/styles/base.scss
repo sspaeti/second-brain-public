@@ -70,9 +70,9 @@ html {
 .singlePage {
   display: flex;
   justify-content: center;
-  margin-left: 20vw;
-  margin-right: 20vw;
-  padding-top: 5vh;
+  margin-left: 12vw;
+  margin-right: 12vw;
+  padding-top: 1vh;
   // padding: 4em 30vw;
   @media all and (max-width: 1200px) {
     // padding: 25px 5vw;
@@ -265,7 +265,8 @@ blockquote {
 
 article {
   & > h1 {
-    margin-top: 2em;
+    margin-top: 1.3em;
+    padding-top: 0;
     font-size: 1.8em;
   }
   
@@ -439,7 +440,7 @@ hr {
   scrollbar-width: thin;
   scrollbar-color: var(--outlinegray) transparent;
   padding-right: 1vw;
-  padding-top: 8vh;
+  padding-top: 5vh;
   padding-bottom: 2vh;
   min-width: 10rem;
   // soft fade at the bottom hints there's more to scroll
@@ -522,6 +523,27 @@ hr {
   flex: 1 1 auto;
 }
 
+// when header lives outside .singlePage (e.g. single.html with sidebar),
+// match the .singlePage horizontal margins so the right edge aligns with the TOC
+.header-fullwidth {
+  margin: 1em 12vw 0;
+  @media all and (max-width: 1200px) {
+    margin: 1em 5vw 0;
+  }
+  & > header { margin: 0 0 1em; }
+}
+
+.header-divider {
+  display: inline-block;
+  width: 1px;
+  height: 1.2em;
+  background-color: var(--gray);
+  opacity: 0.35;
+  margin: 0 0.6em;
+  align-self: center;
+}
+
+
 header {
   display: flex;
   flex-direction: row;
@@ -529,7 +551,7 @@ header {
   margin: 1em 0 2em;
 
   & > h1, & > .header-title {
-    font-size: 2em;
+    font-size: 1.5em;
   }
 
   & > nav {
@@ -555,7 +577,7 @@ header {
     /* Media query for desktop views */
     @media screen and (min-width: 768px) {
       & > p {
-        padding: 0 1.5em 0 2em; /* Padding for desktop */
+        padding: 0 2em 0 2.5em; /* Padding for desktop */
       }
     }
   }
