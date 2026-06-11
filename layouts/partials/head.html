@@ -150,7 +150,7 @@
   {{$lightSyntax := resources.Get "styles/_light_syntax.scss" | css.Sass (dict "outputStyle" "compressed") | resources.Fingerprint "md5" | resources.Minify  }}
   <link href="{{$lightSyntax.Permalink}}" rel="stylesheet" id="theme-link">
    <!-- Base scripts -->
-  {{$scripts := (slice "js/darkmode.js" "js/util.js")}}
+  {{$scripts := (slice "js/darkmode.js" "js/util.js" "js/toc-scrollspy.js")}}
   {{range $scripts}}
   {{$scriptname := .}}
   {{ $s := resources.Get $scriptname | resources.ExecuteAsTemplate $scriptname . | resources.Fingerprint "md5" | resources.Minify }}
@@ -255,6 +255,10 @@
       // Initialize mermaid diagrams if they exist on the page
       if (window.initMermaid) {
         window.initMermaid();
+      }
+
+      if (window.initTocScrollspy) {
+        window.initTocScrollspy();
       }
 
       {{if $data.enableFooter | default $.Site.Data.config.enableFooter}}

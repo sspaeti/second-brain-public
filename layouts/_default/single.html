@@ -27,7 +27,6 @@
           <li><a href="{{ .Permalink }}">{{ .LinkTitle | humanize }}</a></li>
           {{ end }}
       </ul>
-      {{partial "toc.html" .}}
 
       {{- /* Hacker News Banner */ -}}
       {{- with .Params.hackernews -}}
@@ -42,6 +41,7 @@
     </article>
     {{if not .Params.hideBacklinks}}
     <div class="backlinks-container">
+        {{partial "toc.html" .}}
         {{partial "backlinks.html" .}}
     </div>
     {{end}}

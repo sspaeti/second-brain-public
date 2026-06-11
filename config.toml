@@ -13,8 +13,8 @@ enableGitInfo = true
 
 [markup]
     [markup.tableOfContents]
-        endLevel = 3
-        ordered = true
+        endLevel = 2
+        ordered = false
         startLevel = 2
     [markup.highlight]
         noClasses = false
