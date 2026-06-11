@@ -1,4 +1,7 @@
 <header>
+    <a class="ssp-brand-logo" href="https://www.ssp.sh" title="Back to ssp.sh">
+      <img src="/brain/logo_ssp_main.png" alt="ssp.sh" width="36" height="36">
+    </a>
     {{ $config := cond (eq $.Site.Language.Lang "en") "config" (printf "config.%s" $.Site.Language.Lang) }}
     <!-- <h1 id="page-title"><a href="{{ "" | absLangURL }}">{{ ( index $.Site.Data $config ).page_title | default $.Site.Data.config.page_title }}</a></h1> -->
     <!-- hard cod website here as CORS will not work as CORS correctly when www. is provided. But www. needed for Google Canonical link to be correctly -->
