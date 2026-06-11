@@ -60,6 +60,15 @@
 {{ end }}
 
 <head>
+  <!-- Set brand-section attr synchronously so the right header icon shows
+       before CSS paints (avoids brain-icon flash on data-engineering pages) -->
+  <script>
+    (function() {
+      if (window.location.pathname.startsWith('/brain/data-engineering/')) {
+        document.documentElement.setAttribute('data-section', 'vault');
+      }
+    })();
+  </script>
   <!-- Meta tags -->
   <meta charset="UTF-8" />
   <meta
@@ -259,6 +268,13 @@
 
       if (window.initTocScrollspy) {
         window.initTocScrollspy();
+      }
+
+      // keep the brand-icon swap in sync after SPA navigation
+      if (window.location.pathname.startsWith('/brain/data-engineering/')) {
+        document.documentElement.setAttribute('data-section', 'vault');
+      } else {
+        document.documentElement.removeAttribute('data-section');
       }
 
       {{if $data.enableFooter | default $.Site.Data.config.enableFooter}}

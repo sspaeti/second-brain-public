@@ -3,13 +3,9 @@
     <!-- <h1 id="page-title"><a href="{{ "" | absLangURL }}">{{ ( index $.Site.Data $config ).page_title | default $.Site.Data.config.page_title }}</a></h1> -->
     <!-- hard cod website here as CORS will not work as CORS correctly when www. is provided. But www. needed for Google Canonical link to be correctly -->
     <div id="page-title" class="header-title"><a href="/brain">
-    {{ if hasPrefix .RelPermalink "/brain/data-engineering/" }}
-      {{ $dataEngIcon := resources.Get (printf "svg/%s" (( index $.Site.Data $config ).data_engineering_icon | default $.Site.Data.config.data_engineering_icon)) }}
-      <svg style="vertical-align: middle; width: 1.1em; height: 1.1em; margin-right: 0.2em; transform: translateX(-0.1em);">{{ $dataEngIcon.Content | safeHTML }}</svg><span class="title-text">Second Brain</span>
-    {{ else }}
-      {{ $brainIcon := resources.Get (printf "svg/%s" (( index $.Site.Data $config ).brain_icon | default $.Site.Data.config.brain_icon)) }}
-      <svg style="vertical-align: middle; width: 1.1em; height: 1.1em; margin-right: 0.2em; transform: translateX(-0.1em);">{{ $brainIcon.Content | safeHTML }}</svg><span class="title-text">{{ ( index $.Site.Data $config ).page_title | default $.Site.Data.config.page_title | safeHTML }}</span>
-    {{ end }}
+    {{ $dataEngIcon := resources.Get (printf "svg/%s" (( index $.Site.Data $config ).data_engineering_icon | default $.Site.Data.config.data_engineering_icon)) }}
+    {{ $brainIcon := resources.Get (printf "svg/%s" (( index $.Site.Data $config ).brain_icon | default $.Site.Data.config.brain_icon)) }}
+    <svg class="header-icon header-icon--brain" style="vertical-align: middle; width: 1.1em; height: 1.1em; margin-right: 0.2em; transform: translateX(-0.1em);">{{ $brainIcon.Content | safeHTML }}</svg><svg class="header-icon header-icon--vault" style="vertical-align: middle; width: 1.1em; height: 1.1em; margin-right: 0.2em; transform: translateX(-0.1em);">{{ $dataEngIcon.Content | safeHTML }}</svg><span class="title-text">{{ ( index $.Site.Data $config ).page_title | default $.Site.Data.config.page_title | safeHTML }}</span>
 </a></div>
     <div class="spacer"></div>
     {{partial "blog-nav.html" .}}

@@ -533,6 +533,13 @@ hr {
   & > header { margin: 0 0 1em; }
 }
 
+// brand-icon swap: default = brain; vault icon shows on /brain/data-engineering/
+// the html[data-section] attribute is set by an inline script in head.html and
+// re-applied by the SPA render callback so it stays correct across navigation
+.header-icon--vault { display: none; }
+:root[data-section="vault"] .header-icon--brain { display: none; }
+:root[data-section="vault"] .header-icon--vault { display: inline-block; }
+
 .header-divider {
   display: inline-block;
   width: 1px;
