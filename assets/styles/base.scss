@@ -541,6 +541,34 @@ hr {
   opacity: 0.35;
   margin: 0 0.6em;
   align-self: center;
+
+  // hidden on mobile — the nav reorders into a single tight cluster
+  @media all and (max-width: 768px) {
+    display: none;
+  }
+}
+
+// mobile nav reorder: search, blog/vault/book, dark-toggle (newsletter hidden)
+// right cluster sits flush; all slack space goes to the left of search
+@media all and (max-width: 768px) {
+  header {
+    & #search-icon {
+      order: 1;
+      margin-right: 0.8em;
+    }
+    & > .icon-links {
+      order: 2;
+      padding: 0;
+      margin-right: 0;
+    }
+    & .newsletter { display: none; }
+    & .darkmode {
+      order: 4;
+      float: none;
+      padding-left: 0.3em;
+      padding-right: 0;
+    }
+  }
 }
 
 
