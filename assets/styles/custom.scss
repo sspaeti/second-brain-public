@@ -125,7 +125,7 @@ article {
 
 
 [saved-theme="dark"] {
-  --light: #1F1F28 !important;
+  --light: #1F1F28 !important;   // inner "card" bg (header + content)
   --dark: #FF5D62 !important;
   --secondary: #658594 !important;
   --visited: #938AA9 !important;
@@ -134,6 +134,23 @@ article {
   --gray: #DCD7BA !important;
   --lightgray: #181820 !important;
   --outlinegray: #C8C093 !important;
+}
+
+// blog-aligned color tokens. Same naming as the uBlogger theme variables in
+// /home/sspaeti/git/sspaeti.com/sspaeti-hugo-blog/assets/css/_override.scss
+// `-blog` suffix is NOT used because none of these names already exist here.
+:root {
+  --global-background-color: #ffffff;             // outer body bg
+  --global-background-secondary-color: #faf8f8;   // inner card bg (header + content)
+  --global-font-secondary-color: #939090;         // muted nav-text / secondary text
+  --header-background-color: #eaecef;             // search input chip bg
+}
+
+[saved-theme="dark"] {
+  --global-background-color: #181820 !important;
+  --global-background-secondary-color: #1F1F28 !important;
+  --global-font-secondary-color: #a9a9b3 !important;
+  --header-background-color: #181820 !important;
 }
 
 // [saved-theme="dark"] {

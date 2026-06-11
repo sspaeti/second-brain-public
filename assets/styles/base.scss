@@ -70,15 +70,16 @@ html {
 .singlePage {
   display: flex;
   justify-content: center;
-  margin-left: 12vw;
-  margin-right: 12vw;
-  padding-top: 1vh;
-  // padding: 4em 30vw;
+  margin: 2em 12vw 0;
+  padding: 1vh 1.5em 2em;
+  background-color: var(--global-background-secondary-color);
+  border-radius: 20px;
+
   @media all and (max-width: 1200px) {
-    // padding: 25px 5vw;
-    flex-direction:column;
-    margin-left:5vw;
-    margin-right:5vw
+    flex-direction: column;
+    margin: 0.5em 5vw 0;
+    padding: 1vh 1em 2em;
+    border-radius: 12px;
   }
 }
 
@@ -88,7 +89,7 @@ body {
   width: 100vw;
   max-width: 100%;
   box-sizing: border-box;
-  background-color: var(--light);
+  background-color: var(--global-background-color);
 }
 
 h1, h2, h3, h4, h5, h6, thead {
@@ -265,7 +266,7 @@ blockquote {
 
 article {
   & > h1 {
-    margin-top: 1.3em;
+    margin-top: 0.6em;
     padding-top: 0;
     font-size: 1.8em;
   }
@@ -526,11 +527,38 @@ hr {
 // when header lives outside .singlePage (e.g. single.html with sidebar),
 // match the .singlePage horizontal margins so the right edge aligns with the TOC
 .header-fullwidth {
-  margin: 1em 12vw 0;
+  // full viewport-width top bar (matches the blog's edge-to-edge header)
+  background-color: var(--global-background-secondary-color);
+  padding: 0.75em 12vw;
+  margin: 0;
+  border-radius: 0;
+
   @media all and (max-width: 1200px) {
-    margin: 1em 5vw 0;
+    padding: 0.75em 5vw;
   }
-  & > header { margin: 0 0 1em; }
+  // zero out inner header's own margins so the bar's vertical padding centers content
+  & > header { margin: 0; }
+}
+
+// ssp.sh logo pinned to the far-left viewport edge of the full-width nav bar
+// hidden on mobile where the header reorders into a tight cluster
+.ssp-brand-logo {
+  position: absolute;
+  left: 1.5vw;
+  // top: 0.2em;
+  display: inline-flex;
+  align-items: center;
+
+  & img {
+    width: 45px;
+    height: 45px;
+    margin: 0;
+    border-radius: 4px;
+  }
+
+  @media all and (max-width: 1200px) {
+    display: none;
+  }
 }
 
 // brand-icon swap: default = brain; vault icon shows on /brain/data-engineering/
@@ -596,8 +624,8 @@ header {
   }
 
   #search-icon {
-    background-color: var(--lightgray);
-    border-radius: 4px;
+    background-color: var(--header-background-color);
+    border-radius: 8px;
     height: 2em;
     display: flex;
     align-items: center;
@@ -836,15 +864,27 @@ header {
   }
 }
 
-#contact_buttons ul {
-  list-style-type: none;
+#contact_buttons {
+  // rendered outside .singlePage so it sits on the outer body bg, not the card
+  text-align: center;
+  padding: 1em 12vw 1.5em;
 
-  li {
-    display: inline-block;
+  @media all and (max-width: 1200px) {
+    padding: 1em 5vw 1.5em;
   }
 
-  li a {
-    padding: 0 1em;
+  ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+
+    li {
+      display: inline-block;
+    }
+
+    li a {
+      padding: 0 1em;
+    }
   }
 }
 

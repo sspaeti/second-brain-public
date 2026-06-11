@@ -123,14 +123,14 @@
 }
 
 [saved-theme="dark"] .icon-links a {
-    color: var(--gray) !important;
-    
+    color: var(--global-font-secondary-color) !important;
+
     &:hover {
         color: var(--secondary) !important;
     }
-    
+
     svg {
-        stroke: var(--gray);
+        stroke: var(--global-font-secondary-color);
     }
 }
 
