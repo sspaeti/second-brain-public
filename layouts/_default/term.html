@@ -4,10 +4,12 @@
 
 <body>
 {{partial "search.html" .}}
+<div class="header-fullwidth">
+{{partial "header.html" .}}
+</div>
 <div class="singlePage">
     <!-- Begin actual content -->
     <article>
-    {{partial "header.html" .}}
         <h1>{{ i18n "tag" }}: {{ .Title }}</h1>
         {{with .Params.description}}
             <p>{{.}}</p>

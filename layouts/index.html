@@ -4,10 +4,12 @@
 
 <body>
 {{partial "search.html" .}}
+<div class="header-fullwidth">
+{{partial "header.html" .}}
+</div>
 <div class="singlePage">
     <!-- Begin actual content -->
     <article>
-    {{partial "header.html" .}}
         {{partial "toc.html" .}}
         {{partial "textprocessing.html" . }}
         {{if $.Site.Data.config.enableRecentNotes}}
