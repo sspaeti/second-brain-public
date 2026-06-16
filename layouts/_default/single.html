@@ -24,12 +24,6 @@
           {{end}}
           <!-- {{ partial "github.html" . }} -->
       </p>
-      <ul class="tags">
-          {{ range (.GetTerms "tags") }}
-          <li><a href="{{ .Permalink }}">{{ .LinkTitle | humanize }}</a></li>
-          {{ end }}
-      </ul>
-
       {{- /* Hacker News Banner */ -}}
       {{- with .Params.hackernews -}}
       <div class="article-hackernews-banner">
@@ -39,6 +33,13 @@
       {{- end -}}
 
       {{partial "textprocessing.html" . }}
+      {{ with (.GetTerms "tags") }}
+      <ul class="tags tags-footer">
+          {{ range . }}
+          <li><a href="{{ .Permalink }}">{{ .LinkTitle | humanize }}</a></li>
+          {{ end }}
+      </ul>
+      {{ end }}
       {{partial "footer.html" .}}
     </article>
     {{if not .Params.hideBacklinks}}
