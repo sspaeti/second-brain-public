@@ -1,0 +1,26 @@
+{{- $folder := .Get "folder" -}}
+{{- $excludeStr := default "" (.Get "exclude") -}}
+{{- $exclude := split $excludeStr "," -}}
+{{- $imageExts := slice ".jpg" ".jpeg" ".png" ".gif" ".webp" -}}
+
+{{- if not (.Page.Scratch.Get "lightbox2_loaded") -}}
+{{- .Page.Scratch.Set "lightbox2_loaded" true -}}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.1/css/lightbox.min.css" integrity="sha256-tBxlolRHP9uMsEFKVk+hk//ekOlXOixLKvye5W2WR5c=" crossorigin="anonymous" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.1/js/lightbox.min.js" integrity="sha256-CtKylYan+AJuoH8jrMht1+1PMhMqrKnB8K5g012WN5I=" crossorigin="anonymous"></script>
+{{- end -}}
+
+<div class="gallery-grid">
+{{- range readDir (printf "content/%s" $folder) -}}
+  {{- if .IsDir -}}{{- continue -}}{{- end -}}
+  {{- $name := .Name -}}
+  {{- $ext := strings.ToLower (path.Ext $name) -}}
+  {{- if and (in $imageExts $ext) (not (in $exclude $name)) -}}
+    {{- $imgPath := printf "%s/%s" $folder $name -}}
+    {{- $imgURL := $imgPath | relURL -}}
+    <a href="{{ $imgURL }}" data-lightbox="{{ $folder | urlize }}" data-title="{{ $name | strings.TrimSuffix $ext }}">
+      <img src="{{ $imgURL }}" alt="{{ $name | strings.TrimSuffix $ext }}" loading="lazy" />
+    </a>
+  {{- end -}}
+{{- end -}}
+</div>

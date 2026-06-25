@@ -113,6 +113,10 @@ upload: ## upload to server (preserves old hashed /js/, /styles/, /indices/ and 
 upload-clean: ## upload with full delete (removes orphaned hashed assets — pair with `make purge-cdn` or stale HTML will 404)
 	rsync -avz --delete public/ sspaeti@sspaeti.com:~/www/ssp/brain
 
+compress-gallery: ## Compress gallery images in-place (run once; only downsizes, never upscales)
+	find content/_img/todays-office -type f \( -iname "*.jpg" -o -iname "*.jpeg" \) \
+	  -exec magick {} -resize 1920x1920\> -quality 78 -strip {} \;
+
 serve: prepare run
 serve-old: prepare-python run
 

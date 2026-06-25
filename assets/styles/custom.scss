@@ -1401,3 +1401,40 @@ article {
     transition: none;
   }
 }
+
+/* START: Gallery grid */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.4rem;
+  margin: 1.5em 0;
+
+  a {
+    display: block;
+    aspect-ratio: 4/3;
+    overflow: hidden;
+    border-radius: 4px;
+    border: none;
+    box-shadow: none;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    margin: 0;
+    border-radius: 4px;
+    transition: transform 0.2s ease;
+  }
+
+  a:hover img {
+    transform: scale(1.05);
+  }
+}
+
+@media (max-width: 600px) {
+  .gallery-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  }
+}
+/* END: Gallery grid */

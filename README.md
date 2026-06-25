@@ -16,6 +16,7 @@ This is a fork of the [Quartz](https://github.com/jackyzha0/quartz) repo ([v3](h
   - Supports folder filters and exclusion patterns
   - Recursive subdirectory scanning
   - Examples: [Coffee Beans](https://ssp.sh/brain/coffee-beans-base), [Books](https://ssp.sh/brain/books-base)
+* **Gallery shortcode** (`layouts/shortcodes/gallery.html`): `{{< gallery folder="_img/todays-office/todays-office-recent" >}}` renders all images in a `content/` subfolder as a CSS grid with Lightbox2 click-to-enlarge. Supports `exclude="file1.jpg,file2.jpg"` to skip individual files. Uses `readDir` instead of page resources so it works with the flat `.md` file structure (no page bundles needed). A similar shortcode exists in the blog at `sspaeti-hugo-blog/layouts/shortcodes/gallery.html`, but that one uses `.Page.Resources.ByType "image"` (page-bundle approach). Run `make compress-gallery` to batch-compress gallery JPEGs in-place via ImageMagick.
 * YouTube links in Obsidian image syntax (`![title](https://youtube.com/watch?v=XXX)`) render as embedded video players instead of broken images
 * Callout blocks are normalized so compact and spaced forms render identically
 * **Mermaid → OG image**: set `ogimage: mermaid` (or `mermaid2`, `mermaid3`, …) in a note's frontmatter to render the Nth ` ```mermaid ` block as the social-media preview image (rendered via `mmdc` + ImageMagick to a 1200×630 WebP using a dark theme that matches the site's OG template)
@@ -66,6 +67,16 @@ Custom render hooks in `layouts/_default/_markup/`:
 Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
+
+### 2026-06-24: Gallery shortcode for image folders
+
+`{{< gallery folder="_img/todays-office/todays-office-recent" >}}` in any note renders a CSS grid of lazy-loaded thumbnails with Lightbox2 click-to-enlarge.
+
+- **Shortcode** (`layouts/shortcodes/gallery.html`): takes a `folder` path relative to `content/` and an optional `exclude` parameter (comma-separated filenames). Uses Hugo's `readDir` to list images — no page bundle required, so it works with the brain's flat `.md` structure. Lightbox2 CSS/JS loaded from CDN once per page via `.Page.Scratch`.
+- **CSS** (`assets/styles/custom.scss`): `.gallery-grid` — `auto-fill minmax(180px, 1fr)` grid, `aspect-ratio: 4/3`, `object-fit: cover`, hover scale.
+- **Image folder**: `content/_img/todays-office/` with subdirs `todays-office-recent/`, `todays-office-archive/`, `todays-office-older/`, `chronology-desk/`, `micro-journal-pics/` (renamed from originals to remove spaces/apostrophes for clean URLs).
+- **Compression**: `make compress-gallery` batch-resizes JPEGs in-place via ImageMagick (≤1920px, q78, strip EXIF).
+- **Blog parallel**: `sspaeti-hugo-blog/layouts/shortcodes/gallery.html` does the same thing but via `.Page.Resources.ByType "image"` (page-bundle approach). The brain shortcode uses `readDir` instead since the brain doesn't use page bundles.
 
 ### 2026-06-03: Hover popover previews + scoped CORS for cross-site embedding
 
