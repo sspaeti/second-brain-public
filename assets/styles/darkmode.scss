@@ -99,25 +99,49 @@
     }
 }
 
+// Aligned with the blog's nav: pill + glow on hover.
+// Source of truth: sspaeti-hugo-blog/assets/css/custom.scss (GLOBAL NAV).
 .icon-links a {
     color: var(--gray) !important;
     text-decoration: none;
     display: flex;
     align-items: center;
-    padding: 6px 0;
-    transition: color 0.2s ease, transform 0.2s ease;
-    
+    padding: 4px 9px;
+    border-radius: 8px;
+    transition: background-color 0.22s ease, box-shadow 0.22s ease, color 0.22s ease;
+
     &:hover {
-        color: var(--secondary) !important;
-        transform: translateY(-2px);
+        color: #FF5D62 !important;
+        background: linear-gradient(135deg, rgba(255, 93, 98, 0.10), rgba(210, 126, 153, 0.10));
+        box-shadow: 0 0 0 1px rgba(255, 93, 98, 0.25),
+                    0 4px 14px rgba(255, 93, 98, 0.18);
     }
-    
+
     svg {
         margin-right: 6px;
         min-width: 20px;
 
+        // desktop: text only — hide icons
+        @media all and (min-width: 769px) {
+            display: none;
+        }
+        // mobile: icon only — no label gap
         @media all and (max-width: 768px) {
             margin-right: 0;
+        }
+    }
+
+    // mobile: revert to the original plain nav (no pill / glow)
+    @media all and (max-width: 768px) {
+        padding: 6px 0;
+        border-radius: 0;
+        transition: color 0.2s ease, transform 0.2s ease;
+
+        &:hover {
+            background: none;
+            box-shadow: none;
+            color: var(--secondary) !important;
+            transform: translateY(-2px);
         }
     }
 }
@@ -126,7 +150,19 @@
     color: var(--global-font-secondary-color) !important;
 
     &:hover {
-        color: var(--secondary) !important;
+        color: #FF5D62 !important;
+        background: linear-gradient(135deg, rgba(255, 93, 98, 0.12), rgba(210, 126, 153, 0.12));
+        box-shadow: 0 0 0 1px rgba(210, 126, 153, 0.30),
+                    0 0 18px rgba(255, 93, 98, 0.18);
+    }
+
+    // mobile: revert dark hover to plain (no pill / glow)
+    @media all and (max-width: 768px) {
+        &:hover {
+            background: none;
+            box-shadow: none;
+            color: var(--secondary) !important;
+        }
     }
 
     svg {
