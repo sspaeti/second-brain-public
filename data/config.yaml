@@ -16,6 +16,7 @@ enableGitHubEdit: false
 GitHubLink: https://github.com/sspaeti/second-brain-public/tree/hugo/content
 newsletter_link: https://subscribe.ssp.sh
 enableSemanticSearch: false
+searchVersion: v2   # v1 = FlexSearch brain-only (default); v2 = unified blog+brain
 enableGoatCounter: true
 goatCounterUser: "goatcounter.ssp.sh" #add your GoatCounter here, see https://www.goatcounter.com/help/start
 operandApiKey: "REPLACE-WITH-YOUR-OPERAND-API-KEY"

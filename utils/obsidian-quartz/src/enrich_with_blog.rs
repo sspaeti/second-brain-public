@@ -17,7 +17,7 @@ const BRAIN_CONTENT: &str = "assets/indices/contentIndex.json";
 /// Walk the blog posts directory and build a map from date-prefixed folder ID
 /// (e.g. `/2025-11-18-owning-things`) to its canonical Hugo URL
 /// (e.g. `/blog/owning-things-attention`), respecting `url:` frontmatter overrides.
-fn build_blog_url_map(posts_dir: &Path) -> HashMap<String, String> {
+pub fn build_blog_url_map(posts_dir: &Path) -> HashMap<String, String> {
     let url_re = Regex::new(r#"(?m)^url:\s*["']?([^"'\s]+)["']?\s*$"#).unwrap();
     let mut map = HashMap::new();
     let entries = match fs::read_dir(posts_dir) {
@@ -65,12 +65,12 @@ fn build_blog_url_map(posts_dir: &Path) -> HashMap<String, String> {
     map
 }
 
-fn load_json(path: &str) -> Result<Value, Box<dyn Error>> {
+pub fn load_json(path: &str) -> Result<Value, Box<dyn Error>> {
     let f = File::open(path)?;
     Ok(serde_json::from_reader(BufReader::new(f))?)
 }
 
-fn save_json_pretty(path: &str, v: &Value) -> Result<(), Box<dyn Error>> {
+pub fn save_json_pretty(path: &str, v: &Value) -> Result<(), Box<dyn Error>> {
     let f = File::create(path)?;
     serde_json::to_writer_pretty(BufWriter::new(f), v)?;
     Ok(())
@@ -93,7 +93,7 @@ fn strip_fragment_and_slash(s: &str, frag_re: &Regex) -> String {
 // /no-meetings-async, /why-i-don't-research to /why-i-dont-research, etc.
 //
 // KEEP IN SYNC WITH: ../../hugo-obsidian/util.go::UnicodeSanitize
-fn unicode_sanitize(input: &str) -> String {
+pub fn unicode_sanitize(input: &str) -> String {
     let source: Vec<char> = input.chars().collect();
     let mut out: Vec<char> = Vec::with_capacity(source.len());
     let mut prepend_hyphen = false;

@@ -24,6 +24,7 @@ prepare-python: ## prepare commands
 	python utils/lower_case.py #change linkIndex to lowercase for proper linking
 	-$(MAKE) -C ../sspaeti-hugo-blog prepare #refresh blog indices so cross-edges are current
 	obsidian-quartz enrich-with-blog #merge blog<->brain cross-edges into brain indices
+	obsidian-quartz merge-search-index #build merged v2 search index, copy into blog
 	-$(MAKE) -C ../../book/dedp link-index #refresh book linkIndex.js so book->brain edges are current
 	obsidian-quartz enrich-with-book #merge book->brain incoming edges into brain indices
 
@@ -38,6 +39,7 @@ prepare: ## prepare commands
 	python utils/lower_case.py #change linkIndex to lowercase for proper linking
 	-$(MAKE) -C ../sspaeti-hugo-blog prepare #refresh blog indices so cross-edges are current
 	obsidian-quartz enrich-with-blog #merge blog<->brain cross-edges into brain indices
+	obsidian-quartz merge-search-index #build merged v2 search index, copy into blog
 	-$(MAKE) -C ../../book/dedp link-index #refresh book linkIndex.js so book->brain edges are current
 	obsidian-quartz enrich-with-book #merge book->brain incoming edges into brain indices
 

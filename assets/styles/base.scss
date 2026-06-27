@@ -754,6 +754,56 @@ header {
   border-radius: 3px;
 }
 
+#search-filters {
+  display: flex;
+  gap: 0.5em;
+  flex-wrap: wrap;
+  padding: 0.5em 1em;
+  background: var(--light);
+  border: 1px solid var(--outlinegray);
+  border-bottom: none;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+
+  button {
+    background: none;
+    border: 1px solid var(--outlinegray);
+    border-radius: 4px;
+    padding: 0.15em 0.55em;
+    cursor: pointer;
+    font-size: 0.8em;
+    font-family: var(--font-body);
+    color: var(--dark);
+
+    &.active {
+      background: var(--secondary);
+      border-color: var(--secondary);
+      font-weight: 600;
+    }
+  }
+}
+
+.source-badge {
+  display: inline-block;
+  font-size: 0.65em;
+  padding: 0.1em 0.45em;
+  border-radius: 3px;
+  margin-left: 0.5em;
+  vertical-align: middle;
+  font-weight: 500;
+
+  &.source-blog  { background: rgba(37, 99, 235, 0.12); color: #2563eb; }
+  &.source-brain { background: rgba(22, 163, 74,  0.12); color: #16a34a; }
+}
+
+.result-date {
+  display: inline-block;
+  font-size: 0.65em;
+  color: var(--gray);
+  margin-left: 0.5em;
+  vertical-align: middle;
+}
+
 .section-ul {
   list-style: none;
   margin-top: 2em;

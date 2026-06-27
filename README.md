@@ -68,6 +68,25 @@ Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
 
+### 2026-06-28: Unified search v2 — blog + brain in one modal
+
+A full-screen FlexSearch modal that searches blog posts (ssp.sh) and brain notes (ssp.sh/brain) together. Triggered by `Ctrl+K` or `/`. Results show source badges (blog / brain), dates, and a highlight of the matching excerpt. Blog entries float to the top; filter buttons narrow by source or date.
+
+**Toggle**: `searchVersion` in `data/config.yaml` — `v2` = unified (default), `v1` = original brain-only FlexSearch.
+
+**Index**: A merged `searchIndex-v2.json` is generated at build time by `obsidian-quartz merge-search-index`. It combines brain's `contentIndex.json` with the blog's `contentIndex.json`, enriching each entry with `source`, `created`, `updated` (from frontmatter `createddate:` / `lastmod:`), and `tags`. The file is written to `assets/indices/` (brain) and synced to `../sspaeti-hugo-blog/static/indices/` automatically.
+
+**Date accuracy**: Brain note dates are read directly from frontmatter (`createddate:` / `lastmod:`) — not from file mtime, which is always today after Obsidian copies.
+
+**Navigation**: Brain results use SPA (`Million.navigate`) with the `/brain` prefix stripped (since `BASE_URL` already includes it); blog results always use plain `href`.
+
+**Files**:
+- `assets/js/full-text-search-v2.js` — self-contained FlexSearch IIFE with shims for `removeMarkdown`/`highlight` (brain has them from `util.js`; blog does not)
+- `layouts/partials/search.html` — 3-way branch: v2 → semantic → v1
+- `assets/styles/base.scss` — `#search-filters`, `.source-badge`, `.result-date` styles
+- `utils/obsidian-quartz/src/merge_search_index.rs` — Rust subcommand; walks `content/` for frontmatter dates
+- `Makefile` — `obsidian-quartz merge-search-index` runs in both `prepare` and `prepare-python` targets
+
 ### 2026-06-24: Gallery shortcode for image folders
 
 `{{< gallery folder="_img/todays-office/todays-office-recent" >}}` in any note renders a CSS grid of lazy-loaded thumbnails with Lightbox2 click-to-enlarge.
