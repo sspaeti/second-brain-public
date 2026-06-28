@@ -27,6 +27,7 @@ RewriteRule ^plaintext-files?/?$ https://www.ssp.sh/brain/plain-text-files [R=30
 RewriteRule ^computer-desk-setup-todays-office?/?$ https://www.ssp.sh/brain/computer-desk-setup-monitor-workflow [R=301,L]
 RewriteRule ^the-ordinary-life?/?$ https://www.ssp.sh/brain/the-ordinary-boring-life [R=301,L]
 RewriteRule ^on-writing?/?$ https://www.ssp.sh/brain/earn-attention-with-writing/ [R=301,L]
+RewriteRule ^quartz-publish-obsidian-vault?/?$ https://www.ssp.sh/brain/quartz/ [R=301,L]
 
 # redirect old article URL to new
 RewriteCond %{HTTP_HOST} ^ssp\.sh$
