@@ -7,6 +7,7 @@ content/.obsidian
 # !content/_index.md
 assets/indices/linkIndex.json
 assets/indices/contentIndex.json
+assets/indices/searchIndex-v2.json
 linkmap
 node_modules
 .quartz-cache
