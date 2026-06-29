@@ -1,0 +1,249 @@
+/* Unified v2 search modal — light + dark (Kanagawa theme) */
+
+/* ── Overlay ─────────────────────────────────────────────────── */
+#search-container {
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100%;
+  overflow-y: auto;
+  display: none;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+:is(body[theme='dark'], [saved-theme="dark"]) #search-container {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* ── Centered panel ──────────────────────────────────────────── */
+#search-space {
+  width: 50%;
+  margin-top: 15vh;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 4em;
+}
+
+@media (max-width: 1200px) {
+  #search-space { width: 90%; }
+}
+
+/* ── Filter row ──────────────────────────────────────────────── */
+#search-filters {
+  display: flex;
+  gap: 0.5em;
+  flex-wrap: wrap;
+  padding: 0.5em 1em;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-bottom: none;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  box-shadow: 0 14px 50px rgba(27, 33, 48, 0.12), 0 10px 30px rgba(27, 33, 48, 0.16);
+}
+
+:is(body[theme='dark'], [saved-theme="dark"]) #search-filters {
+  background: #1F1F28;
+  border-color: #54546D;
+}
+
+#search-filters button {
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 0.15em 0.55em;
+  cursor: pointer;
+  font-size: 0.8em;
+  font-family: var(--font-body, inherit);
+  color: #555;
+}
+
+:is(body[theme='dark'], [saved-theme="dark"]) #search-filters button {
+  border-color: #54546D;
+  color: #a9a9b3;
+}
+
+#search-filters button.active {
+  background: #e8ecf7;
+  border-color: #3150AA;
+  font-weight: 600;
+  color: #3150AA;
+}
+
+:is(body[theme='dark'], [saved-theme="dark"]) #search-filters button.active {
+  background: #363646;
+  border-color: #658594;
+  color: #DCD7BA;
+}
+
+#search-filters button:hover:not(.active) {
+  border-color: #aaa;
+  color: #333;
+}
+
+:is(body[theme='dark'], [saved-theme="dark"]) #search-filters button:hover:not(.active) {
+  border-color: #7E8A8A;
+  color: #DCD7BA;
+}
+
+/* ── Search input ────────────────────────────────────────────── */
+#search-bar {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.85em 1.1em;
+  font-size: 1.25em;
+  font-family: var(--font-body, inherit);
+  border: 1px solid #ddd;
+  border-top: none;
+  border-bottom: none;
+  background: #fff;
+  color: #161209;
+  box-shadow: 0 14px 50px rgba(27, 33, 48, 0.12), 0 10px 30px rgba(27, 33, 48, 0.16);
+}
+
+:is(body[theme='dark'], [saved-theme="dark"]) #search-bar {
+  background: #1F1F28;
+  border-color: #54546D;
+  color: #DCD7BA;
+}
+
+#search-bar::placeholder {
+  color: #aaa;
+}
+
+:is(body[theme='dark'], [saved-theme="dark"]) #search-bar::placeholder {
+  color: #54546D;
+}
+
+#search-bar:focus {
+  outline: none;
+}
+
+/* ── Results ─────────────────────────────────────────────────── */
+#results-container {
+  background: #fff;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  box-shadow: 0 14px 50px rgba(27, 33, 48, 0.12), 0 10px 30px rgba(27, 33, 48, 0.16);
+}
+
+:is(body[theme='dark'], [saved-theme="dark"]) #results-container {
+  background: #1F1F28;
+}
+
+#results-container .result-card {
+  display: block;
+  width: 100%;
+  padding: 1em;
+  cursor: pointer;
+  border: 1px solid #ddd;
+  border-bottom: none;
+  background: #fff;
+  text-align: left;
+  font-family: var(--font-body, inherit);
+  font-size: 100%;
+  line-height: 1.4;
+  margin: 0;
+  transition: background 0.15s ease;
+}
+
+:is(body[theme='dark'], [saved-theme="dark"]) #results-container .result-card {
+  background: #1F1F28;
+  border-color: #54546D;
+}
+
+#results-container .result-card:hover,
+#results-container .result-card:focus {
+  background: rgba(180, 180, 180, 0.12);
+  outline: none;
+}
+
+:is(body[theme='dark'], [saved-theme="dark"]) #results-container .result-card:hover,
+:is(body[theme='dark'], [saved-theme="dark"]) #results-container .result-card:focus {
+  background: #2A2A37;
+}
+
+#results-container .result-card:last-of-type {
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  border-bottom: 1px solid #ddd;
+}
+
+:is(body[theme='dark'], [saved-theme="dark"]) #results-container .result-card:last-of-type {
+  border-bottom-color: #54546D;
+}
+
+#results-container .result-card h3,
+#results-container .result-card p {
+  margin: 0;
+}
+
+#results-container .result-card h3 {
+  font-size: 1em;
+  font-weight: 600;
+  color: #3150AA;
+}
+
+:is(body[theme='dark'], [saved-theme="dark"]) #results-container .result-card h3 {
+  color: #658594;
+}
+
+:is(body[theme='dark'], [saved-theme="dark"]) #results-container .result-card:hover h3 {
+  color: #D27E99;
+}
+
+#results-container .result-card p {
+  font-size: 0.85em;
+  color: #555;
+  margin-top: 0.3em;
+}
+
+:is(body[theme='dark'], [saved-theme="dark"]) #results-container .result-card p {
+  color: #a9a9b3;
+}
+
+/* ── Highlights ──────────────────────────────────────────────── */
+.search-highlight {
+  background-color: rgba(49, 80, 170, 0.15);
+  padding: 0.05em 0.2em;
+  border-radius: 3px;
+}
+
+:is(body[theme='dark'], [saved-theme="dark"]) .search-highlight {
+  background-color: rgba(101, 133, 148, 0.3);
+}
+
+/* ── Source badges ───────────────────────────────────────────── */
+.source-badge {
+  display: inline-block;
+  font-size: 0.65em;
+  padding: 0.1em 0.45em;
+  border-radius: 3px;
+  margin-left: 0.5em;
+  vertical-align: middle;
+  font-weight: 500;
+}
+
+.source-badge.source-blog  { background: rgba(37, 99, 235, 0.12); color: #2563eb; }
+.source-badge.source-brain { background: rgba(22, 163, 74,  0.12); color: #16a34a; }
+
+:is(body[theme='dark'], [saved-theme="dark"]) .source-badge.source-blog  { background: rgba(101, 133, 148, 0.2); color: #658594; }
+:is(body[theme='dark'], [saved-theme="dark"]) .source-badge.source-brain { background: rgba(22, 163, 74,  0.15); color: #76946A; }
+
+/* ── Result date ─────────────────────────────────────────────── */
+.result-date {
+  display: inline-block;
+  font-size: 0.65em;
+  color: #888;
+  margin-left: 0.5em;
+  vertical-align: middle;
+}
+
+:is(body[theme='dark'], [saved-theme="dark"]) .result-date {
+  color: #7E8A8A;
+}

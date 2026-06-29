@@ -182,6 +182,8 @@
 
   {{ $popoverV2Css := resources.Get "css/popover-v2.css" | resources.Fingerprint "md5" | resources.Minify }}
   <link rel="stylesheet" href="{{ $popoverV2Css.Permalink }}">
+  {{ $searchModalCss := resources.Get "css/search-modal.css" | resources.Fingerprint "md5" | resources.Minify }}
+  <link rel="stylesheet" href="{{ $searchModalCss.Permalink }}">
 
   {{ if $data.enableLinkPreviewV2 | default $.Site.Data.config.enableLinkPreviewV2 }}
     {{ $popoverV2 := resources.Get "js/popover-v2.js" | resources.Fingerprint "md5" | resources.Minify }}

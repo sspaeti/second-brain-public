@@ -88,6 +88,16 @@
     }
   })()
 
+  // Apply site-specific default filter (set window.SEARCH_DEFAULT_SOURCE = 'blog' or 'brain' before this script)
+  ;(function () {
+    const def = window.SEARCH_DEFAULT_SOURCE
+    if (!def || def === 'all') return
+    activeSource = def
+    document.querySelectorAll('#search-filters .filter-source button').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.source === def)
+    })
+  })()
+
   // ── Filter buttons ─────────────────────────────────────────────────────────
 
   document.querySelectorAll('#search-filters .filter-source button').forEach(btn => {
