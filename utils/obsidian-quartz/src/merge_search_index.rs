@@ -153,6 +153,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let mut brain_count = 0usize;
     if let Some(obj) = brain_idx.as_object() {
         for (key, val) in obj {
+            if key.starts_with("/blog/") { continue; }
             let url = format!("/brain{}", key);
             let (created, updated) = match brain_dates.get(key) {
                 Some((Some(c), Some(u))) => (c.clone(), u.clone()),
