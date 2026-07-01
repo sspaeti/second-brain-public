@@ -28,7 +28,7 @@
       {{$split := split $inner "|"}}
       {{$path := index $split 0 | relURL}}
       {{$width := index $split 1}}
-      {{$img := printf "<img src=\"%s\" width=\"%s\" />" $path (default "auto" $width)}}
+      {{$img := printf "<img src=\"%s\" width=\"%s\" loading=\"lazy\" />" $path (default "auto" $width)}}
       {{$content = replace $content . $img}}
     {{else}}
       {{$inner := . | strings.TrimPrefix "[[" | strings.TrimSuffix "]]" }}
