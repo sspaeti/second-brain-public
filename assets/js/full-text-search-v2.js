@@ -24,29 +24,6 @@
           )
         }
 
-  function _openSearch() {
-    const el  = document.getElementById('search-container')
-    const bar = document.getElementById('search-bar')
-    const res = document.getElementById('results-container')
-    if (!el) return
-    if (el.style.display === 'none' || el.style.display === '') {
-      if (res) res.innerHTML = ''
-      el.style.display = 'block'
-      if (bar) { bar.value = ''; bar.focus() }
-    } else {
-      el.style.display = 'none'
-    }
-  }
-
-  function _closeSearch() {
-    const el = document.getElementById('search-container')
-    if (el) el.style.display = 'none'
-  }
-
-  // Expose globally so search-modal.html inline script can call openSearch()
-  window.openSearch  = _openSearch
-  window.closeSearch = _closeSearch
-
   // ── State ──────────────────────────────────────────────────────────────────
 
   const encoder = (str) => str.toLowerCase().split(/([^a-z]|[^\x00-\x7F])/)
@@ -65,38 +42,89 @@
   let activeDate   = 'any'
   let term         = ''
 
-  // ── Load index ─────────────────────────────────────────────────────────────
+  // ── Deferred index load ────────────────────────────────────────────────────
+  // Starts after page load in an idle slot — invisible to Core Web Vitals.
+  // _openSearch awaits _startLoad(), which is a no-op if already done.
 
-  const res = await fetch(window.SEARCH_V2_URL)
-  allData = await res.json()
+  let _loadPromise = null
 
-  for (const [key, val] of Object.entries(allData)) {
-    idx.add({
-      id:      key,
-      title:   val.title   ?? '',
-      content: _removeMarkdown(val.content ?? ''),
-    })
+  function _startLoad() {
+    if (_loadPromise) return _loadPromise
+    _loadPromise = fetch(window.SEARCH_V2_URL)
+      .then((r) => r.json())
+      .then((data) => new Promise((resolve) => {
+        allData = data
+        const entries = Object.entries(data)
+        let i = 0
+
+        // Process items in idle slots so no single task exceeds ~50ms (TBT threshold).
+        // Uses deadline.timeRemaining() when available, fixed 30-item batches as fallback.
+        function processChunk(deadline) {
+          let count = 0
+          while (i < entries.length) {
+            if (deadline ? deadline.timeRemaining() < 2 : count >= 30) break
+            const [key, val] = entries[i++]
+            idx.add({ id: key, title: val.title ?? '', content: _removeMarkdown(val.content ?? '') })
+            count++
+          }
+          if (i < entries.length) {
+            if (window.requestIdleCallback) requestIdleCallback(processChunk, { timeout: 10000 })
+            else setTimeout(() => processChunk(null), 0)
+          } else {
+            const _bar = document.getElementById('search-bar')
+            if (_bar) {
+              const total = Object.keys(allData).length
+              if (total > 0) _bar.placeholder = `Search ${total.toLocaleString()} notes (blog + brain)… · Ctrl+K or /`
+            }
+            const def = window.SEARCH_DEFAULT_SOURCE
+            if (def && def !== 'all') {
+              activeSource = def
+              document.querySelectorAll('#search-filters .filter-source button').forEach((btn) => {
+                btn.classList.toggle('active', btn.dataset.source === def)
+              })
+            }
+            resolve()
+          }
+        }
+
+        if (window.requestIdleCallback) requestIdleCallback(processChunk, { timeout: 10000 })
+        else setTimeout(() => processChunk(null), 0)
+      }))
+    return _loadPromise
   }
 
-  // Update placeholder with live count
-  ;(function () {
-    const _bar = document.getElementById('search-bar')
-    if (!_bar) return
-    const total = Object.keys(allData).length
-    if (total > 0) {
-      _bar.placeholder = `Search ${total.toLocaleString()} notes (blog + brain)… · Ctrl+K or /`
-    }
-  })()
+  function _scheduleLoad() {
+    ;(window.requestIdleCallback || ((fn) => setTimeout(fn, 200)))(() => _startLoad(), { timeout: 2000 })
+  }
+  if (document.readyState === 'complete') {
+    _scheduleLoad()
+  } else {
+    window.addEventListener('load', _scheduleLoad, { once: true })
+  }
 
-  // Apply site-specific default filter (set window.SEARCH_DEFAULT_SOURCE = 'blog' or 'brain' before this script)
-  ;(function () {
-    const def = window.SEARCH_DEFAULT_SOURCE
-    if (!def || def === 'all') return
-    activeSource = def
-    document.querySelectorAll('#search-filters .filter-source button').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.source === def)
-    })
-  })()
+  async function _openSearch() {
+    const el  = document.getElementById('search-container')
+    const bar = document.getElementById('search-bar')
+    const res = document.getElementById('results-container')
+    if (!el) return
+    if (el.style.display === 'none' || el.style.display === '') {
+      if (res) res.innerHTML = ''
+      el.style.display = 'block'
+      if (bar) { bar.value = ''; bar.focus() }
+      await _startLoad() // no-op if already loaded; awaits if still in progress
+    } else {
+      el.style.display = 'none'
+    }
+  }
+
+  function _closeSearch() {
+    const el = document.getElementById('search-container')
+    if (el) el.style.display = 'none'
+  }
+
+  // Expose globally so search-modal.html inline script can call openSearch()
+  window.openSearch  = _openSearch
+  window.closeSearch = _closeSearch
 
   // ── Filter buttons ─────────────────────────────────────────────────────────
 

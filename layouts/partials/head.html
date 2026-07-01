@@ -217,21 +217,28 @@
   }}
   <script>
     const BASE_URL = {{.Site.BaseURL}}
-    const fetchData = Promise.all([
+    // Defer the 1.1 MB index fetch until the page is loaded and idle —
+    // avoids blocking FCP/LCP with heavy JSON parsing on initial load.
+    let _fetchDataResolve
+    const fetchData = new Promise(resolve => { _fetchDataResolve = resolve })
+    ;(function scheduleFetch() {
+      function doFetch() {
+        Promise.all([
           fetch("{{ $linkIndex.Permalink }}")
             .then(data => data.json())
-            .then(data => ({
-              index: data.index,
-              links: data.links,
-            })),
+            .then(data => ({ index: data.index, links: data.links })),
           fetch("{{ $contentIndex.Permalink }}")
             .then(data => data.json()),
-        ])
-        .then(([{index, links}, content]) => ({
-          index,
-          links,
-          content,
-        }))
+        ]).then(([{index, links}, content]) => _fetchDataResolve({ index, links, content }))
+      }
+      if (document.readyState === 'complete') {
+        ;(window.requestIdleCallback || (fn => setTimeout(fn, 200)))(doFetch, { timeout: 3000 })
+      } else {
+        window.addEventListener('load', function() {
+          ;(window.requestIdleCallback || (fn => setTimeout(fn, 200)))(doFetch, { timeout: 3000 })
+        }, { once: true })
+      }
+    })()
 
       const render = () => {
       // NOTE: everything within this callback will be executed for every page navigation. This is a good place to put JavaScript that loads or modifies data on the page, adds event listeners, etc. If you are only dealing with basic DOM replacement, use the init function
