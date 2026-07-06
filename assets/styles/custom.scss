@@ -1438,3 +1438,119 @@ article {
   }
 }
 /* END: Gallery grid */
+
+/* ══════════════════════════════════════════
+   Newsletter footer CTA (note footer, before graph)
+   Selector prefix: .nl-footer-*
+   Dark mode: [saved-theme="dark"]
+   ══════════════════════════════════════════ */
+.nl-footer {
+  margin-top: 2rem;
+}
+
+.nl-footer-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--outlinegray), transparent);
+  margin-bottom: 1.5rem;
+}
+
+.nl-footer-inner {
+  padding: 0 0 1.5rem;
+}
+
+.nl-footer-label {
+  font-family: var(--font-header);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--secondary);
+  // color: var(--dark);
+  margin-bottom: 0.4rem;
+}
+
+.nl-footer-desc {
+  font-size: 0.88rem;
+  color: var(--gray);
+  line-height: 1.55;
+  margin-bottom: 1rem;
+  opacity: 0.8;
+}
+
+.nl-footer-form {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.nl-footer-email {
+  flex: 1;
+  min-width: 180px;
+  padding: 0.45rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  border: 1px solid var(--outlinegray);
+  background: var(--global-background-color);
+  color: var(--gray);
+  outline: none;
+
+  &:focus {
+    border-color: var(--secondary);
+  }
+}
+
+.nl-footer-captcha {
+  flex-shrink: 0;
+}
+
+.nl-footer-btn {
+  padding: 0.45rem 1.1rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--secondary);
+  color: var(--global-background-secondary-color);
+  transition: opacity 0.15s ease;
+  white-space: nowrap;
+
+  &:hover {
+    opacity: 0.85;
+  }
+}
+
+[saved-theme="dark"] {
+  .nl-footer-email {
+    background: #2A2A37;
+    border-color: #54546D;
+    color: #DCD7BA;
+
+    &:focus {
+      border-color: var(--secondary);
+    }
+  }
+
+  .nl-footer-btn {
+    color: #181820;
+  }
+}
+
+@media (max-width: 600px) {
+  .nl-footer-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nl-footer-email {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .nl-footer-btn {
+    width: 100%;
+    padding: 0.6rem;
+  }
+}
+/* END: Newsletter footer CTA */
