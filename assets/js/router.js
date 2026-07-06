@@ -35,6 +35,22 @@ export const attachSPARouting = (init, rerender) => {
   // Add our click handler in capture phase (runs before Million's)
   window.addEventListener("click", interceptCrossSectionClicks, true)
 
+  // Intercept form submits BEFORE Million.js — let cross-origin forms submit natively
+  const interceptCrossOriginSubmit = (event) => {
+    const form = event.target.closest("form")
+    if (!form) return
+    try {
+      const actionUrl = new URL(form.action)
+      if (actionUrl.origin !== window.location.origin) {
+        event.stopImmediatePropagation()
+        // Don't call preventDefault — native form submission proceeds normally
+      }
+    } catch (e) {
+      // Invalid URL, ignore
+    }
+  }
+  window.addEventListener("submit", interceptCrossOriginSubmit, true)
+
   // Custom navigate wrapper for programmatic navigation
   const customNavigate = (url, selector) => {
     const targetUrl = typeof url === 'string' ? new URL(url, window.location.origin) : url

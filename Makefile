@@ -106,11 +106,15 @@ purge-cdn-today: ## Purge all brain notes updated today (legacy, date-only granu
 
 upload: ## upload to server (preserves old hashed /js/, /styles/, /indices/ and root styles.*.min.css so stale CDN/browser HTML keeps working)
 	rsync -avz --delete \
+		--exclude='/_img/' \
 		--filter='P /js/***' \
 		--filter='P /styles/***' \
 		--filter='P /indices/***' \
 		--filter='P /styles.*.min.css' \
 		public/ sspaeti@sspaeti.com:~/www/ssp/brain
+	rsync -av --delete --size-only \
+		--skip-compress=jpg,jpeg,png,gif,webp,avif,ico,woff,woff2 \
+		public/_img/ sspaeti@sspaeti.com:~/www/ssp/brain/_img
 
 upload-clean: ## upload with full delete (removes orphaned hashed assets — pair with `make purge-cdn` or stale HTML will 404)
 	rsync -avz --delete public/ sspaeti@sspaeti.com:~/www/ssp/brain
