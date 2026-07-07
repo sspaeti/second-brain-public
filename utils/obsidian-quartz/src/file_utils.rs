@@ -316,8 +316,8 @@ pub fn process_file(
             // println!("Frontmatter string: {}", &line);
         }
 
-        // Extract title from the first line starting with "#"
-        if line.starts_with("#") && title.is_empty() {
+        // Extract title from the first H1 heading line only (# ..., not ## ...)
+        if (line.starts_with("# ") || line == "#") && title.is_empty() {
             title = line[1..].trim().to_string();
             found_title = true;
             continue;
@@ -776,8 +776,8 @@ pub fn process_file(
                 continue;
             }
 
-            // Skip the first H1 heading line
-            if is_first_heading && line.starts_with("#") {
+            // Skip the first H1 heading line (# ..., not ## or deeper)
+            if is_first_heading && (line.starts_with("# ") || line == "#") {
                 is_first_heading = false;
                 continue;
             }
