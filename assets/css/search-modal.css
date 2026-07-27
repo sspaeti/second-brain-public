@@ -90,6 +90,31 @@
   color: #DCD7BA;
 }
 
+/* ── Full-page search link (subtle, right-aligned in the filter row) ── */
+#search-filters .search-fullpage-link {
+  margin-left: auto;
+  align-self: center;
+  font-size: 0.72em;
+  color: #999;
+  text-decoration: none;
+  white-space: nowrap;
+  border-bottom: 1px dotted transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+#search-filters .search-fullpage-link:hover {
+  color: #555;
+  border-bottom-color: currentColor;
+}
+
+:is(body[theme='dark'], [saved-theme="dark"]) #search-filters .search-fullpage-link {
+  color: #6b6b7b;
+}
+
+:is(body[theme='dark'], [saved-theme="dark"]) #search-filters .search-fullpage-link:hover {
+  color: #a9a9b3;
+}
+
 /* ── Search input ────────────────────────────────────────────── */
 #search-bar {
   display: block;
