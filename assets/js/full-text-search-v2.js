@@ -134,7 +134,7 @@
         .forEach(b => b.classList.remove('active'))
       btn.classList.add('active')
       activeSource = btn.dataset.source
-      doSearch()
+      doSearch(term, activeSource, activeDate, document.getElementById('results-container'))
     })
   })
 
@@ -144,7 +144,7 @@
         .forEach(b => b.classList.remove('active'))
       btn.classList.add('active')
       activeDate = btn.dataset.date
-      doSearch()
+      doSearch(term, activeSource, activeDate, document.getElementById('results-container'))
     })
   })
 
@@ -185,17 +185,17 @@
   // ── Date filter ────────────────────────────────────────────────────────────
 
   const now = new Date()
-  function passesDate(entry) {
-    if (activeDate === 'any') return true
+  function passesDate(entry, date) {
+    if (date === 'any') return true
     const d = new Date(entry.updated || entry.created || '')
     if (isNaN(d)) return true
     const diffYears = (now - d) / (1000 * 60 * 60 * 24 * 365.25)
-    return activeDate === 'year' ? diffYears <= 1 : diffYears <= 2
+    return date === 'year' ? diffYears <= 1 : diffYears <= 2
   }
 
   // ── Result card ────────────────────────────────────────────────────────────
 
-  function resultCard(id, entry) {
+  function resultCard(id, entry, term) {
     const badge = `<span class="source-badge source-${entry.source}">${entry.source}</span>`
     const date  = entry.updated
       ? `<span class="result-date">${entry.updated}</span>`
@@ -208,8 +208,7 @@
 
   // ── Search ─────────────────────────────────────────────────────────────────
 
-  function doSearch() {
-    const resultsEl = document.getElementById('results-container')
+  function doSearch(term, source, date, resultsEl) {
     if (!resultsEl) return
     if (!term) {
       resultsEl.innerHTML = ''
@@ -235,8 +234,8 @@
     for (const id of ids) {
       const e = allData[id]
       if (!e) continue
-      if (!passesDate(e)) continue
-      if (activeSource !== 'all' && e.source !== activeSource) continue
+      if (!passesDate(e, date)) continue
+      if (source !== 'all' && e.source !== source) continue
       e.source === 'blog' ? blog.push(id) : brain.push(id)
     }
 
@@ -249,7 +248,7 @@
       return
     }
 
-    resultsEl.innerHTML = ordered.map(id => resultCard(id, allData[id])).join('\n')
+    resultsEl.innerHTML = ordered.map(id => resultCard(id, allData[id], term)).join('\n')
 
     // Navigation: SPA on brain, plain href on blog
     const baseUrl = typeof BASE_URL !== 'undefined' ? BASE_URL.replace(/\/$/, '') : ''
@@ -276,16 +275,85 @@
   if (searchBar) {
     searchBar.addEventListener('input', (e) => {
       term = e.target.value
-      doSearch()
+      doSearch(term, activeSource, activeDate, document.getElementById('results-container'))
     })
     searchBar.addEventListener('keyup', (e) => {
       if (e.key === 'Enter') {
-        const first = document.querySelector('.result-card[id]')
+        const first = document.querySelector('#results-container .result-card[id]')
         if (first) {
           const target = first.id + '#:~:text=' + encodeURIComponent(term)
           window.location.href = target
         }
       }
     })
+  }
+
+  // ── Inline full-page search (blog /search page) ──────────────────────────────
+  // Dormant everywhere else: this whole block is a no-op unless #search-page-bar
+  // exists on the page (only the blog's /search template renders it). The popup
+  // modal above is untouched. Reuses the same idx / allData / doSearch engine
+  // with its own independent filter state (source defaults to 'all').
+  const pageBar = document.getElementById('search-page-bar')
+  if (pageBar) {
+    const pageResults = document.getElementById('search-page-results')
+    let pTerm = ''
+    let pSource = 'all'
+    let pDate = 'any'
+
+    const run = () => doSearch(pTerm, pSource, pDate, pageResults)
+
+    // Lazy-load the shared index on first focus; awaited before any search.
+    let _ensured = null
+    const ensure = () => (_ensured = _ensured || _startLoad())
+
+    pageBar.addEventListener('focus', ensure, { once: true })
+
+    pageBar.addEventListener('input', async (e) => {
+      pTerm = e.target.value
+      await ensure()
+      run()
+    })
+
+    pageBar.addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') {
+        const first = pageResults && pageResults.querySelector('.result-card[id]')
+        if (first) window.location.href = first.id + '#:~:text=' + encodeURIComponent(pTerm)
+      }
+    })
+
+    document.querySelectorAll('#search-page-filters .filter-source button').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        document.querySelectorAll('#search-page-filters .filter-source button')
+          .forEach(b => b.classList.remove('active'))
+        btn.classList.add('active')
+        pSource = btn.dataset.source
+        await ensure()
+        run()
+      })
+    })
+
+    document.querySelectorAll('#search-page-filters .filter-date button').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        document.querySelectorAll('#search-page-filters .filter-date button')
+          .forEach(b => b.classList.remove('active'))
+        btn.classList.add('active')
+        pDate = btn.dataset.date
+        await ensure()
+        run()
+      })
+    })
+
+    document.querySelectorAll('.search-page-chip').forEach(chip => {
+      chip.addEventListener('click', async () => {
+        pTerm = chip.dataset.term || chip.textContent.replace(/^try:\s*/i, '').trim()
+        pageBar.value = pTerm
+        pageBar.focus()
+        await ensure()
+        run()
+      })
+    })
+
+    // Autofocus on load kicks off the index fetch immediately.
+    pageBar.focus()
   }
 })()
