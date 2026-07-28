@@ -142,6 +142,15 @@
   <link rel="canonical" class="u-url" href="{{ .Permalink }}">
   {{ end }}
 
+  <!-- Preload the two regular webfonts used above the fold: Atkinson (body /
+       LCP text, ~16 KB) and Iosevka (H1/H2 headings, weight 400, ~145 KB).
+       Metric-matched fallbacks in base.scss ('Atkinson Fallback' /
+       'Iosevka Fallback') already keep CLS ~0; preload additionally removes the
+       first-visit font flash on the prominent heading. Bold/italic left to
+       normal-priority loading. -->
+  <link rel="preload" href="/brain/fonts/woff2/Atkinson-Hyperlegible-Regular-102a.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/brain/fonts/woff2/iosevka-regular.woff2" as="font" type="font/woff2" crossorigin>
+
   <!-- CSS Stylesheets and Fonts -->
   {{$sass := resources.Match "styles/[!_]*.scss" }}
   {{$css := slice }}

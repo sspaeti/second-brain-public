@@ -1,5 +1,46 @@
-// Replace this with your own font imports!
-@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+// Atkinson Hyperlegible — self-hosted woff2 (was Google Fonts CDN @import).
+// Keep in sync with the blog: /home/sspaeti/git/sspaeti.com/sspaeti-hugo-blog/static/fonts/atkinson.css
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  font-display: swap;
+  font-weight: 400;
+  font-style: normal;
+  src: url('/brain/fonts/woff2/Atkinson-Hyperlegible-Regular-102a.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  font-display: swap;
+  font-weight: 400;
+  font-style: italic;
+  src: url('/brain/fonts/woff2/Atkinson-Hyperlegible-Italic-102a.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  font-display: swap;
+  font-weight: 700;
+  font-style: normal;
+  src: url('/brain/fonts/woff2/Atkinson-Hyperlegible-Bold-102a.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  font-display: swap;
+  font-weight: 700;
+  font-style: italic;
+  src: url('/brain/fonts/woff2/Atkinson-Hyperlegible-BoldItalic-102a.woff2') format('woff2');
+}
+// Metric-matched fallback (local Arial stretched to Atkinson's box) to kill
+// first-load layout shift (CLS) on body text before the webfont arrives.
+// Numbers via `fontpie`. Font-intrinsic, so shared with the blog.
+@font-face {
+  font-family: 'Atkinson Fallback';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Arial');
+  ascent-override: 80.38%;
+  descent-override: 25.35%;
+  line-gap-override: 0.00%;
+  size-adjust: 99.03%;
+}
 // Iosevka font — self-hosted woff2 files copied from the blog repo:
 // /home/sspaeti/git/sspaeti.com/sspaeti-hugo-blog/static/fonts/
 // Keep in sync with the blog when updating Iosevka.
@@ -35,15 +76,27 @@
   font-style: italic;
   src: url('/brain/fonts/woff2/iosevka-bolditalic.woff2') format('woff2');
 }
+// Metric-matched fallback (local Arial stretched to Iosevka's box) to kill
+// first-load shift on headings/code before the webfont arrives. Via `fontpie`.
+@font-face {
+  font-family: 'Iosevka Fallback';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Arial');
+  ascent-override: 88.07%;
+  descent-override: 19.62%;
+  line-gap-override: 6.39%;
+  size-adjust: 109.58%;
+}
 
 // keeping for reference
 // @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Inter:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap');
 // @import url('https://fonts.googleapis.com/css2?family=Piazzolla:opsz@8..30&display=swap');
 
 :root {
-  --font-body: 'Atkinson Hyperlegible', 'Piazzolla, serif;', 'Open Sans', sans-serif, system-ui, -apple-system, BlinkMacSystemFont, PingFang SC, Microsoft YaHei UI, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, Helvetica, Arial !important; //"Source Sans Pro";
-  --font-header: 'Iosevka Web','Atkinson Hyperlegible',  'Inter';
-  --font-mono: 'Iosevka Web', 'Fira Code', 'Fira Code', 'Open Sans';
+  --font-body: 'Atkinson Hyperlegible', 'Atkinson Fallback', 'Piazzolla, serif;', 'Open Sans', sans-serif, system-ui, -apple-system, BlinkMacSystemFont, PingFang SC, Microsoft YaHei UI, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, Helvetica, Arial !important; //"Source Sans Pro";
+  --font-header: 'Iosevka Web', 'Iosevka Fallback', 'Atkinson Hyperlegible', 'Atkinson Fallback', 'Inter';
+  --font-mono: 'Iosevka Web', 'Iosevka Fallback', 'Fira Code', 'Open Sans', monospace;
 }
 
 // typography
