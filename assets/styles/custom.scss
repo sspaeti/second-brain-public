@@ -1659,6 +1659,24 @@ article {
   margin-top: 6px;
 }
 
+// Altcha's shadow DOM has no explicit font, so text falls back to the browser
+// serif default (Times New Roman). font-family inherits across the shadow
+// boundary, so setting it on the host pulls in the site's Atkinson body font.
+.captcha altcha-widget {
+  font-family: var(--font-body);
+}
+
+// Altcha renders "I'm not a robot", the logo and its text inside shadow DOM,
+// but honors these CSS custom properties on the host. Defaults are tuned for
+// light backgrounds, so in dark mode the text/logo stay black and unreadable.
+// Scope the override to the newsletter captcha only.
+[saved-theme="dark"] .captcha altcha-widget {
+  --altcha-color-base: #2b2b2b;
+  --altcha-color-border: #4a4a4a;
+  --altcha-color-text: #e8e8e8;
+  --altcha-color-footer-bg: #2b2b2b;
+}
+
 .nl-hero-micro {
   font-size: 0.82rem;
   color: var(--global-font-secondary-color);
