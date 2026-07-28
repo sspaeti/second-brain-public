@@ -18,7 +18,9 @@
         <script type="module" src="https://list.ssp.sh/public/static/altcha.umd.js" async defer></script>
       </div>
       <input type="submit" value="Subscribe free" class="nl-hero-btn" />
-      <input id="nl-hero-list" type="hidden" name="l" checked value="4625c037-fda8-45f7-9a66-47d765c6562b" />
+      {{/* Subscribe to both lists by default. On subscribe.ssp.sh people can pick one. */}}
+      <input type="hidden" name="l" value="4625c037-fda8-45f7-9a66-47d765c6562b" /> {{/* ssp.sh Newsletter */}}
+      <input type="hidden" name="l" value="bd37ce78-18e0-4cb0-bdfe-bb1613ceecd1" /> {{/* Book Data Engineering */}}
     </form>
 
     <p class="nl-hero-micro">Free for you · only sent when I have something worth sharing.</p>
