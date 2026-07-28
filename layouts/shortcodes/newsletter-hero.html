@@ -1,0 +1,46 @@
+{{- $logo := resources.Get "svg/sspaeti-color.svg" -}}
+<div class="nl-hero">
+  <div class="nl-hero-pitch">
+    <div class="nl-hero-brand">
+      <img class="nl-hero-logo" src="{{ $logo.RelPermalink }}" alt="ssp.sh logo" width="30" height="30" />
+      <span class="nl-hero-wordmark">ssp.sh</span>
+    </div>
+    <h1 class="nl-hero-title">Learn for Life</h1>
+    <p class="nl-hero-oneliner">Data engineering, writing &amp; a public Second Brain, all written by hand, to your inbox.</p>
+
+    <form method="post" action="https://list.ssp.sh/subscription/form" class="listmonk-form nl-hero-form" target="_top">
+      <input type="hidden" name="nonce" />
+      <div class="nl-hero-row">
+        <input type="email" name="email" required placeholder="your@email.com" class="nl-hero-email" />
+        <input type="submit" value="Subscribe free" class="nl-hero-btn" />
+      </div>
+      <input id="nl-hero-list" type="hidden" name="l" checked value="4625c037-fda8-45f7-9a66-47d765c6562b" />
+      <div class="captcha nl-hero-captcha">
+        <altcha-widget challengeurl="https://list.ssp.sh/api/public/captcha/altcha"></altcha-widget>
+        <script type="module" src="https://list.ssp.sh/public/static/altcha.umd.js" async defer></script>
+      </div>
+    </form>
+
+    <p class="nl-hero-micro">Free for you · only sent when I have something worth sharing.</p>
+    <p class="nl-hero-micro">You'll get a confirmation email, click the link to confirm.</p>
+
+    <div class="nl-hero-byline">
+      <img src="{{ "images/me_alps.jpg" | relURL }}" alt="Simon Späti" width="38" height="38" />
+      <div class="nl-hero-byline-who">
+        <b><a href="https://www.ssp.sh/about/">Simon Späti</a></b><br />
+        <span>data engineer, author &amp; technical writer — <a href="https://www.ssp.sh/craft/">my craft</a></span>
+      </div>
+    </div>
+  </div>
+
+  <aside class="nl-hero-card">
+    <div class="nl-hero-card-k">You'll get</div>
+    <ul>
+      <li>Data engineering deep dives</li>
+      <li>Second Brain note &amp; social post digests</li>
+      <li>Book &amp; writing progress</li>
+      <li>Books I'm reading</li>
+      <li>Learnings from freelancing</li>
+    </ul>
+  </aside>
+</div>

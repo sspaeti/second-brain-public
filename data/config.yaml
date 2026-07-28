@@ -14,7 +14,7 @@ enableContextualBacklinks: true
 enableRecentNotes: true
 enableGitHubEdit: false
 GitHubLink: https://github.com/sspaeti/second-brain-public/tree/hugo/content
-newsletter_link: https://subscribe.ssp.sh
+newsletter_link: /brain/newsletter/
 enableSemanticSearch: false
 searchVersion: v2   # v1 = FlexSearch brain-only (default); v2 = unified blog+brain
 enableGoatCounter: true

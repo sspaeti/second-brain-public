@@ -1554,3 +1554,252 @@ article {
   }
 }
 /* END: Newsletter footer CTA */
+
+/* ══════════════════════════════════════════
+   Newsletter landing hero (content/newsletter.md)
+   Selector prefix: .nl-hero-*  ·  .nl-curl
+   Dark mode: [saved-theme="dark"]
+   ══════════════════════════════════════════ */
+.nl-hero {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 22px;
+  align-items: center;
+  padding: 28px;
+  margin: 1rem 0 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--outlinegray);
+  background: linear-gradient(135deg, rgba(255,93,98,0.12) 0%, rgba(210,126,153,0.12) 100%);
+  font-family: var(--font-body);
+}
+
+.nl-hero-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 6px;
+}
+
+.nl-hero-logo {
+  width: 30px;
+  height: 30px;
+  display: inline-block;
+  margin: 0;
+}
+
+.nl-hero-wordmark {
+  font-family: var(--font-header);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  font-size: 1rem;
+  color: var(--gray);
+}
+
+.nl-hero-title {
+  font-size: 1.35rem;
+  margin: 0.2rem 0 0.4rem;
+}
+
+.nl-hero-oneliner {
+  font-size: 1.02rem;
+  color: var(--gray);
+  margin: 0 0 4px;
+}
+
+.nl-hero-form {
+  margin: 14px 0 6px;
+}
+
+.nl-hero-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.nl-hero-email {
+  flex: 1;
+  min-width: 180px;
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  border: 1px solid var(--outlinegray);
+  background: var(--global-background-color);
+  color: var(--gray);
+  outline: none;
+
+  &:focus {
+    border-color: var(--secondary);
+  }
+}
+
+.nl-hero-btn {
+  padding: 0.6rem 1.3rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  background: var(--secondary);
+  color: #ffffff;
+  transition: opacity 0.15s ease;
+
+  &:hover {
+    opacity: 0.85;
+  }
+}
+
+.nl-hero-captcha {
+  margin-top: 10px;
+}
+
+.nl-hero-micro {
+  font-size: 0.82rem;
+  color: var(--global-font-secondary-color);
+  margin: 0.3rem 0 0;
+}
+
+.nl-hero-byline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+
+  img {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 0;
+    border: 2px solid var(--light);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+}
+
+.nl-hero-byline-who {
+  font-size: 0.85rem;
+  line-height: 1.3;
+
+  b {
+    color: var(--gray);
+  }
+
+  span {
+    color: var(--global-font-secondary-color);
+  }
+
+  a {
+    color: var(--secondary);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.nl-hero-card {
+  background: var(--light);
+  border: 1px solid var(--outlinegray);
+  border-radius: 10px;
+  padding: 18px;
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0;
+  }
+
+  li {
+    position: relative;
+    padding: 5px 0 5px 22px;
+    font-size: 0.9rem;
+
+    &::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--secondary);
+      font-weight: 700;
+    }
+  }
+}
+
+.nl-hero-card-k {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--secondary);
+}
+
+/* De-blued curl note — neutral box, no colored border/gradient/shadow */
+.nl-curl {
+  background: var(--header-background-color);
+  color: var(--gray);
+  border: 1px solid var(--outlinegray);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  margin: 1.2rem 0;
+
+  code {
+    font-family: var(--font-mono);
+    background: var(--global-background-secondary-color);
+    color: var(--gray);
+    border: 1px solid var(--outlinegray);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 0.85em;
+  }
+
+  a {
+    color: var(--secondary);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+[saved-theme="dark"] {
+  .nl-hero-email {
+    background: #2A2A37;
+    border-color: #54546D;
+    color: #DCD7BA;
+
+    &:focus {
+      border-color: var(--secondary);
+    }
+  }
+
+  .nl-hero-btn {
+    color: #181820;
+  }
+}
+
+@media (max-width: 640px) {
+  .nl-hero {
+    grid-template-columns: 1fr;
+    padding: 22px;
+  }
+
+  .nl-hero-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nl-hero-email {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .nl-hero-btn {
+    width: 100%;
+    padding: 0.7rem;
+  }
+}
+/* END: Newsletter landing hero */
