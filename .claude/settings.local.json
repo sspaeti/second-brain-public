@@ -5,7 +5,10 @@
       "Bash(cargo build:*)",
       "Bash(make prepare:*)",
       "Bash(node --check assets/js/popover-v2.js)",
-      "Bash(make)"
+      "Bash(make)",
+      "Bash(command -v lighthouse lhci)",
+      "Bash(command -v google-chrome google-chrome-stable chromium chromium-browser)",
+      "Bash(command -v node npx)"
     ],
     "deny": [],
     "ask": []

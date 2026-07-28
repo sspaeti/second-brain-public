@@ -1,6 +1,6 @@
 <header>
     <a class="ssp-brand-logo" href="https://www.ssp.sh" title="Back to ssp.sh">
-      <img src="/brain/logo_ssp_main.png" alt="ssp.sh" width="36" height="36">
+      <img src="/brain/logo_ssp_main.png" alt="ssp.sh" width="38" height="38" decoding="async" fetchpriority="high">
     </a>
     {{ $config := cond (eq $.Site.Language.Lang "en") "config" (printf "config.%s" $.Site.Language.Lang) }}
     <!-- <h1 id="page-title"><a href="{{ "" | absLangURL }}">{{ ( index $.Site.Data $config ).page_title | default $.Site.Data.config.page_title }}</a></h1> -->

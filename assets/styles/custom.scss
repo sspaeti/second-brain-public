@@ -1722,7 +1722,7 @@ article {
     font-size: 0.9rem;
 
     &::before {
-      content: "✓";
+      content: "\2713"; // ✓ kept as ASCII escape so Sass emits no BOM (a mid-bundle BOM breaks the first rule of this chunk)
       position: absolute;
       left: 0;
       color: var(--secondary);

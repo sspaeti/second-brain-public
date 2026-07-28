@@ -1,4 +1,4 @@
-// Atkinson Hyperlegible — self-hosted woff2 (was Google Fonts CDN @import).
+// Atkinson Hyperlegible - self-hosted woff2 (was Google Fonts CDN @import).
 // Keep in sync with the blog: /home/sspaeti/git/sspaeti.com/sspaeti-hugo-blog/static/fonts/atkinson.css
 @font-face {
   font-family: 'Atkinson Hyperlegible';
@@ -41,7 +41,7 @@
   line-gap-override: 0.00%;
   size-adjust: 99.03%;
 }
-// Iosevka font — self-hosted woff2 files copied from the blog repo:
+// Iosevka font - self-hosted woff2 files copied from the blog repo:
 // /home/sspaeti/git/sspaeti.com/sspaeti-hugo-blog/static/fonts/
 // Keep in sync with the blog when updating Iosevka.
 @font-face {
@@ -202,7 +202,7 @@ tbody, li, p {
       gap: 0.5em;
       &::-webkit-details-marker { display: none; }
       &::after {
-        content: "›";
+        content: "\203A"; //  - kept as ASCII escape so Sass emits no BOM (a mid-bundle BOM breaks the first @font-face; see fonts above)
         font-size: 1.1em;
         line-height: 1;
         opacity: 0.7;
@@ -241,7 +241,7 @@ tbody, li, p {
     }
   }
 
-  // hide TOC on smaller screens — backlinks remain
+  // hide TOC on smaller screens - backlinks remain
   @media all and (max-width: 1200px) {
     display: none;
   }
@@ -603,8 +603,11 @@ hr {
   align-items: center;
 
   & img {
-    width: 45px;
-    height: 45px;
+    // 40px height matches ssp.sh's header logo (.header-logo .logo) so the
+    // mark lines up across ssp.sh, ssp.sh/brain and the navbar. width:auto +
+    // square width/height img attrs preserve aspect ratio => no CLS.
+    height: 38px;
+    width: auto;
     margin: 0;
     border-radius: 4px;
   }
@@ -630,7 +633,7 @@ hr {
   margin: 0 0.6em;
   align-self: center;
 
-  // hidden on mobile — the nav reorders into a single tight cluster
+  // hidden on mobile - the nav reorders into a single tight cluster
   @media all and (max-width: 768px) {
     display: none;
   }
