@@ -14,3 +14,5 @@ node_modules
 .last_purge_time
 utils/hugo-obsidian/hugo-obsidian
 utils/hugo-obsidian/hugo-obsidian-dev
+
+.superpowers
