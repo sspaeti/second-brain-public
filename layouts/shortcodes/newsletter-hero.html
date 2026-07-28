@@ -10,25 +10,25 @@
 
     <form method="post" action="https://list.ssp.sh/subscription/form" class="listmonk-form nl-hero-form" target="_top">
       <input type="hidden" name="nonce" />
-      <div class="nl-hero-row">
-        <input type="email" name="email" required placeholder="your@email.com" class="nl-hero-email" />
-        <input type="submit" value="Subscribe free" class="nl-hero-btn" />
-      </div>
-      <input id="nl-hero-list" type="hidden" name="l" checked value="4625c037-fda8-45f7-9a66-47d765c6562b" />
+      <input type="email" name="email" required placeholder="your@email.com" class="nl-hero-email" />
+      {{/* Captcha before submit in DOM so tab order is email → captcha → subscribe.
+           Visual order (submit beside email, captcha below) is set via CSS `order`. */}}
       <div class="captcha nl-hero-captcha">
         <altcha-widget challengeurl="https://list.ssp.sh/api/public/captcha/altcha"></altcha-widget>
         <script type="module" src="https://list.ssp.sh/public/static/altcha.umd.js" async defer></script>
       </div>
+      <input type="submit" value="Subscribe free" class="nl-hero-btn" />
+      <input id="nl-hero-list" type="hidden" name="l" checked value="4625c037-fda8-45f7-9a66-47d765c6562b" />
     </form>
 
     <p class="nl-hero-micro">Free for you · only sent when I have something worth sharing.</p>
-    <p class="nl-hero-micro">You'll get a confirmation email, click the link to confirm.</p>
+    <p class="nl-hero-micro">You'll get a confirmation email, click the link to finish signup.</p>
 
     <div class="nl-hero-byline">
       <img src="{{ "images/me_alps.jpg" | relURL }}" alt="Simon Späti" width="38" height="38" />
       <div class="nl-hero-byline-who">
-        <b><a href="https://www.ssp.sh/about/">Simon Späti</a></b><br />
-        <span>data engineer, author &amp; technical writer — <a href="https://www.ssp.sh/craft/">my craft</a></span>
+        <b><a href="https://www.ssp.sh/about/#u-about-me">Simon Späti</a></b><br />
+        <span>data engineer, technical writer &amp; author. Enoying <a href="https://www.ssp.sh/craft/">my craft</a>.</span>
       </div>
     </div>
   </div>

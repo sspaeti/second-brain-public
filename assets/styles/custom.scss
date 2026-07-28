@@ -1606,18 +1606,19 @@ article {
   margin: 0 0 4px;
 }
 
+// Flex container so DOM order (email → captcha → submit, for tab/keyboard)
+// can differ from visual order (email + submit on row 1, captcha below),
+// which is controlled with `order` below.
 .nl-hero-form {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
   margin: 14px 0 6px;
 }
 
-.nl-hero-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
 .nl-hero-email {
+  order: 1;
   flex: 1;
   min-width: 180px;
   padding: 0.6rem 0.8rem;
@@ -1634,6 +1635,7 @@ article {
 }
 
 .nl-hero-btn {
+  order: 2;
   padding: 0.6rem 1.3rem;
   border: none;
   border-radius: 6px;
@@ -1650,8 +1652,11 @@ article {
   }
 }
 
+// order 3 + full-width basis forces the captcha onto its own line below.
 .nl-hero-captcha {
-  margin-top: 10px;
+  order: 3;
+  flex-basis: 100%;
+  margin-top: 6px;
 }
 
 .nl-hero-micro {
@@ -1787,17 +1792,16 @@ article {
     padding: 22px;
   }
 
-  .nl-hero-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
+  // Stack email / submit / captcha, each full-width. `order` still applies,
+  // so keyboard tab order stays email → captcha → submit.
   .nl-hero-email {
+    flex-basis: 100%;
     width: 100%;
     min-width: unset;
   }
 
   .nl-hero-btn {
+    flex-basis: 100%;
     width: 100%;
     padding: 0.7rem;
   }
