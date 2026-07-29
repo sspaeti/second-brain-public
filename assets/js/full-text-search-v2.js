@@ -38,7 +38,10 @@
   })
 
   let allData      = {}
-  let activeSource = 'all'
+  // Page-context default ('blog'/'all' on the blog, 'brain' on the brain). Read
+  // it up front so the very first keystroke filters correctly, even before the
+  // index has finished loading — otherwise early queries leak the other source.
+  let activeSource = (typeof window !== 'undefined' && window.SEARCH_DEFAULT_SOURCE) || 'all'
   let activeDate   = 'any'
   let term         = ''
 
@@ -75,13 +78,6 @@
             if (_bar) {
               const total = Object.keys(allData).length
               if (total > 0) _bar.placeholder = `Search ${total.toLocaleString()} notes (blog + brain)… · Ctrl+K or /`
-            }
-            const def = window.SEARCH_DEFAULT_SOURCE
-            if (def && def !== 'all') {
-              activeSource = def
-              document.querySelectorAll('#search-filters .filter-source button').forEach((btn) => {
-                btn.classList.toggle('active', btn.dataset.source === def)
-              })
             }
             resolve()
           }
@@ -127,6 +123,15 @@
   window.closeSearch = _closeSearch
 
   // ── Filter buttons ─────────────────────────────────────────────────────────
+
+  // Mark the page-context default active immediately (the markup hardcodes
+  // "All" active). Keeps the highlighted button in sync with activeSource from
+  // first paint, so there's no flip once the index finishes loading.
+  if (activeSource !== 'all') {
+    document.querySelectorAll('#search-filters .filter-source button').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.source === activeSource)
+    })
+  }
 
   document.querySelectorAll('#search-filters .filter-source button').forEach(btn => {
     btn.addEventListener('click', () => {
