@@ -12,6 +12,7 @@ use handle_link_index::convert_to_lower_case;
 
 mod enrich_with_blog;
 mod enrich_with_book;
+mod enrich_with_memories;
 mod merge_search_index;
 
 mod svg_generator;
@@ -35,6 +36,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         enrich_with_blog::run()?;
     } else if args.len() > 1 && args[1] == "enrich-with-book" {
         enrich_with_book::run()?;
+    } else if args.len() > 1 && args[1] == "enrich-with-memories" {
+        enrich_with_memories::run()?;
     } else if args.len() > 1 && args[1] == "merge-search-index" {
         merge_search_index::run()?;
     } else {

@@ -36,3 +36,4 @@ globalGraph:
 paths:
   - /blog/: "#60a5fa"
   - /book/: "#a78bfa"
+  - /memories/: "#98bb6c"   # Kanagawa springGreen

@@ -42,6 +42,7 @@ prepare: ## prepare commands
 	obsidian-quartz merge-search-index #build merged v2 search index, copy into blog
 	-$(MAKE) -C ../../book/dedp link-index #refresh book linkIndex.js so book->brain edges are current
 	obsidian-quartz enrich-with-book #merge book->brain incoming edges into brain indices
+	obsidian-quartz enrich-with-memories #merge memory->brain edges into brain indices (graph only, after search merge)
 
 word-count:
 	find content -type f -not -path '*/\.*' -name '*.md' -exec cat {} \; | wc -w

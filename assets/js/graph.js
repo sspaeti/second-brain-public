@@ -124,7 +124,7 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
 
   const matchesFilter = (d) => {
     if (!activeFilter) return true
-    if (activeFilter === "note") return !d.id.startsWith("/blog/") && !d.id.startsWith("/book/")
+    if (activeFilter === "note") return !d.id.startsWith("/blog/") && !d.id.startsWith("/book/") && !d.id.startsWith("/memories/")
     return d.id.startsWith(activeFilter)
   }
 
@@ -148,7 +148,7 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
   }
 
   if (enableLegend) {
-    const pathLegendLabels = { "/blog/": "Blog", "/book/": "Book" }
+    const pathLegendLabels = { "/blog/": "Blog", "/book/": "Book", "/memories/": "Memories" }
     const presentPaths = pathColors.filter((pc) => {
       const path = Object.keys(pc)[0]
       return data.nodes.some((n) => n.id && n.id.startsWith(path))
@@ -236,6 +236,11 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
         window.closeLightbox?.()
         return
       }
+      if (d.id.startsWith("/memories/")) {
+        window.open(`https://www.ssp.sh${d.id}/`, "_blank", "noopener")
+        window.closeLightbox?.()
+        return
+      }
       // SPA navigation
       window.Million.navigate(new URL(`${baseUrl}${decodeURI(d.id).replace(/\s+/g, "-")}/`), ".singlePage")
       window.closeLightbox?.()
@@ -249,7 +254,7 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig, targetContain
       ])
       const neighbourNodes = svg.selectAll(".node").filter((d) => neighbours.includes(d.id))
       const currentId = d.id
-      if (!d.id.startsWith("/blog/") && !d.id.startsWith("/book/")) {
+      if (!d.id.startsWith("/blog/") && !d.id.startsWith("/book/") && !d.id.startsWith("/memories/")) {
         window.Million.prefetch(new URL(`${baseUrl}${decodeURI(d.id).replace(/\s+/g, "-")}/`))
       }
       const linkNodes = svg
