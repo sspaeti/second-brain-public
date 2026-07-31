@@ -68,6 +68,21 @@ Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
 
+### 2026-07-31: Interactive graph shows memories (photo feed)
+
+The local graph now surfaces a fourth node type: **memories** from the blog's photo feed at [ssp.sh/memories](https://ssp.sh/memories). When a memory caption references a brain note via `[[wikilink]]`, viewing that note shows the memory as a green node — so a note like *Travel where You Are* surfaces the photos that reference it. Extends the [2026-06-01](#2026-06-01-interactive-graph-shows-blog-posts-and-book-chapters) blog/book graph work.
+
+- **Node type**: **Memories** (`#98bb6c` Kanagawa springGreen) — memory at `ssp.sh/memories/<slug>`. Color, legend label, and filter are driven by the `paths:` entry in `data/graphConfig.yaml`, exactly like blog/book — no per-type code in `graph.js` beyond a prefix branch.
+- **Click behavior**: opens the memory in a new tab (external, like blog/book); brain nodes keep SPA navigation.
+- **Data flow**: a new `obsidian-quartz enrich-with-memories` subcommand reads `../sspaeti-hugo-blog/content/memories/*/index.md` directly (no hugo-obsidian scan — the blog only indexes `content/posts`), extracts `[[wikilinks]]` (handles `[[Target|Display]]` aliases, skips `_index`, reuses `enrich_with_blog::unicode_sanitize` so slugs match hugo-obsidian), and injects memory→brain edges + `type:"memory"` nodes into `linkIndex.json` / `contentIndex.json`. Same one-directional enrich pattern as `enrich-with-blog` / `enrich-with-book`.
+- **Search stays clean**: the step runs *after* `merge-search-index` in `prepare` (same trick as `enrich-with-book`), so memories live in the graph only — never in `Ctrl+K` search.
+- **Additive & idempotent**: only inserts new `/memories/*` nodes/edges; existing brain/blog/book ids and edges are untouched. Wikilink targets that aren't published brain notes are silently skipped (no dangling nodes). Re-running adds 0.
+- **Files**:
+  - `utils/obsidian-quartz/src/enrich_with_memories.rs` — the importer (registered in `main.rs`)
+  - `assets/js/graph.js` — `/memories/` click routing, legend label, filter + prefetch guards
+  - `data/graphConfig.yaml` — `/memories/` node color via `paths:`
+  - `Makefile` — `obsidian-quartz enrich-with-memories` at the end of `prepare` (after `merge-search-index`)
+
 ### 2026-06-28: Unified search v2 — blog + brain in one modal
 
 A full-screen FlexSearch modal that searches blog posts (ssp.sh) and brain notes (ssp.sh/brain) together. Triggered by `Ctrl+K` or `/`. Results show source badges (blog / brain), dates, and a highlight of the matching excerpt. Blog entries float to the top; filter buttons narrow by source or date.
