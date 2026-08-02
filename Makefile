@@ -50,6 +50,14 @@ word-count:
 file-count:
 	find content -name "*.md" -type f | wc -l
 
+# --- SecondBrain vault (private, whole vault not just published) ---
+SB         := $(HOME)/Simon/SecondBrain
+SB_SCRIPTS := $(SB)/💡 Resources/🧮 Runbooks/Scripts
+
+all-sb: ## SecondBrain vault full stats (delegates to vault Scripts `make all`)
+	@$(MAKE) -C "$(SB_SCRIPTS)" all
+
+
 updated-this-year:
 	@year=$$(date +%Y); \
 	count=$$(grep -l "^lastmod: $$year" content/*.md | wc -l); \
