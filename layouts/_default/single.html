@@ -24,12 +24,14 @@
           {{end}}
           <!-- {{ partial "github.html" . }} -->
       </p>
-      {{- /* Hacker News Banner */ -}}
+      {{- /* Hacker News Banner (skipped when hackernews_bottom is set — banner is placed inline at the bottom of the note) */ -}}
+      {{- if not .Params.hackernews_bottom -}}
       {{- with .Params.hackernews -}}
       <div class="article-hackernews-banner">
           <span class="hn-icon">🔶</span>
           Featured on Hacker News. <a href="{{ . }}" target="_blank" rel="noopener">Read the comments</a>
       </div>
+      {{- end -}}
       {{- end -}}
 
       {{partial "textprocessing.html" . }}
