@@ -22,8 +22,10 @@
   {{$tp := $page.GetPage $noteTitle}}
   {{if $tp}}
     {{$md := ""}}
+    {{$blockHeading := ""}}
     {{if hasPrefix $anchor "^"}}
-      {{/* Block reference: capture the paragraph carrying the block id */}}
+      {{/* Block reference: capture the paragraph carrying the block id, and
+           remember the nearest heading above it so we can jump to that section */}}
       {{$blockName := $anchor | strings.TrimPrefix "^"}}
       {{$para := slice}}
       {{$done := false}}
@@ -31,6 +33,9 @@
         {{if not $done}}
           {{$t := trim $line " "}}
           {{if eq $t ""}}
+            {{$para = slice}}
+          {{else if findRE "^#+\\s" $line}}
+            {{$blockHeading = trim ($line | replaceRE "^#+\\s*" "") " "}}
             {{$para = slice}}
           {{else if eq $t (printf "^%s" $blockName)}}
             {{$md = delimit $para "\n"}}
@@ -69,10 +74,12 @@
     {{$md = trim $md "\n "}}
     {{if $md}}
       {{$rendered := $tp.RenderString (dict "display" "block") $md}}
-      {{/* Link back to the source note; jump to the heading anchor for section refs */}}
+      {{/* Link back to the source note, jumping to the exact spot: the heading
+           anchor for section refs, or the block's enclosing heading for block refs */}}
       {{$href := $tp.RelPermalink}}
-      {{if not (hasPrefix $anchor "^")}}
-        {{$href = printf "%s#%s" (strings.TrimRight "/" $tp.RelPermalink) ($anchor | urlize | lower)}}
+      {{$jump := cond (hasPrefix $anchor "^") $blockHeading $anchor}}
+      {{if $jump}}
+        {{$href = printf "%s#%s" (strings.TrimRight "/" $tp.RelPermalink) ($jump | urlize | lower)}}
       {{end}}
       {{$icon := `<svg class="transclusion-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>`}}
       {{$srclink := printf "<a href=\"%s\" rel=\"noopener\" class=\"internal-link transclusion-link\" data-src=\"%s\" title=\"Reference to %s\">%s<span>%s</span></a>" $href $tp.RelPermalink $noteTitle $icon $noteTitle}}
