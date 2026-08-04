@@ -19,6 +19,7 @@ This is a fork of the [Quartz](https://github.com/jackyzha0/quartz) repo ([v3](h
 * **Gallery shortcode** (`layouts/shortcodes/gallery.html`): `{{< gallery folder="_img/todays-office/todays-office-recent" >}}` renders all images in a `content/` subfolder as a CSS grid with Lightbox2 click-to-enlarge. Supports `exclude="file1.jpg,file2.jpg"` to skip individual files. Uses `readDir` instead of page resources so it works with the flat `.md` file structure (no page bundles needed). A similar shortcode exists in the blog at `sspaeti-hugo-blog/layouts/shortcodes/gallery.html`, but that one uses `.Page.Resources.ByType "image"` (page-bundle approach). Run `make compress-gallery` to batch-compress gallery JPEGs in-place via ImageMagick.
 * YouTube links in Obsidian image syntax (`![title](https://youtube.com/watch?v=XXX)`) render as embedded video players instead of broken images
 * Callout blocks are normalized so compact and spaced forms render identically
+* **Obsidian transclusions / embeds** (`![[Note#^block-id]]` and `![[Note#Heading]]`): block and section references render inline as a quoted blockquote (instead of a broken image), with nested `[[wikilinks]]` and `![[images]]` inside the embed resolved, plus a floated top-right link back to the source note (heading refs jump to the anchor; hover shows the popover preview)
 * **Mermaid → OG image**: set `ogimage: mermaid` (or `mermaid2`, `mermaid3`, …) in a note's frontmatter to render the Nth ` ```mermaid ` block as the social-media preview image (rendered via `mmdc` + ImageMagick to a 1200×630 WebP using a dark theme that matches the site's OG template)
 
 The content/notes themselves are not published in this repo, only on [ssp.sh/brain](https://ssp.sh/brain).
@@ -67,6 +68,22 @@ Custom render hooks in `layouts/_default/_markup/`:
 Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
+
+### 2026-08-04: Obsidian block & heading transclusions render inline
+
+Obsidian embed transclusions — `![[Note#^block-id]]` (block reference) and `![[Note#Heading]]` (section reference) — used to fall through the image-embed branch and render as a broken `<img>`. They now render inline as a quoted blockquote pulled from the source note, matching how they look in Obsidian.
+
+- **How it works** (`layouts/partials/textprocessing.html`): a new transclusion pre-pass runs *before* the wikilink loop. For each `![[...#...]]` it resolves the target via `GetPage`, reads its `RawContent`, and extracts:
+  - **Block ref (`#^id`)** — the paragraph carrying that block id (the `^id` marker is stripped).
+  - **Heading ref (`#Heading`)** — everything under the heading until the next same-or-higher heading (deeper subheadings are included).
+  - The extracted markdown is rendered with `RenderString` and wrapped in a `<blockquote>`.
+- **Nested content resolves for free**: because the pre-pass injects the embedded content *before* the wikilink/image loop computes its matches, any `[[wikilinks]]` and `![[images]]` inside the embedded block/section get resolved by the existing machinery (e.g. an image inside an embedded section becomes a real `<img>`).
+- **Back-link affordance**: each embed gets a small arrow-icon link (`.transclusion-link`) floated to the top-right of the quote — the text wraps around it. It carries `data-src` so the hover popover preview works, and heading refs link straight to the target's heading anchor (`/brain/<note>#<heading>`) for a precise jump; block refs link to the note.
+- **Graceful fallback**: an unpublished target note renders as a broken-styled link; a published note whose referenced block/section isn't published renders as a plain working link to the note. The raw `#^id` is never leaked into the visible label.
+- **Callout-safe**: the injected `<blockquote>` is intentionally class-less, so the existing callout normalization (which tags every bare `<blockquote>` as `callout` and walks them in order) stays aligned and treats it as an ordinary quote.
+- **Files**:
+  - `layouts/partials/textprocessing.html` — transclusion pre-pass + source link
+  - `assets/styles/custom.scss` — `.transclusion` / `.transclusion-link` styles (float top-right; ASCII-only so no Sass BOM issue)
 
 ### 2026-07-31: Interactive graph shows memories (photo feed)
 

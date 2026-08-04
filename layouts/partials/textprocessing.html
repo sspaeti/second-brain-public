@@ -9,6 +9,82 @@
   {{$content = replace $content . $fixed}}
 {{end}}
 
+{{/* Obsidian transclusions/embeds with a block (#^id) or heading (#Heading) reference.
+     Runs before the wikilink loop so any [[links]]/![[images]] inside the embedded
+     content get resolved by the normal machinery below. */}}
+{{$embeds := $content | findRE "!\\[\\[[^\\[\\]]*#[^\\[\\]]*\\]\\]"}}
+{{range $embeds}}
+  {{$inner := . | strings.TrimPrefix "![[" | strings.TrimSuffix "]]"}}
+  {{$target := index (split $inner "|") 0}}
+  {{$ref := split $target "#"}}
+  {{$noteTitle := index $ref 0}}
+  {{$anchor := index $ref 1}}
+  {{$tp := $page.GetPage $noteTitle}}
+  {{if $tp}}
+    {{$md := ""}}
+    {{if hasPrefix $anchor "^"}}
+      {{/* Block reference: capture the paragraph carrying the block id */}}
+      {{$blockName := $anchor | strings.TrimPrefix "^"}}
+      {{$para := slice}}
+      {{$done := false}}
+      {{range $line := (split $tp.RawContent "\n")}}
+        {{if not $done}}
+          {{$t := trim $line " "}}
+          {{if eq $t ""}}
+            {{$para = slice}}
+          {{else if eq $t (printf "^%s" $blockName)}}
+            {{$md = delimit $para "\n"}}
+            {{$done = true}}
+          {{else}}
+            {{$para = $para | append $line}}
+            {{if hasSuffix $t (printf "^%s" $blockName)}}
+              {{$md = delimit $para "\n"}}
+              {{$done = true}}
+            {{end}}
+          {{end}}
+        {{end}}
+      {{end}}
+      {{$md = $md | replaceRE (printf "\\s*\\^%s\\s*$" $blockName) ""}}
+    {{else}}
+      {{/* Heading reference: capture lines under the heading until a same-or-higher heading */}}
+      {{$section := slice}}
+      {{$capturing := false}}
+      {{$found := false}}
+      {{$level := 0}}
+      {{range $line := (split $tp.RawContent "\n")}}
+        {{if $capturing}}
+          {{if and (hasPrefix (trim $line " ") "#") (findRE (printf "^#{1,%d}(\\s|$)" $level) $line)}}
+            {{$capturing = false}}
+          {{else}}
+            {{$section = $section | append $line}}
+          {{end}}
+        {{else if and (not $found) (hasPrefix (trim $line " ") "#") (eq (trim ($line | replaceRE "^#+\\s*" "") " ") $anchor)}}
+          {{$capturing = true}}
+          {{$found = true}}
+          {{$level = len (index (findRE "^#+" $line) 0)}}
+        {{end}}
+      {{end}}
+      {{$md = delimit $section "\n"}}
+    {{end}}
+    {{$md = trim $md "\n "}}
+    {{if $md}}
+      {{$rendered := $tp.RenderString (dict "display" "block") $md}}
+      {{/* Link back to the source note; jump to the heading anchor for section refs */}}
+      {{$href := $tp.RelPermalink}}
+      {{if not (hasPrefix $anchor "^")}}
+        {{$href = printf "%s#%s" (strings.TrimRight "/" $tp.RelPermalink) ($anchor | urlize | lower)}}
+      {{end}}
+      {{$icon := `<svg class="transclusion-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>`}}
+      {{$srclink := printf "<a href=\"%s\" rel=\"noopener\" class=\"internal-link transclusion-link\" data-src=\"%s\" title=\"Reference to %s\">%s<span>%s</span></a>" $href $tp.RelPermalink $noteTitle $icon $noteTitle}}
+      {{$content = replace $content . (printf "<div class=\"transclusion\"><blockquote>%s%s</blockquote></div>" $srclink $rendered)}}
+    {{else}}
+      {{$content = replace $content . (printf "<a href=\"%s\" rel=\"noopener\" class=\"internal-link\" data-src=\"%s\">%s</a>" $tp.RelPermalink $tp.RelPermalink $noteTitle)}}
+    {{end}}
+  {{else}}
+    {{$content = replace $content . (printf "<a class=\"internal-link broken\">%s</a>" $noteTitle)}}
+  {{end}}
+{{end}}
+
 {{/* Wikilinks */}}
 {{$wikilinks := $content | findRE "!?\\[\\[\\S[^\\[\\]\\|]*(?:\\|[^\\[\\]]*)?\\S\\]\\]" }}
 {{$codefences := $raw | findRE "\\x60[^\\x60\\n]+\\x60"}}

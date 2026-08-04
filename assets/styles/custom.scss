@@ -1825,3 +1825,46 @@ article {
   }
 }
 /* END: Newsletter landing hero */
+
+/* START: Obsidian transclusions (![[Note#^block]] / ![[Note#Heading]]) */
+.transclusion {
+  position: relative;
+  margin: 1.2em 0;
+
+  blockquote {
+    margin-bottom: 0;
+  }
+
+  // Small, muted "reference to another note" affordance. Floats top-right so the
+  // quoted text starts immediately and wraps around it.
+  .transclusion-link {
+    float: right;
+    margin: 0.1em 0 0.35em 0.9em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    font-size: 0.75em;
+    line-height: 1;
+    opacity: 0.6;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 1;
+    }
+
+    .transclusion-icon {
+      flex-shrink: 0;
+      transform: translateY(-0.05em);
+    }
+
+    span {
+      border-bottom: 1px solid transparent;
+    }
+
+    &:hover span {
+      border-bottom-color: currentColor;
+    }
+  }
+}
+/* END: Obsidian transclusions */
