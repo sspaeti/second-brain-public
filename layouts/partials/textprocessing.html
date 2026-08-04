@@ -28,17 +28,30 @@
            remember the nearest heading above it so we can jump to that section */}}
       {{$blockName := $anchor | strings.TrimPrefix "^"}}
       {{$para := slice}}
+      {{$prevPara := slice}}
+      {{$inFence := false}}
       {{$done := false}}
       {{range $line := (split $tp.RawContent "\n")}}
         {{if not $done}}
           {{$t := trim $line " "}}
-          {{if eq $t ""}}
+          {{if hasPrefix $t "```"}}
+            {{/* fenced code delimiter: part of the block; toggle fence state so
+                 blank lines inside the fence don't split the block */}}
+            {{$para = $para | append $line}}
+            {{$inFence = not $inFence}}
+          {{else if $inFence}}
+            {{$para = $para | append $line}}
+          {{else if eq $t ""}}
+            {{if gt (len $para) 0}}{{$prevPara = $para}}{{end}}
             {{$para = slice}}
           {{else if findRE "^#+\\s" $line}}
             {{$blockHeading = trim ($line | replaceRE "^#+\\s*" "") " "}}
+            {{if gt (len $para) 0}}{{$prevPara = $para}}{{end}}
             {{$para = slice}}
           {{else if eq $t (printf "^%s" $blockName)}}
-            {{$md = delimit $para "\n"}}
+            {{/* Block id on its own line refers to the block above it
+                 (the current paragraph, or the previous one across a blank line) */}}
+            {{$md = delimit (cond (gt (len $para) 0) $para $prevPara) "\n"}}
             {{$done = true}}
           {{else}}
             {{$para = $para | append $line}}
@@ -50,9 +63,11 @@
         {{end}}
       {{end}}
       {{$md = $md | replaceRE (printf "\\s*\\^%s\\s*$" $blockName) ""}}
-      {{/* Strip leading blockquote markers so a referenced quote doesn't nest
-           inside our own blockquote (avoids a double-quoted look) */}}
+      {{/* Strip leading blockquote markers (and any callout marker) so a
+           referenced quote/callout renders as our single quote instead of a
+           quote-inside-a-quote or literal "[!note]" text */}}
       {{$md = $md | replaceRE "(?m)^\\s*>\\s?" ""}}
+      {{$md = $md | replaceRE "\\[![a-zA-Z]+\\][-+]?\\s?" ""}}
     {{else}}
       {{/* Heading reference: capture lines under the heading until a same-or-higher heading */}}
       {{$section := slice}}
