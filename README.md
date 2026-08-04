@@ -69,6 +69,18 @@ Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
 
+### 2026-08-04: `lastmod` no longer bumps when a note's content is unchanged
+
+`obsidian-quartz` sets each note's `lastmod` to `max(existing lastmod, source file mtime)`. Obsidian bumps a file's mtime on *every* save — including an accidental edit that was undone back to identical content — so a note's date would jump to today with no real change. Because `content/` is its own git submodule, a note whose only diff vs `HEAD` is the `lastmod:` line had no real change and can be restored.
+
+- **Post-processing step** (`utils/revert-lastmod-only.sh`): runs in `prepare` right after `obsidian-quartz` regenerates `content/`. For each changed `.md`, it strips diff headers and the `lastmod:` line from `git diff -U0`; if nothing else changed, the note is restored to its committed state.
+- **Self-correcting**: the next `make` bumps mtime and `lastmod` again, this step reverts it again — the date stays pinned to the committed value until a *real* content edit lands, at which point `lastmod` updates and gets committed normally.
+- **Lock-free restore**: uses `git show HEAD:<path> > <path>` instead of `git checkout`, so it writes only the working-tree file and never grabs the submodule `index.lock` — avoids a `fatal: Unable to create '.git/modules/content/index.lock'` race against concurrent `lazygit` / `gitstatusd` watchers on the submodule.
+- **Scope**: only acts on files git already flags as modified inside `content/`; new/untracked notes keep their fresh `lastmod`. If tool formatting ever changes globally, those notes show real-line diffs and are correctly kept.
+- **Files**:
+  - `utils/revert-lastmod-only.sh` — the revert step
+  - `Makefile` — `bash utils/revert-lastmod-only.sh` in `prepare`, after `obsidian-quartz`
+
 ### 2026-08-04: Obsidian block & heading transclusions render inline
 
 Obsidian embed transclusions — `![[Note#^block-id]]` (block reference) and `![[Note#Heading]]` (section reference) — used to fall through the image-embed branch and render as a broken `<img>`. They now render inline as a quoted blockquote pulled from the source note, matching how they look in Obsidian.
