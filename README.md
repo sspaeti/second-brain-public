@@ -81,6 +81,9 @@ Obsidian embed transclusions — `![[Note#^block-id]]` (block reference) and `![
 - **Back-link affordance**: each embed gets a small arrow-icon link (`.transclusion-link`) floated to the top-right of the quote — the text wraps around it. It carries `data-src` so the hover popover preview works, and it jumps to the exact spot: heading refs link straight to the target's heading anchor (`/brain/<note>#<heading>`), and block refs link to the block's enclosing heading (tracked during extraction; falls back to the note top if the block sits above any heading).
 - **Graceful fallback**: an unpublished target note renders as a broken-styled link; a published note whose referenced block/section isn't published renders as a plain working link to the note. The raw `#^id` is never leaked into the visible label.
 - **Callout-safe**: the injected `<blockquote>` is intentionally class-less, so the existing callout normalization (which tags every bare `<blockquote>` as `callout` and walks them in order) stays aligned and treats it as an ordinary quote.
+- **Edge cases**:
+  - If the referenced block is *itself* a `> ` blockquote, its leading `>` markers are stripped before rendering so it doesn't double-nest into a quote-inside-a-quote.
+  - The embed is injected as `</p><div class="transclusion">…</div><p>` so the block-level quote becomes a proper *sibling* paragraph rather than a block nested inside a `<p>` (which the browser would auto-close, orphaning any adjacent text out of its paragraph and stripping its normal font/color/spacing). A cleanup pass after the loop drops the leftover leading/trailing `<br>` and empty `<p></p>`. Safe because no embed in the vault sits inside a list item or blockquote — every one is in paragraph context.
 - **Files**:
   - `layouts/partials/textprocessing.html` — transclusion pre-pass + source link
   - `assets/styles/custom.scss` — `.transclusion` / `.transclusion-link` styles (float top-right; ASCII-only so no Sass BOM issue)

@@ -50,6 +50,9 @@
         {{end}}
       {{end}}
       {{$md = $md | replaceRE (printf "\\s*\\^%s\\s*$" $blockName) ""}}
+      {{/* Strip leading blockquote markers so a referenced quote doesn't nest
+           inside our own blockquote (avoids a double-quoted look) */}}
+      {{$md = $md | replaceRE "(?m)^\\s*>\\s?" ""}}
     {{else}}
       {{/* Heading reference: capture lines under the heading until a same-or-higher heading */}}
       {{$section := slice}}
@@ -83,13 +86,22 @@
       {{end}}
       {{$icon := `<svg class="transclusion-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>`}}
       {{$srclink := printf "<a href=\"%s\" rel=\"noopener\" class=\"internal-link transclusion-link\" data-src=\"%s\" title=\"Reference to %s\">%s<span>%s</span></a>" $href $tp.RelPermalink $noteTitle $icon $noteTitle}}
-      {{$content = replace $content . (printf "<div class=\"transclusion\"><blockquote>%s%s</blockquote></div>" $srclink $rendered)}}
+      {{/* Close/reopen the surrounding <p> so this block-level embed becomes a
+           proper sibling paragraph instead of a block nested inside a <p> (which
+           the browser would auto-close, orphaning any sibling text). Degenerate
+           <p>/<br> left behind are cleaned up after the loop. */}}
+      {{$content = replace $content . (printf "</p><div class=\"transclusion\"><blockquote>%s%s</blockquote></div><p>" $srclink $rendered)}}
     {{else}}
       {{$content = replace $content . (printf "<a href=\"%s\" rel=\"noopener\" class=\"internal-link\" data-src=\"%s\">%s</a>" $tp.RelPermalink $tp.RelPermalink $noteTitle)}}
     {{end}}
   {{else}}
     {{$content = replace $content . (printf "<a class=\"internal-link broken\">%s</a>" $noteTitle)}}
   {{end}}
+{{end}}
+{{if $embeds}}
+  {{/* Tidy up the <p> splits from transclusion injection: drop leading/trailing
+       <br> inside paragraphs and remove the empty paragraphs left behind. */}}
+  {{$content = $content | replaceRE "<p>\\s*(?:<br\\s*/?>\\s*)+" "<p>" | replaceRE "(?:\\s*<br\\s*/?>)+\\s*</p>" "</p>" | replaceRE "<p>\\s*</p>" ""}}
 {{end}}
 
 {{/* Wikilinks */}}
