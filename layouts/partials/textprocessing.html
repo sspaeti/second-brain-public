@@ -81,7 +81,7 @@
           {{else}}
             {{$section = $section | append $line}}
           {{end}}
-        {{else if and (not $found) (hasPrefix (trim $line " ") "#") (eq (trim ($line | replaceRE "^#+\\s*" "") " ") $anchor)}}
+        {{else if and (not $found) (hasPrefix (trim $line " ") "#") (eq (lower (trim ($line | replaceRE "^#+\\s*" "") " ")) (lower $anchor))}}
           {{$capturing = true}}
           {{$found = true}}
           {{$level = len (index (findRE "^#+" $line) 0)}}
