@@ -12,7 +12,7 @@
     <article>
         {{partial "toc.html" .}}
         {{partial "textprocessing.html" . }}
-        {{if $.Site.Data.config.enableRecentNotes}}
+        {{if hugo.Data.config.enableRecentNotes}}
           {{partial "recent.html" . }}
         {{end}}
     {{partial "footerIndex.html" .}}

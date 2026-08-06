@@ -1,7 +1,7 @@
 <div class='newsletter'>
     <input class='toggle' id='newsletter-toggle' type='checkbox' tabindex="-1">
     <label id="toggle-label-newsletter" for='newsletter-toggle' tabindex="-1"></label>
-    <a href="{{ $.Site.Data.config.newsletter_link }}" target="_target">
+    <a href="{{ hugo.Data.config.newsletter_link }}" target="_target">
         {{ $lightSVG := resources.Get "svg/newsletter-icon.svg" }}
         {{ $lightTemplate := $lightSVG | resources.ExecuteAsTemplate "svg/newsletter-icon-light.svg" . }}
         <div id="newsletterLight">
