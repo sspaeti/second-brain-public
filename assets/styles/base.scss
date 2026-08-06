@@ -614,11 +614,11 @@ hr {
 
   // Below 1200px the absolute far-left logo doesn't fit; bring it into the header
   // flow so the ssp.sh mark (→ home) stays visible in place of the brand icon.
+  // Keep the img at the base 38px so it matches the blog's header logo size.
   @media all and (max-width: 1200px) {
     position: static;
     left: auto;
     margin-right: 0.45em;
-    & img { height: 30px; }
   }
 }
 
