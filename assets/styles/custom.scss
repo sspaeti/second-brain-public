@@ -265,13 +265,30 @@ article {
   transform: translateY(-5px);
 }
 
-.nav-icon {
-  margin-bottom: 0.5rem;
-  color: var(--secondary);   // match the card heading colour
-  line-height: 0;
+// Navigation-card icons. Rendered as CSS masks (NOT inline <svg>) because the home
+// content is inside .singlePage, which the Million.js SPA router morphs on
+// navigation — micromorph mangles inline-SVG namespaces so the icons vanish/break
+// until a full refresh. A masked box is a plain element that survives morphing, and
+// its colour follows --secondary (red in light, springViolet in dark).
+$nav-icon-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+$nav-icon-links: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71'/%3E%3Cpath d='M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'/%3E%3C/svg%3E");
+$nav-icon-graph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-5 0v-15A2.5 2.5 0 0 1 9.5 2Z'/%3E%3Cpath d='M14.5 4A2.5 2.5 0 0 1 17 6.5v11a2.5 2.5 0 0 1-5 0v-11A2.5 2.5 0 0 1 14.5 4Z'/%3E%3Cpath d='M19.5 7A2.5 2.5 0 0 1 22 9.5v6a2.5 2.5 0 0 1-5 0v-6A2.5 2.5 0 0 1 19.5 7Z'/%3E%3Cpath d='M4.5 7A2.5 2.5 0 0 1 7 9.5v6a2.5 2.5 0 0 1-5 0v-6A2.5 2.5 0 0 1 4.5 7Z'/%3E%3C/svg%3E");
 
-  svg { width: 30px; height: 30px; }
+.nav-icon {
+  width: 30px;
+  height: 30px;
+  margin-bottom: 0.5rem;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
 }
+.nav-icon--search, .nav-icon--links, .nav-icon--graph { background-color: var(--secondary); }
+.nav-icon--search { -webkit-mask-image: $nav-icon-search; mask-image: $nav-icon-search; }
+.nav-icon--links  { -webkit-mask-image: $nav-icon-links;  mask-image: $nav-icon-links; }
+.nav-icon--graph  { -webkit-mask-image: $nav-icon-graph;  mask-image: $nav-icon-graph; }
 
 .nav-card h3 {
   font-size: 1.2rem;
