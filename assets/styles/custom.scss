@@ -266,8 +266,11 @@ article {
 }
 
 .nav-icon {
-  font-size: 1.8rem;
   margin-bottom: 0.5rem;
+  color: var(--secondary);   // match the card heading colour
+  line-height: 0;
+
+  svg { width: 30px; height: 30px; }
 }
 
 .nav-card h3 {

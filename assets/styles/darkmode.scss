@@ -75,14 +75,18 @@
     display: flex;
     align-items: center;
     flex-wrap: nowrap;
-    overflow-x: auto;
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
     padding: 0 5px;
     margin-right: 10px;
-    
-    &::-webkit-scrollbar {
-        display: none; /* Hide scrollbar for Chrome/Safari/Opera */
+
+    // Only scroll horizontally on mobile. On desktop keep overflow visible so the
+    // hover ring/glow isn't clipped top & bottom (matches the blog's all-around border).
+    @media all and (max-width: 768px) {
+        overflow-x: auto;
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+        &::-webkit-scrollbar {
+            display: none; /* Hide scrollbar for Chrome/Safari/Opera */
+        }
     }
 }
 
@@ -111,7 +115,7 @@
     transition: background-color 0.22s ease, box-shadow 0.22s ease, color 0.22s ease;
 
     &:hover {
-        color: #FF5D62 !important;
+        color: #D27E99 !important;   // pinkish — same as the blog nav hover
         background: linear-gradient(135deg, rgba(255, 93, 98, 0.10), rgba(210, 126, 153, 0.10));
         box-shadow: 0 0 0 1px rgba(255, 93, 98, 0.25),
                     0 4px 14px rgba(255, 93, 98, 0.18);
@@ -150,7 +154,7 @@
     color: var(--global-font-secondary-color) !important;
 
     &:hover {
-        color: #FF5D62 !important;
+        color: #D27E99 !important;   // pinkish — same as the blog nav hover
         background: linear-gradient(135deg, rgba(255, 93, 98, 0.12), rgba(210, 126, 153, 0.12));
         box-shadow: 0 0 0 1px rgba(210, 126, 153, 0.30),
                     0 0 18px rgba(255, 93, 98, 0.18);
@@ -173,8 +177,19 @@
 .nav-text {
     font-size: 16px;
     font-weight: 500;
-    
+
     @media all and (max-width: 768px) {
         display: none;
     }
+}
+
+// Active (current) nav item — brighter + bold, like the blog's current-page highlight.
+.icon-links a.active {
+    color: var(--dark) !important;
+    svg { stroke: var(--dark); }
+    .nav-text { font-weight: 700; }
+}
+[saved-theme="dark"] .icon-links a.active {
+    color: #DCD7BA !important;
+    svg { stroke: #DCD7BA; }
 }

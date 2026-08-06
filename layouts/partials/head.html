@@ -295,6 +295,17 @@
         document.documentElement.removeAttribute('data-section');
       }
 
+      // keep the current nav item highlighted after SPA navigation (server-side
+      // class="active" only reflects the first-loaded page under SPA routing)
+      (function () {
+        var p = window.location.pathname;
+        document.querySelectorAll('.icon-links a.active').forEach(function (a) { a.classList.remove('active'); });
+        var sel = p.startsWith('/brain/data-engineering')
+          ? '.icon-links .vault-link a'
+          : (p.startsWith('/brain') ? '.icon-links .brain-link a' : null);
+        if (sel) { var el = document.querySelector(sel); if (el) el.classList.add('active'); }
+      })();
+
       {{if $data.enableFooter | default $.Site.Data.config.enableFooter}}
       const footer = document.getElementById("footer")
       if (footer) {

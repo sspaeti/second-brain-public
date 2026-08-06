@@ -612,8 +612,13 @@ hr {
     border-radius: 4px;
   }
 
+  // Below 1200px the absolute far-left logo doesn't fit; bring it into the header
+  // flow so the ssp.sh mark (→ home) stays visible in place of the brand icon.
   @media all and (max-width: 1200px) {
-    display: none;
+    position: static;
+    left: auto;
+    margin-right: 0.45em;
+    & img { height: 30px; }
   }
 }
 
@@ -623,6 +628,13 @@ hr {
 .header-icon--vault { display: none; }
 :root[data-section="vault"] .header-icon--brain { display: none; }
 :root[data-section="vault"] .header-icon--vault { display: inline-block; }
+
+// Below 1200px show the ssp.sh logo (brought into the header flow above) instead
+// of the brain/vault brand icon, so branding is consistent with ssp.sh. The
+// "Second Brain" text stays and still links to /brain.
+@media all and (max-width: 1200px) {
+  .header-icon { display: none !important; }
+}
 
 .header-divider {
   display: inline-block;
