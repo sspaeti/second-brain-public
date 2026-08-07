@@ -6,8 +6,8 @@
 <div class="nl-footer">
   <div class="nl-footer-divider"></div>
   <div class="nl-footer-inner">
-    <div class="nl-footer-label">{{ $label }}</div>
-    <p class="nl-footer-desc">{{ $desc }}</p>
+    <div class="nl-footer-label">{{ $label | safeHTML }}</div>
+    <p class="nl-footer-desc">{{ $desc | safeHTML }}</p>
     <form method="post" action="https://list.ssp.sh/subscription/form" class="listmonk-form nl-footer-form" target="_top">
       <input type="hidden" name="nonce" />
       <input type="email" name="email" required placeholder="your@email.com" class="nl-footer-email" />
