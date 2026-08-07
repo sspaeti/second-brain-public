@@ -62,12 +62,47 @@ Key fork additions over upstream: case-insensitive link matching, block-referenc
 Custom render hooks in `layouts/_default/_markup/`:
 * **render-image.html** - Detects YouTube URLs and renders responsive iframe embeds (with timestamp support); all other images pass through normally
 
+### `recent_updates.py`: Change badges & edit history
+
+Stdlib-only Python (`utils/recent_updates.py`, logic ported from the newsletter generator) that scans the `content/` git submodule history and writes `data/recent_updates.json`, keyed by each note's on-disk filename stem (== Hugo `.File.BaseFileName`). Each entry is `{status, words, sessions:[…]}` and drives two UI features:
+- **Recent-notes pills** — a green `NEW · 1,079w` / blue `UPD · ~80w` badge on the homepage recent-notes list (and other listings).
+- **Per-note edit history** — a "recently updated" hover popover on each note page listing recent editing sessions with `+added / −removed` word counts. The note's origin session shows `new · N words`, or `published · N words` when the frontmatter `createddate` predates the first git commit (i.e. the note was written privately before being published) — so it never competes with the "Created" date in the meta line.
+
+**Two noise filters keep the counts "real content only"** (so tooling/metadata commits don't show as edits):
+- **Frontmatter excluded from word counts** — the parser tracks file line numbers through each diff hunk and ignores any `+`/`-` line inside the `---…---` block. So OG `description:` backfills, `createddate:` extraction, and `lastmod:` bumps contribute 0 words.
+- **`lastmod` ceiling** — sessions dated *after* a note's frontmatter `lastmod` are dropped. `lastmod` is the pipeline's authoritative "real edit" date (set by `obsidian-quartz` from vault mtime, guarded by `revert-lastmod-only.sh`), so the popover never shows a change newer than the note's "Last updated" line. A note whose only recent git activity is tooling gets no dot.
+
+The homepage badge picks the most recent session that is a real content change (or the creation), so a trailing metadata commit never makes it read `0 words`.
+
+Runs in `prepare` / `prepare-python` (one line, no other build change). Tunables live in `config.toml` `[params]` (read via `tomllib`, with in-script fallbacks): `recentUpdatesLookbackDays` (1825 ≈ 5y — history-depth only, no viewer cost since each popover is capped at `recentUpdatesMaxSessions` rows and bounded by `lastmod`), `recentUpdatesSessionGapHours` (24), `recentUpdatesMaxSessions` (7).
+
 ## Configs
 
 ### Redirects of renamed files
 Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
+
+### 2026-08-07: Change badges + per-note edit history (git word-diffs)
+
+The recent-notes list and every note page now show *how much* a note changed, from the `content/` git history at build time. Recent-notes pills read green `NEW · 1,079w` (brand-new) or blue `UPD · ~80w` (gross words in the last edit); a note page adds a "recently updated" dot whose hover/tap popover lists up to 5 recent editing sessions with `+added / −removed` counts — no commit messages.
+
+- **`utils/recent_updates.py`** (stdlib, ported from the newsletter generator): one `git log` scan → `data/recent_updates.json`, keyed by filename stem (== Hugo `.File.BaseFileName`), each `{status, words, sessions}`. Runs as one line in `prepare` / `prepare-python`. Tunables: `LOOKBACK_DAYS` 180, `SESSION_GAP_HOURS` 24, `MAX_SESSIONS` 5.
+- **Sessions**: commits ≤ 24h apart collapse into one, so a same-afternoon burst reads as a single change. Badge size is *gross* (added + deleted); `new` vs `updated` from whether the note's first commit falls in that session.
+- **Rendering**: pills in `layouts/partials/page-list.html` (shared, so they also show on tag/section/taxonomy listings); popover in `layouts/_default/single.html`, pure-CSS via `:hover` / `:focus-within`, all-`<span>` to stay valid inside `<p>`.
+- **Colors** (`assets/styles/custom.scss`, Kanagawa): `--badge-new` `#76946A`, `--badge-upd` `#658594` (= dark `--secondary`), `--badge-del` `#C34043`; ASCII-only chunk top to avoid the Sass-BOM bug.
+- **Newsletter footer** (`layouts/partials/newsletter-footer.html`): now takes optional `label` / `desc` (`safeHTML`), appended below the recent list via `recent.html`; default callers unchanged.
+- **Files**: `utils/recent_updates.py`, `layouts/partials/page-list.html`, `layouts/_default/single.html`, `layouts/partials/recent.html`, `layouts/partials/newsletter-footer.html`, `assets/styles/custom.scss`, `Makefile`, `.gitignore`.
+
+### 2026-08-07: Per-note change popover + edit-history refinements
+
+Follow-up to the badges above: the "recently updated" dot on note pages got a hover/tap popover of recent editing sessions, plus several accuracy fixes so it reflects *real content* changes only.
+
+- **Real-content-only counts**: word diffs now **exclude the frontmatter block** (line-number tracking through each hunk), so OG `description:`, `createddate:` extraction, and `lastmod:` bumps count as 0. Sessions are also **ceilinged at the note's `lastmod`** — the popover never shows a change newer than the "Last updated" line, since `lastmod` is the authoritative real-edit date (`obsidian-quartz` from vault mtime + `revert-lastmod-only.sh`). A note whose only recent git activity is tooling shows no dot.
+- **Creation row**: the session containing a note's first commit renders `new · N words` (matching the badge) instead of churn — or `published · N words` when frontmatter `createddate` predates the first git commit (note written privately, published later), so it doesn't compete with the meta "Created" date. The badge picks the most recent *content* session so a trailing metadata commit never reads `0 words`.
+- **Lookback 180 → 1825 (≈5y)**, `MAX_SESSIONS` 5 → 7 — shows a note's multi-year refinement history. No viewer cost (baked into HTML, popover capped at `MAX_SESSIONS` rows, bounded by `lastmod`); only the local build scan grows (~1.7s). The three tunables now live in `config.toml` `[params]` (`recentUpdates*`), read by the script via `tomllib`.
+- **Popover UX** (`layouts/_default/single.html`, `assets/styles/custom.scss`): pure-CSS `:hover` / `:focus-within` on desktop; a small inline script toggles `.nc-open` for tap on touch devices (tap-outside / `Escape` to dismiss). Solid opaque surface (`--nc-bg` `#16161D` dark / `#fff` light) at `z-index:40` — fixes the theme's `article > .meta { opacity: .7 }` which made the popover translucent *and* trapped it under the article body (overridden to `opacity:1`, meta re-muted via color). `+added`/`−removed` in `--badge-new`/`--badge-del`.
+- **Files**: `utils/recent_updates.py`, `layouts/_default/single.html`, `assets/styles/custom.scss`, `config.toml`.
 
 ### 2026-08-04: `lastmod` no longer bumps when a note's content is unchanged
 

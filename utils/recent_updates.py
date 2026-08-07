@@ -1,18 +1,23 @@
-"""Emit per-note change badges for the homepage recent-notes list.
+"""Emit per-note change data from the `content/` git history.
 
-Reads the `content/` git history and, for every markdown note, computes its most
-recent *editing session* — the run of commits ending at the note's last commit,
-grouping commits whose gap is <= SESSION_GAP_HOURS into one session. This
-coalesces "I fixed it three times that afternoon" into a single number that
-matches the single date Hugo shows.
+One output, `data/recent_updates.json`, from a single git scan. Keyed by the
+on-disk filename stem (== Hugo's `.File.BaseFileName`), each value carries both
+the homepage badge fields and the per-note-page popover history:
 
-Output: `data/recent_updates.json`, keyed by the on-disk filename stem (which
-equals Hugo's `.File.BaseFileName`), each value `{"status": ..., "words": N}`:
+    {
+      "status": "new" | "updated",  # homepage recent-notes badge
+      "words": N,                    # new -> total note words; updated -> gross
+      "sessions": [ {"date","iso","rel","added","removed"}, ... ]  # newest first
+    }
 
-  * status "new"     -> note created in that session; words = total note words.
-  * status "updated" -> words = gross words touched (added + deleted) in the
-                        session's diffs.
+`sessions` is omitted for a note whose only edits touched zero words (e.g. an
+image/frontmatter-only change): such a note still gets a badge but no popover.
 
+An *editing session* is the run of commits ending at some commit, grouping
+commits whose gap is <= SESSION_GAP_HOURS into one. This coalesces "I fixed it
+three times that afternoon" into one entry that matches the single date shown.
+
+The homepage list reads `.status` / `.words`; the note page reads `.sessions`.
 The logic is ported (not imported) from ../listmonk-rss/newsletter.py so that
 `make prepare` stays self-contained (stdlib only, no third-party deps).
 """
@@ -21,6 +26,7 @@ import json
 import re
 import subprocess
 import sys
+import tomllib
 from collections import defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -28,9 +34,27 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 CONTENT = ROOT / "content"
 OUTPUT = ROOT / "data" / "recent_updates.json"
+CONFIG = ROOT / "config.toml"
 
-LOOKBACK_DAYS = 180          # window for word-diff scan; covers the 30 recent notes
-SESSION_GAP_HOURS = 24       # commits closer than this fold into one session
+
+def _config_params() -> dict:
+    """`[params]` from config.toml, or empty on any read/parse error."""
+    try:
+        with CONFIG.open("rb") as f:
+            return tomllib.load(f).get("params", {})
+    except (OSError, tomllib.TOMLDecodeError):
+        return {}
+
+
+_params = _config_params()
+
+# Tunables live in config.toml `[params]` (recentUpdates*); these are fallbacks.
+# LOOKBACK_DAYS is the git word-diff scan window (~5y). No viewer cost: each popover
+# is capped at MAX_SESSIONS rows and bounded by the note's lastmod; only the local
+# build scan grows.
+LOOKBACK_DAYS = int(_params.get("recentUpdatesLookbackDays", 1825))
+SESSION_GAP_HOURS = int(_params.get("recentUpdatesSessionGapHours", 24))  # fold commits closer than this into one session
+MAX_SESSIONS = int(_params.get("recentUpdatesMaxSessions", 7))            # sessions shown in a note's change popover
 
 
 def _parse_git_date(raw: str) -> datetime:
@@ -38,9 +62,32 @@ def _parse_git_date(raw: str) -> datetime:
     return datetime.strptime(raw.strip(), "%Y-%m-%d %H:%M:%S %z")
 
 
-def commit_word_stats(since: datetime) -> dict[str, list[tuple[datetime, int]]]:
-    """Per note, a list of `(commit_datetime, gross_words)` for commits since
-    `since`, where gross = added + deleted words on the note's diff lines."""
+_HUNK_RE = re.compile(r"^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@")
+
+
+def _frontmatter_end_line(path: Path) -> int:
+    """1-based line number of a note's closing `---` frontmatter delimiter, so
+    lines 1..N are frontmatter and the body starts at N+1. 0 if no frontmatter.
+    Approximated from the note's current version and reused for all its commits
+    (frontmatter length barely changes), which is enough to keep metadata edits
+    -- OG `description:`, `lastmod:`, moved `created:` lines -- out of the count."""
+    try:
+        lines = path.read_text(encoding="utf-8", errors="ignore").split("\n")
+    except OSError:
+        return 0
+    if not lines or lines[0].strip() != "---":
+        return 0
+    for i in range(1, len(lines)):
+        if lines[i].strip() == "---":
+            return i + 1
+    return 0
+
+
+def commit_word_stats(since: datetime) -> dict[str, list[tuple[datetime, int, int]]]:
+    """Per note, a list of `(commit_datetime, added_words, removed_words)` for
+    commits since `since`, counted from `+`/`-` diff lines. Frontmatter lines are
+    excluded (tracked by file line number) so metadata-only commits don't read as
+    content edits."""
     result = subprocess.run(
         [
             "git", "-c", "core.quotePath=false", "-C", str(CONTENT), "log",
@@ -50,17 +97,20 @@ def commit_word_stats(since: datetime) -> dict[str, list[tuple[datetime, int]]]:
         capture_output=True, text=True, check=True,
     )
 
-    commits: dict[str, list[tuple[datetime, int]]] = defaultdict(list)
+    commits: dict[str, list[tuple[datetime, int, int]]] = defaultdict(list)
     cur_date: datetime | None = None
     cur_path: str | None = None
-    cur_gross = 0
+    cur_added = 0
+    cur_removed = 0
     is_binary = False
+    fm_end = 0                 # last frontmatter line for the current file
+    old_ln = new_ln = 0        # running line numbers within the current hunk
 
     def flush() -> None:
-        nonlocal cur_path, cur_gross
+        nonlocal cur_path, cur_added, cur_removed
         if cur_path is not None and cur_date is not None:
-            commits[cur_path].append((cur_date, cur_gross))
-        cur_path, cur_gross = None, 0
+            commits[cur_path].append((cur_date, cur_added, cur_removed))
+        cur_path, cur_added, cur_removed = None, 0, 0
 
     for line in result.stdout.splitlines():
         if line.startswith("__COMMIT__"):
@@ -72,18 +122,33 @@ def commit_word_stats(since: datetime) -> dict[str, list[tuple[datetime, int]]]:
             _, _, b_path = line.partition(" b/")
             cur_path = b_path if b_path.endswith(".md") else None
             is_binary = False
+            fm_end = _frontmatter_end_line(CONTENT / cur_path) if cur_path else 0
+            old_ln = new_ln = 0
             continue
         if cur_path is None:
             continue
         if line.startswith("Binary files"):
             is_binary = True
             continue
-        if is_binary or line.startswith(("+++", "---", "@@")):
+        if is_binary:
+            continue
+        m = _HUNK_RE.match(line)
+        if m:
+            old_ln, new_ln = int(m.group(1)), int(m.group(2))
+            continue
+        if old_ln == 0:        # still in the diff preamble (index / ---/+++ headers)
             continue
         if line.startswith("+"):
-            cur_gross += len(line[1:].split())
+            if new_ln > fm_end:            # body only
+                cur_added += len(line[1:].split())
+            new_ln += 1
         elif line.startswith("-"):
-            cur_gross += len(line[1:].split())
+            if old_ln > fm_end:            # body only
+                cur_removed += len(line[1:].split())
+            old_ln += 1
+        else:                              # context line: advances both sides
+            old_ln += 1
+            new_ln += 1
     flush()
 
     return commits
@@ -110,22 +175,53 @@ def first_commit_dates() -> dict[str, datetime]:
     return first
 
 
-def most_recent_session(dated: list[tuple[datetime, int]]) -> tuple[datetime, int]:
-    """From a note's commits, return `(session_start, gross_words)` for the most
-    recent session: newest commit plus every older commit within SESSION_GAP_HOURS
-    of the previous kept one, until the first larger gap."""
+def group_sessions(dated: list[tuple[datetime, int, int]]) -> list[dict]:
+    """Fold a note's commits into sessions, newest first. Each session:
+    `{"start", "end", "added", "removed"}` where `end` is the newest commit in
+    the session and `start` the oldest. A gap larger than SESSION_GAP_HOURS
+    between consecutive commits opens a new session."""
     dated = sorted(dated, key=lambda t: t[0], reverse=True)
     gap = timedelta(hours=SESSION_GAP_HOURS)
-    session_start = dated[0][0]
-    gross = dated[0][1]
-    prev = dated[0][0]
-    for dt, g in dated[1:]:
-        if prev - dt > gap:
-            break
-        gross += g
-        session_start = dt
+    sessions: list[dict] = []
+    cur: dict | None = None
+    prev: datetime | None = None
+    for dt, added, removed in dated:
+        if cur is None or prev - dt > gap:
+            cur = {"start": dt, "end": dt, "added": added, "removed": removed}
+            sessions.append(cur)
+        else:
+            cur["added"] += added
+            cur["removed"] += removed
+            cur["start"] = dt
         prev = dt
-    return session_start, gross
+    return sessions
+
+
+def _fmt_date(dt: datetime, now: datetime) -> str:
+    """`Aug 4` for the current year, `Aug 4, 2025` otherwise."""
+    if dt.year == now.year:
+        return dt.strftime("%b ") + str(dt.day)
+    return dt.strftime("%b ") + str(dt.day) + dt.strftime(", %Y")
+
+
+def _relative(dt: datetime, now: datetime) -> str:
+    """Coarse humanized age: today / yesterday / N days / weeks / months / years."""
+    days = (now - dt).days
+    if days <= 0:
+        return "today"
+    if days == 1:
+        return "yesterday"
+    if days < 7:
+        return f"{days} days ago"
+    if days < 14:
+        return "last week"
+    if days < 60:
+        return f"{days // 7} weeks ago"
+    if days < 365:
+        months = max(1, round(days / 30))
+        return "last month" if months == 1 else f"{months} months ago"
+    years = max(1, round(days / 365))
+    return "last year" if years == 1 else f"{years} years ago"
 
 
 def _word_count(path: Path) -> int:
@@ -138,12 +234,39 @@ def _word_count(path: Path) -> int:
     return len(re.split(r"\s+", text.strip())) if text.strip() else 0
 
 
+def _frontmatter_date(path: Path, field: str):
+    """A `YYYY-MM-DD` frontmatter field as a `date`, or None.
+
+    * `lastmod`     -- the site's authoritative "last real edit" date; tooling
+                       commits (OG images, body restructuring) don't bump it, so it
+                       is the ceiling for the popover (never show a change after it).
+    * `createddate` -- the note's true creation date in the private vault, which
+                       can predate the first *git* commit (= when it was published),
+                       used to label that first row `published` instead of `new`."""
+    try:
+        text = path.read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        return None
+    if not text.startswith("---"):
+        return None
+    end = text.find("\n---", 4)
+    front = text[: end if end >= 0 else len(text)]
+    m = re.search(rf'^{field}:\s*"?(\d{{4}}-\d{{2}}-\d{{2}})', front, re.MULTILINE)
+    if not m:
+        return None
+    try:
+        return datetime.strptime(m.group(1), "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+
 def build() -> dict[str, dict]:
     if not CONTENT.exists():
         print(f"recent_updates: {CONTENT} not found, writing empty index", file=sys.stderr)
         return {}
 
-    since = datetime.now().astimezone() - timedelta(days=LOOKBACK_DAYS)
+    now = datetime.now().astimezone()
+    since = now - timedelta(days=LOOKBACK_DAYS)
     commits = commit_word_stats(since)
     first = first_commit_dates()
 
@@ -151,16 +274,81 @@ def build() -> dict[str, dict]:
     for path, dated in commits.items():
         if not dated:
             continue
-        session_start, gross = most_recent_session(dated)
+        sessions = group_sessions(dated)
         stem = Path(path).stem
         first_dt = first.get(path)
-        is_new = first_dt is not None and first_dt >= session_start
+        full = CONTENT / path
+        total_words = _word_count(full) if full.exists() else None
+
+        # Ceiling the history at the note's `lastmod`: git can carry later
+        # tooling/restructuring commits that never bumped lastmod, and those
+        # would otherwise show as changes newer than the "Last updated" date.
+        lastmod = _frontmatter_date(full, "lastmod") if full.exists() else None
+        if lastmod is not None:
+            sessions = [s for s in sessions if s["end"].date() <= lastmod]
+        if not sessions:
+            continue
+
+        # If the note existed privately before it was published, its first *git*
+        # commit is the publish, not the creation. Label that row "published"
+        # (the true "Created" date stays in the meta line) to avoid two dates
+        # both reading as the origin.
+        created = _frontmatter_date(full, "createddate") if full.exists() else None
+        creation_kind = (
+            "published" if created is not None and first_dt is not None
+            and created < first_dt.date() else "new"
+        )
+
+        def _is_creation(s: dict) -> bool:
+            return first_dt is not None and s["start"] <= first_dt <= s["end"]
+
+        # --- homepage badge ---
+        # Use the most recent session that actually changed content (or is the
+        # note's creation), so a trailing metadata-only commit doesn't make the
+        # badge read "0 words".
+        recent = next(
+            (s for s in sessions if _is_creation(s) or s["added"] + s["removed"] > 0),
+            sessions[0],
+        )
+        gross = recent["added"] + recent["removed"]
+        is_new = _is_creation(recent)
         if is_new:
-            full = CONTENT / path
-            words = _word_count(full) if full.exists() else gross
-            out[stem] = {"status": "new", "words": words}
+            entry: dict = {"status": "new", "words": total_words if total_words is not None else gross}
         else:
-            out[stem] = {"status": "updated", "words": gross}
+            entry = {"status": "updated", "words": gross}
+
+        # --- per-note change popover (list of sessions) ---
+        # The session that contains the note's first-ever commit is its creation:
+        # show it as "new -> total words" (matching the badge) instead of churn,
+        # so a fresh note doesn't read as a big +added/-removed edit.
+        rows = []
+        for s in sessions:
+            is_creation = (
+                first_dt is not None and s["start"] <= first_dt <= s["end"]
+            )
+            row = {
+                "date": _fmt_date(s["end"], now),
+                "iso": s["end"].strftime("%Y-%m-%d"),
+                "rel": _relative(s["end"], now),
+            }
+            if is_creation:
+                row["kind"] = creation_kind
+                # size at creation/publish (words in the first commit), NOT the
+                # current total -- a note published small and grown since would
+                # otherwise read "published · <today's word count>".
+                row["words"] = s["added"]
+            elif s["added"] + s["removed"] > 0:
+                row["added"] = s["added"]
+                row["removed"] = s["removed"]
+            else:
+                continue  # zero-word non-creation session: skip as noise
+            rows.append(row)
+        rows = rows[:MAX_SESSIONS]
+        if rows:
+            entry["sessions"] = rows
+
+        out[stem] = entry
+
     return out
 
 
@@ -169,7 +357,9 @@ def main() -> None:
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(json.dumps(index, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     new = sum(1 for v in index.values() if v["status"] == "new")
-    print(f"recent_updates: {len(index)} notes ({new} new, {len(index) - new} updated) -> {OUTPUT}")
+    changes = sum(1 for v in index.values() if "sessions" in v)
+    print(f"recent_updates: {len(index)} notes ({new} new, {len(index) - new} updated, "
+          f"{changes} with popover history) -> {OUTPUT}")
 
 
 if __name__ == "__main__":

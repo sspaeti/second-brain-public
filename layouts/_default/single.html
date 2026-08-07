@@ -21,9 +21,50 @@
           {{- if .Params.createddate }} · <span class="meta-label-full">Created</span><span class="meta-label-short">Created:</span> <time datetime="{{ .Params.createddate }}">{{ (time .Params.createddate).Format "Jan 2, 2006" }}</time>
           {{- end -}}
           {{ if gt .ReadingTime 0 }} · <span class="meta-reading-time">{{ .ReadingTime }} min read</span>{{ end }}
+          {{ with (index hugo.Data.recent_updates .File.BaseFileName) }}{{ with .sessions }}
+          <span class="note-changes" tabindex="0" role="button" aria-label="Recent changes to this note">
+            <span class="nc-dot"></span><span class="nc-label">recently updated</span>
+            <span class="nc-popover" role="tooltip">
+              <span class="nc-title">Recent changes</span>
+              {{ range . }}
+              <span class="nc-row">
+                <span class="nc-when"><time datetime="{{ .iso }}">{{ .date }}</time><span class="nc-rel">{{ .rel }}</span></span>
+                {{ if .kind }}
+                <span class="nc-delta"><span class="nc-add">{{ .kind }}</span> · {{ .words }} words</span>
+                {{ else }}
+                <span class="nc-delta"><span class="nc-add">+{{ .added }}</span> / <span class="nc-del">−{{ .removed }}</span> words</span>
+                {{ end }}
+              </span>
+              {{ end }}
+            </span>
+          </span>
+          {{ end }}{{ end }}
           {{end}}
           <!-- {{ partial "github.html" . }} -->
       </p>
+      {{- /* Recent-changes popover: tap to toggle on touch devices (no hover),
+             tap outside or Escape to dismiss. Desktop still uses :hover. */ -}}
+      <script>
+      (function () {
+        var nc = document.querySelector('.note-changes');
+        if (!nc) return;
+        function close() { nc.classList.remove('nc-open'); nc.blur(); }
+        nc.addEventListener('click', function (e) {
+          if (e.target.closest('.nc-popover')) return; // clicks inside stay open
+          nc.classList.toggle('nc-open');
+          if (!nc.classList.contains('nc-open')) nc.blur();
+        });
+        // pointerdown (not click) so an outside tap dismisses reliably on iOS,
+        // where taps on non-interactive elements often don't fire click.
+        document.addEventListener('pointerdown', function (e) {
+          if (e.target.closest('.note-changes')) return; // the widget handles its own taps
+          if (nc.classList.contains('nc-open')) close();
+        });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') close();
+        });
+      })();
+      </script>
       {{- /* Hacker News Banner (skipped when hackernews_bottom is set — banner is placed inline at the bottom of the note) */ -}}
       {{- if not .Params.hackernews_bottom -}}
       {{- with .Params.hackernews -}}

@@ -17,3 +17,4 @@ utils/hugo-obsidian/hugo-obsidian
 utils/hugo-obsidian/hugo-obsidian-dev
 
 .superpowers
+__pycache__
