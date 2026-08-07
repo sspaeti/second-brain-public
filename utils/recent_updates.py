@@ -1,25 +1,23 @@
 """Emit per-note change data from the `content/` git history.
 
-Two outputs, both from a single git scan:
+One output, `data/recent_updates.json`, from a single git scan. Keyed by the
+on-disk filename stem (== Hugo's `.File.BaseFileName`), each value carries both
+the homepage badge fields and the per-note-page popover history:
 
-1. `data/recent_updates.json` — drives the homepage recent-notes badges. Keyed by
-   the on-disk filename stem (== Hugo's `.File.BaseFileName`), each value
-   `{"status": ..., "words": N}`:
+    {
+      "status": "new" | "updated",  # homepage recent-notes badge
+      "words": N,                    # new -> total note words; updated -> gross
+      "sessions": [ {"date","iso","rel","added","removed"}, ... ]  # newest first
+    }
 
-     * status "new"     -> note created in its most recent session; words = total
-                           note words.
-     * status "updated" -> words = gross words touched (added + deleted) in the
-                           most recent session's diffs.
-
-2. `data/note_changes.json` — drives the per-note-page change popover (the dot
-   next to "min read"). Keyed by the same stem, each value:
-
-     {"sessions": [ {"date","iso","rel","added","removed"}, ... ]}  # newest first
+`sessions` is omitted for a note whose only edits touched zero words (e.g. an
+image/frontmatter-only change): such a note still gets a badge but no popover.
 
 An *editing session* is the run of commits ending at some commit, grouping
 commits whose gap is <= SESSION_GAP_HOURS into one. This coalesces "I fixed it
 three times that afternoon" into one entry that matches the single date shown.
 
+The homepage list reads `.status` / `.words`; the note page reads `.sessions`.
 The logic is ported (not imported) from ../listmonk-rss/newsletter.py so that
 `make prepare` stays self-contained (stdlib only, no third-party deps).
 """
@@ -35,11 +33,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 CONTENT = ROOT / "content"
 OUTPUT = ROOT / "data" / "recent_updates.json"
-CHANGES_OUTPUT = ROOT / "data" / "note_changes.json"
 
 LOOKBACK_DAYS = 180          # window for word-diff scan; covers the 30 recent notes
 SESSION_GAP_HOURS = 24       # commits closer than this fold into one session
-MAX_SESSIONS = 5             # sessions shown in a note's change popover
+MAX_SESSIONS = 7             # sessions shown in a note's change popover
 
 
 def _parse_git_date(raw: str) -> datetime:
@@ -179,63 +176,75 @@ def _word_count(path: Path) -> int:
     return len(re.split(r"\s+", text.strip())) if text.strip() else 0
 
 
-def build() -> tuple[dict[str, dict], dict[str, dict]]:
+def build() -> dict[str, dict]:
     if not CONTENT.exists():
         print(f"recent_updates: {CONTENT} not found, writing empty index", file=sys.stderr)
-        return {}, {}
+        return {}
 
     now = datetime.now().astimezone()
     since = now - timedelta(days=LOOKBACK_DAYS)
     commits = commit_word_stats(since)
     first = first_commit_dates()
 
-    badges: dict[str, dict] = {}
-    changes: dict[str, dict] = {}
+    out: dict[str, dict] = {}
     for path, dated in commits.items():
         if not dated:
             continue
         sessions = group_sessions(dated)
         recent = sessions[0]
         stem = Path(path).stem
+        first_dt = first.get(path)
+        full = CONTENT / path
+        total_words = _word_count(full) if full.exists() else None
 
         # --- homepage badge (most recent session only) ---
         gross = recent["added"] + recent["removed"]
-        first_dt = first.get(path)
         is_new = first_dt is not None and first_dt >= recent["start"]
         if is_new:
-            full = CONTENT / path
-            words = _word_count(full) if full.exists() else gross
-            badges[stem] = {"status": "new", "words": words}
+            entry: dict = {"status": "new", "words": total_words if total_words is not None else gross}
         else:
-            badges[stem] = {"status": "updated", "words": gross}
+            entry = {"status": "updated", "words": gross}
 
         # --- per-note change popover (list of sessions) ---
-        rows = [
-            {
+        # The session that contains the note's first-ever commit is its creation:
+        # show it as "new -> total words" (matching the badge) instead of churn,
+        # so a fresh note doesn't read as a big +added/-removed edit.
+        rows = []
+        for s in sessions:
+            is_creation = (
+                first_dt is not None and s["start"] <= first_dt <= s["end"]
+            )
+            row = {
                 "date": _fmt_date(s["end"], now),
                 "iso": s["end"].strftime("%Y-%m-%d"),
                 "rel": _relative(s["end"], now),
-                "added": s["added"],
-                "removed": s["removed"],
             }
-            for s in sessions
-            if s["added"] + s["removed"] > 0
-        ][:MAX_SESSIONS]
-        if not rows:
-            continue
-        changes[stem] = {"sessions": rows}
+            if is_creation:
+                row["kind"] = "new"
+                row["words"] = total_words if total_words is not None else s["added"]
+            elif s["added"] + s["removed"] > 0:
+                row["added"] = s["added"]
+                row["removed"] = s["removed"]
+            else:
+                continue  # zero-word non-creation session: skip as noise
+            rows.append(row)
+        rows = rows[:MAX_SESSIONS]
+        if rows:
+            entry["sessions"] = rows
 
-    return badges, changes
+        out[stem] = entry
+
+    return out
 
 
 def main() -> None:
-    badges, changes = build()
+    index = build()
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT.write_text(json.dumps(badges, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    CHANGES_OUTPUT.write_text(json.dumps(changes, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    new = sum(1 for v in badges.values() if v["status"] == "new")
-    print(f"recent_updates: {len(badges)} notes ({new} new, {len(badges) - new} updated) -> {OUTPUT}")
-    print(f"note_changes: {len(changes)} notes with recent sessions -> {CHANGES_OUTPUT}")
+    OUTPUT.write_text(json.dumps(index, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    new = sum(1 for v in index.values() if v["status"] == "new")
+    changes = sum(1 for v in index.values() if "sessions" in v)
+    print(f"recent_updates: {len(index)} notes ({new} new, {len(index) - new} updated, "
+          f"{changes} with popover history) -> {OUTPUT}")
 
 
 if __name__ == "__main__":

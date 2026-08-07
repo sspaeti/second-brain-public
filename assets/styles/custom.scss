@@ -1929,12 +1929,25 @@ $nav-icon-graph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/sv
 // ========== Per-note change popover (dot next to the meta line) ========== //
 // A small dot + "recently updated" label after "min read" on a note page. Hover
 // (desktop) or tap/focus (mobile) reveals a popover listing recent editing
-// sessions with per-session added/removed word counts (data/note_changes.json).
+// sessions with per-session added/removed word counts (data/recent_updates.json).
 // Reuses --badge-new (green) for the dot/additions and --badge-upd (blue) for
 // the label; adds one red token for deletions. ASCII-only at the top of this
 // chunk on purpose, see the sass-bom-drops-first-rule note.
 :root {
   --badge-del: #C34043; // autumnRed (kanagawa), reads on light and dark
+  --nc-bg: #ffffff;     // popover surface, fully opaque
+}
+[saved-theme="dark"] {
+  --nc-bg: #16161D !important; // sumiInk0 (kanagawa), fully opaque, fits the theme
+}
+// The theme mutes the single-page meta line with `opacity: .7`. That opacity
+// also (a) makes the popover -- a descendant -- translucent and (b) creates a
+// stacking context that traps the popover BELOW the article body. Drop the
+// opacity here and mute the meta with color instead, so the popover can be
+// solid and sit on top.
+article > .meta {
+  opacity: 1;
+  color: var(--global-font-secondary-color);
 }
 .note-changes {
   position: relative;
@@ -1963,19 +1976,21 @@ $nav-icon-graph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/sv
   position: absolute;
   top: calc(100% + 0.5em);
   left: 0;
-  z-index: 30;
+  z-index: 40;
   min-width: 250px;
   max-width: 340px;
   padding: 0.7em 0.85em;
-  background: var(--light);
+  background: var(--nc-bg);
   border: 1px solid var(--outlinegray);
   border-radius: 0.5em;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.32);
+  opacity: 0.95; // slightly softer than fully solid
   cursor: default;
   white-space: normal;
 }
 .note-changes:hover .nc-popover,
-.note-changes:focus-within .nc-popover {
+.note-changes:focus-within .nc-popover,
+.note-changes.nc-open .nc-popover {
   display: block;
 }
 .nc-title {

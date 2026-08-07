@@ -29,19 +29,23 @@ frontmatter `createddate`.
 
 ## Architecture
 
-Hugo can't run git, so a build step emits a data file and Hugo renders it. Reuses the existing
-`utils/recent_updates.py` and its single git scan — no new build step, no Makefile change.
+Hugo can't run git, so a build step emits one data file and Hugo renders it. Reuses the existing
+`utils/recent_updates.py` and its single git scan — no new build step, no Makefile change. The
+badge fields and the popover history live in **one** file keyed by the same stem, because both
+derive from the same commits in the same build run. These `data/*.json` files are build-time only:
+Hugo bakes the values into the generated HTML, so nothing is downloaded by visitors and nothing
+touches note frontmatter.
 
 ```
 content/ (git submodule)
    │  git log -p (one scan, <=180d)  +  git log --diff-filter=A (first-commit dates)
    ▼
 utils/recent_updates.py
-   ├─ data/recent_updates.json   (homepage badges — unchanged behavior)
-   └─ data/note_changes.json     (NEW: per-note session history)   { stem: {sessions:[…]} }
+   └─ data/recent_updates.json   { stem: {status, words, sessions:[…]} }
    ▼
-Hugo build: layouts/_default/single.html
-   │  index site.Data.note_changes .File.BaseFileName
+Hugo build
+   ├─ page-list.html : index site.Data.recent_updates .File.BaseFileName -> .status/.words (badge)
+   └─ single.html    : index site.Data.recent_updates .File.BaseFileName -> .sessions (popover)
    ▼
 dot + "recently updated" + hover popover next to the meta line
 ```
@@ -55,16 +59,23 @@ dot + "recently updated" + hover popover next to the meta line
   its newest commit datetime (`end`).
 - Homepage badge output is derived from `sessions[0]` with `gross = added + removed` — **behavior
   identical** to before.
-- `note_changes.json`: for each note, up to `MAX_SESSIONS = 5` sessions (skipping zero-word ones),
-  each `{date, iso, rel, added, removed}`. `date` is `Aug 4` (or `Aug 4, 2025` for older years),
-  `rel` is a coarse humanized age (`today` / `yesterday` / `N days ago` / `last week` /
-  `N weeks ago` / `last month` / `N months ago` / `N years ago`), computed at build time.
-- Keyed by the on-disk filename **stem** (== Hugo `.File.BaseFileName`), same as the badge file.
+- Each note's entry gains a `sessions` list: up to `MAX_SESSIONS = 5` sessions (skipping zero-word
+  non-creation ones), each `{date, iso, rel, added, removed}`. `date` is `Aug 4` (or `Aug 4, 2025`
+  for older years); `rel` is a coarse humanized age (`today` / `yesterday` / `N days ago` /
+  `last week` / `N weeks ago` / `last month` / `N months ago` / `N years ago`), computed at build
+  time. A note whose only edits touched zero words gets a badge but no `sessions` key (no dot).
+- **Creation row:** the session that contains the note's first-ever commit is rendered as
+  `{kind:"new", words: <total note words>}` instead of `added/removed`, so a fresh note shows
+  `new · N words` (matching the badge) rather than reading as a big churny edit. Later,
+  separate-day sessions keep their `+added / −removed`.
+- Single output `data/recent_updates.json`, keyed by the on-disk filename **stem**
+  (== Hugo `.File.BaseFileName`).
 - Lookback stays 180 days: a note untouched for >180d simply shows no dot, which is the right signal.
 
 ### Component 2 — `layouts/_default/single.html` (edit)
 
-After the `min read` span, guarded by `with (index site.Data.note_changes .File.BaseFileName)`:
+After the `min read` span, guarded by
+`with (index site.Data.recent_updates .File.BaseFileName)` then `with .sessions`:
 
 ```html
 <span class="note-changes" tabindex="0" role="button" aria-label="Recent changes to this note">
@@ -88,17 +99,31 @@ popover via `:focus-within` (no JavaScript).
 ### Component 3 — `assets/styles/custom.scss` (edit, appended)
 
 - Reuses existing `--badge-new` (autumnGreen) for the dot + additions and `--badge-upd` (dragonBlue)
-  for the label; adds one token `--badge-del: #C34043` (autumnRed) for deletions. All three read on
-  both light and dark, so no per-theme override needed.
-- `.nc-popover` is `display:none`, shown by `.note-changes:hover` **or** `:focus-within`
-  (desktop hover + mobile tap), absolutely positioned below the dot, `z-index:30`.
+  for the label; adds `--badge-del: #C34043` (autumnRed) for deletions. All three read on both light
+  and dark, so no per-theme override needed.
+- **Critical:** the theme has `article > .meta { opacity: .7 }`. `opacity` on an ancestor makes the
+  popover translucent (can't be undone by a child) **and** creates a stacking context that traps the
+  popover below the article body (callouts/paragraphs paint on top). This chunk overrides it to
+  `opacity: 1` and re-mutes the meta via `color: var(--global-font-secondary-color)`.
+- Popover surface uses a solid, theme-fitting token `--nc-bg` (`#ffffff` light / `#16161D` dark,
+  kanagawa sumiInk0) — fully opaque, no `backdrop-filter` — plus a `1px` border and a
+  `0 10px 30px rgba(0,0,0,0.32)` shadow for separation.
+- `.nc-popover` is `display:none`, shown by `.note-changes:hover`, `:focus-within`, **or**
+  `.nc-open` (see below), absolutely positioned below the dot, `z-index:40`.
+
+### Component 5 — mobile tap toggle (small inline script in `single.html`)
+
+Touch devices have no hover; `:focus-within` opens the popover on tap but nothing dismisses it. A
+tiny script toggles a `.nc-open` class on tap, and closes on outside-tap or `Escape` (calling
+`blur()` so `:focus-within` also releases). Clicks inside the popover don't close it. Desktop hover
+is untouched. The script no-ops when the page has no `.note-changes`.
 - Chunk starts with an ASCII-only comment/rule per the `sass-bom-drops-first-rule` note (a non-ASCII
   char at a chunk top makes Dart Sass emit a BOM that silently drops the first rule). Verified the
   `.note-changes` rule and `--badge-del` survive in the compiled `styles.css`.
 
-### Component 4 — `.gitignore` (edit)
+### Component 4 — `.gitignore`
 
-Add `data/note_changes.json` (regenerated every build, like `data/recent_updates.json`).
+No change: `data/recent_updates.json` is already ignored (regenerated every build). No second file.
 
 ## Edge cases
 
