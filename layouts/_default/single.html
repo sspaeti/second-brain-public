@@ -21,6 +21,20 @@
           {{- if .Params.createddate }} · <span class="meta-label-full">Created</span><span class="meta-label-short">Created:</span> <time datetime="{{ .Params.createddate }}">{{ (time .Params.createddate).Format "Jan 2, 2006" }}</time>
           {{- end -}}
           {{ if gt .ReadingTime 0 }} · <span class="meta-reading-time">{{ .ReadingTime }} min read</span>{{ end }}
+          {{ with (index site.Data.note_changes .File.BaseFileName) }}
+          <span class="note-changes" tabindex="0" role="button" aria-label="Recent changes to this note">
+            <span class="nc-dot"></span><span class="nc-label">recently updated</span>
+            <span class="nc-popover" role="tooltip">
+              <span class="nc-title">Recent changes</span>
+              {{ range .sessions }}
+              <span class="nc-row">
+                <span class="nc-when"><time datetime="{{ .iso }}">{{ .date }}</time><span class="nc-rel">{{ .rel }}</span></span>
+                <span class="nc-delta"><span class="nc-add">+{{ .added }}</span> / <span class="nc-del">−{{ .removed }}</span> words</span>
+              </span>
+              {{ end }}
+            </span>
+          </span>
+          {{ end }}
           {{end}}
           <!-- {{ partial "github.html" . }} -->
       </p>

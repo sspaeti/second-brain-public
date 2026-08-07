@@ -1925,3 +1925,92 @@ $nav-icon-graph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/sv
   border-color: var(--badge-upd);
   background: color-mix(in srgb, var(--badge-upd) 14%, transparent);
 }
+
+// ========== Per-note change popover (dot next to the meta line) ========== //
+// A small dot + "recently updated" label after "min read" on a note page. Hover
+// (desktop) or tap/focus (mobile) reveals a popover listing recent editing
+// sessions with per-session added/removed word counts (data/note_changes.json).
+// Reuses --badge-new (green) for the dot/additions and --badge-upd (blue) for
+// the label; adds one red token for deletions. ASCII-only at the top of this
+// chunk on purpose, see the sass-bom-drops-first-rule note.
+:root {
+  --badge-del: #C34043; // autumnRed (kanagawa), reads on light and dark
+}
+.note-changes {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  margin-left: 0.5em;
+  vertical-align: middle;
+  cursor: pointer;
+  outline: none;
+}
+.nc-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--badge-new);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--badge-new) 20%, transparent);
+}
+.nc-label {
+  color: var(--badge-upd);
+  font-size: 0.92em;
+  border-bottom: 1px dotted var(--badge-upd);
+}
+.nc-popover {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.5em);
+  left: 0;
+  z-index: 30;
+  min-width: 250px;
+  max-width: 340px;
+  padding: 0.7em 0.85em;
+  background: var(--light);
+  border: 1px solid var(--outlinegray);
+  border-radius: 0.5em;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  cursor: default;
+  white-space: normal;
+}
+.note-changes:hover .nc-popover,
+.note-changes:focus-within .nc-popover {
+  display: block;
+}
+.nc-title {
+  display: block;
+  margin-bottom: 0.55em;
+  font-size: 0.68em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--global-font-secondary-color);
+}
+.nc-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75em;
+  padding: 0.35em 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--outlinegray) 55%, transparent);
+}
+.nc-row:last-child {
+  border-bottom: 0;
+}
+.nc-when {
+  color: var(--gray);
+  font-size: 0.86em;
+}
+.nc-rel {
+  margin-left: 0.5em;
+  color: var(--global-font-secondary-color);
+  font-size: 0.82em;
+}
+.nc-delta {
+  font-size: 0.82em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.nc-add { color: var(--badge-new); }
+.nc-del { color: var(--badge-del); }

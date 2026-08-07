@@ -1,17 +1,24 @@
-"""Emit per-note change badges for the homepage recent-notes list.
+"""Emit per-note change data from the `content/` git history.
 
-Reads the `content/` git history and, for every markdown note, computes its most
-recent *editing session* — the run of commits ending at the note's last commit,
-grouping commits whose gap is <= SESSION_GAP_HOURS into one session. This
-coalesces "I fixed it three times that afternoon" into a single number that
-matches the single date Hugo shows.
+Two outputs, both from a single git scan:
 
-Output: `data/recent_updates.json`, keyed by the on-disk filename stem (which
-equals Hugo's `.File.BaseFileName`), each value `{"status": ..., "words": N}`:
+1. `data/recent_updates.json` — drives the homepage recent-notes badges. Keyed by
+   the on-disk filename stem (== Hugo's `.File.BaseFileName`), each value
+   `{"status": ..., "words": N}`:
 
-  * status "new"     -> note created in that session; words = total note words.
-  * status "updated" -> words = gross words touched (added + deleted) in the
-                        session's diffs.
+     * status "new"     -> note created in its most recent session; words = total
+                           note words.
+     * status "updated" -> words = gross words touched (added + deleted) in the
+                           most recent session's diffs.
+
+2. `data/note_changes.json` — drives the per-note-page change popover (the dot
+   next to "min read"). Keyed by the same stem, each value:
+
+     {"sessions": [ {"date","iso","rel","added","removed"}, ... ]}  # newest first
+
+An *editing session* is the run of commits ending at some commit, grouping
+commits whose gap is <= SESSION_GAP_HOURS into one. This coalesces "I fixed it
+three times that afternoon" into one entry that matches the single date shown.
 
 The logic is ported (not imported) from ../listmonk-rss/newsletter.py so that
 `make prepare` stays self-contained (stdlib only, no third-party deps).
@@ -28,9 +35,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 CONTENT = ROOT / "content"
 OUTPUT = ROOT / "data" / "recent_updates.json"
+CHANGES_OUTPUT = ROOT / "data" / "note_changes.json"
 
 LOOKBACK_DAYS = 180          # window for word-diff scan; covers the 30 recent notes
 SESSION_GAP_HOURS = 24       # commits closer than this fold into one session
+MAX_SESSIONS = 5             # sessions shown in a note's change popover
 
 
 def _parse_git_date(raw: str) -> datetime:
@@ -38,9 +47,9 @@ def _parse_git_date(raw: str) -> datetime:
     return datetime.strptime(raw.strip(), "%Y-%m-%d %H:%M:%S %z")
 
 
-def commit_word_stats(since: datetime) -> dict[str, list[tuple[datetime, int]]]:
-    """Per note, a list of `(commit_datetime, gross_words)` for commits since
-    `since`, where gross = added + deleted words on the note's diff lines."""
+def commit_word_stats(since: datetime) -> dict[str, list[tuple[datetime, int, int]]]:
+    """Per note, a list of `(commit_datetime, added_words, removed_words)` for
+    commits since `since`, counted from `+`/`-` diff lines."""
     result = subprocess.run(
         [
             "git", "-c", "core.quotePath=false", "-C", str(CONTENT), "log",
@@ -50,17 +59,18 @@ def commit_word_stats(since: datetime) -> dict[str, list[tuple[datetime, int]]]:
         capture_output=True, text=True, check=True,
     )
 
-    commits: dict[str, list[tuple[datetime, int]]] = defaultdict(list)
+    commits: dict[str, list[tuple[datetime, int, int]]] = defaultdict(list)
     cur_date: datetime | None = None
     cur_path: str | None = None
-    cur_gross = 0
+    cur_added = 0
+    cur_removed = 0
     is_binary = False
 
     def flush() -> None:
-        nonlocal cur_path, cur_gross
+        nonlocal cur_path, cur_added, cur_removed
         if cur_path is not None and cur_date is not None:
-            commits[cur_path].append((cur_date, cur_gross))
-        cur_path, cur_gross = None, 0
+            commits[cur_path].append((cur_date, cur_added, cur_removed))
+        cur_path, cur_added, cur_removed = None, 0, 0
 
     for line in result.stdout.splitlines():
         if line.startswith("__COMMIT__"):
@@ -81,9 +91,9 @@ def commit_word_stats(since: datetime) -> dict[str, list[tuple[datetime, int]]]:
         if is_binary or line.startswith(("+++", "---", "@@")):
             continue
         if line.startswith("+"):
-            cur_gross += len(line[1:].split())
+            cur_added += len(line[1:].split())
         elif line.startswith("-"):
-            cur_gross += len(line[1:].split())
+            cur_removed += len(line[1:].split())
     flush()
 
     return commits
@@ -110,22 +120,53 @@ def first_commit_dates() -> dict[str, datetime]:
     return first
 
 
-def most_recent_session(dated: list[tuple[datetime, int]]) -> tuple[datetime, int]:
-    """From a note's commits, return `(session_start, gross_words)` for the most
-    recent session: newest commit plus every older commit within SESSION_GAP_HOURS
-    of the previous kept one, until the first larger gap."""
+def group_sessions(dated: list[tuple[datetime, int, int]]) -> list[dict]:
+    """Fold a note's commits into sessions, newest first. Each session:
+    `{"start", "end", "added", "removed"}` where `end` is the newest commit in
+    the session and `start` the oldest. A gap larger than SESSION_GAP_HOURS
+    between consecutive commits opens a new session."""
     dated = sorted(dated, key=lambda t: t[0], reverse=True)
     gap = timedelta(hours=SESSION_GAP_HOURS)
-    session_start = dated[0][0]
-    gross = dated[0][1]
-    prev = dated[0][0]
-    for dt, g in dated[1:]:
-        if prev - dt > gap:
-            break
-        gross += g
-        session_start = dt
+    sessions: list[dict] = []
+    cur: dict | None = None
+    prev: datetime | None = None
+    for dt, added, removed in dated:
+        if cur is None or prev - dt > gap:
+            cur = {"start": dt, "end": dt, "added": added, "removed": removed}
+            sessions.append(cur)
+        else:
+            cur["added"] += added
+            cur["removed"] += removed
+            cur["start"] = dt
         prev = dt
-    return session_start, gross
+    return sessions
+
+
+def _fmt_date(dt: datetime, now: datetime) -> str:
+    """`Aug 4` for the current year, `Aug 4, 2025` otherwise."""
+    if dt.year == now.year:
+        return dt.strftime("%b ") + str(dt.day)
+    return dt.strftime("%b ") + str(dt.day) + dt.strftime(", %Y")
+
+
+def _relative(dt: datetime, now: datetime) -> str:
+    """Coarse humanized age: today / yesterday / N days / weeks / months / years."""
+    days = (now - dt).days
+    if days <= 0:
+        return "today"
+    if days == 1:
+        return "yesterday"
+    if days < 7:
+        return f"{days} days ago"
+    if days < 14:
+        return "last week"
+    if days < 60:
+        return f"{days // 7} weeks ago"
+    if days < 365:
+        months = max(1, round(days / 30))
+        return "last month" if months == 1 else f"{months} months ago"
+    years = max(1, round(days / 365))
+    return "last year" if years == 1 else f"{years} years ago"
 
 
 def _word_count(path: Path) -> int:
@@ -138,38 +179,63 @@ def _word_count(path: Path) -> int:
     return len(re.split(r"\s+", text.strip())) if text.strip() else 0
 
 
-def build() -> dict[str, dict]:
+def build() -> tuple[dict[str, dict], dict[str, dict]]:
     if not CONTENT.exists():
         print(f"recent_updates: {CONTENT} not found, writing empty index", file=sys.stderr)
-        return {}
+        return {}, {}
 
-    since = datetime.now().astimezone() - timedelta(days=LOOKBACK_DAYS)
+    now = datetime.now().astimezone()
+    since = now - timedelta(days=LOOKBACK_DAYS)
     commits = commit_word_stats(since)
     first = first_commit_dates()
 
-    out: dict[str, dict] = {}
+    badges: dict[str, dict] = {}
+    changes: dict[str, dict] = {}
     for path, dated in commits.items():
         if not dated:
             continue
-        session_start, gross = most_recent_session(dated)
+        sessions = group_sessions(dated)
+        recent = sessions[0]
         stem = Path(path).stem
+
+        # --- homepage badge (most recent session only) ---
+        gross = recent["added"] + recent["removed"]
         first_dt = first.get(path)
-        is_new = first_dt is not None and first_dt >= session_start
+        is_new = first_dt is not None and first_dt >= recent["start"]
         if is_new:
             full = CONTENT / path
             words = _word_count(full) if full.exists() else gross
-            out[stem] = {"status": "new", "words": words}
+            badges[stem] = {"status": "new", "words": words}
         else:
-            out[stem] = {"status": "updated", "words": gross}
-    return out
+            badges[stem] = {"status": "updated", "words": gross}
+
+        # --- per-note change popover (list of sessions) ---
+        rows = [
+            {
+                "date": _fmt_date(s["end"], now),
+                "iso": s["end"].strftime("%Y-%m-%d"),
+                "rel": _relative(s["end"], now),
+                "added": s["added"],
+                "removed": s["removed"],
+            }
+            for s in sessions
+            if s["added"] + s["removed"] > 0
+        ][:MAX_SESSIONS]
+        if not rows:
+            continue
+        changes[stem] = {"sessions": rows}
+
+    return badges, changes
 
 
 def main() -> None:
-    index = build()
+    badges, changes = build()
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT.write_text(json.dumps(index, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    new = sum(1 for v in index.values() if v["status"] == "new")
-    print(f"recent_updates: {len(index)} notes ({new} new, {len(index) - new} updated) -> {OUTPUT}")
+    OUTPUT.write_text(json.dumps(badges, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    CHANGES_OUTPUT.write_text(json.dumps(changes, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    new = sum(1 for v in badges.values() if v["status"] == "new")
+    print(f"recent_updates: {len(badges)} notes ({new} new, {len(badges) - new} updated) -> {OUTPUT}")
+    print(f"note_changes: {len(changes)} notes with recent sessions -> {CHANGES_OUTPUT}")
 
 
 if __name__ == "__main__":
