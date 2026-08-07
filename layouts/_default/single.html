@@ -29,8 +29,8 @@
               {{ range . }}
               <span class="nc-row">
                 <span class="nc-when"><time datetime="{{ .iso }}">{{ .date }}</time><span class="nc-rel">{{ .rel }}</span></span>
-                {{ if eq .kind "new" }}
-                <span class="nc-delta"><span class="nc-add">new</span> · {{ .words }} words</span>
+                {{ if .kind }}
+                <span class="nc-delta"><span class="nc-add">{{ .kind }}</span> · {{ .words }} words</span>
                 {{ else }}
                 <span class="nc-delta"><span class="nc-add">+{{ .added }}</span> / <span class="nc-del">−{{ .removed }}</span> words</span>
                 {{ end }}

@@ -234,14 +234,15 @@ def _word_count(path: Path) -> int:
     return len(re.split(r"\s+", text.strip())) if text.strip() else 0
 
 
-_LASTMOD_RE = re.compile(r'^lastmod:\s*"?(\d{4}-\d{2}-\d{2})', re.MULTILINE)
+def _frontmatter_date(path: Path, field: str):
+    """A `YYYY-MM-DD` frontmatter field as a `date`, or None.
 
-
-def _frontmatter_lastmod(path: Path):
-    """The note's frontmatter `lastmod` as a `date`, or None. This is the site's
-    authoritative "last real edit" date -- tooling/metadata commits (OG images,
-    body restructuring) often don't bump it -- so it's the ceiling for the popover
-    history: we never show a change dated after it."""
+    * `lastmod`     -- the site's authoritative "last real edit" date; tooling
+                       commits (OG images, body restructuring) don't bump it, so it
+                       is the ceiling for the popover (never show a change after it).
+    * `createddate` -- the note's true creation date in the private vault, which
+                       can predate the first *git* commit (= when it was published),
+                       used to label that first row `published` instead of `new`."""
     try:
         text = path.read_text(encoding="utf-8", errors="ignore")
     except OSError:
@@ -250,7 +251,7 @@ def _frontmatter_lastmod(path: Path):
         return None
     end = text.find("\n---", 4)
     front = text[: end if end >= 0 else len(text)]
-    m = _LASTMOD_RE.search(front)
+    m = re.search(rf'^{field}:\s*"?(\d{{4}}-\d{{2}}-\d{{2}})', front, re.MULTILINE)
     if not m:
         return None
     try:
@@ -282,11 +283,21 @@ def build() -> dict[str, dict]:
         # Ceiling the history at the note's `lastmod`: git can carry later
         # tooling/restructuring commits that never bumped lastmod, and those
         # would otherwise show as changes newer than the "Last updated" date.
-        lastmod = _frontmatter_lastmod(full) if full.exists() else None
+        lastmod = _frontmatter_date(full, "lastmod") if full.exists() else None
         if lastmod is not None:
             sessions = [s for s in sessions if s["end"].date() <= lastmod]
         if not sessions:
             continue
+
+        # If the note existed privately before it was published, its first *git*
+        # commit is the publish, not the creation. Label that row "published"
+        # (the true "Created" date stays in the meta line) to avoid two dates
+        # both reading as the origin.
+        created = _frontmatter_date(full, "createddate") if full.exists() else None
+        creation_kind = (
+            "published" if created is not None and first_dt is not None
+            and created < first_dt.date() else "new"
+        )
 
         def _is_creation(s: dict) -> bool:
             return first_dt is not None and s["start"] <= first_dt <= s["end"]
@@ -321,8 +332,11 @@ def build() -> dict[str, dict]:
                 "rel": _relative(s["end"], now),
             }
             if is_creation:
-                row["kind"] = "new"
-                row["words"] = total_words if total_words is not None else s["added"]
+                row["kind"] = creation_kind
+                # size at creation/publish (words in the first commit), NOT the
+                # current total -- a note published small and grown since would
+                # otherwise read "published · <today's word count>".
+                row["words"] = s["added"]
             elif s["added"] + s["removed"] > 0:
                 row["added"] = s["added"]
                 row["removed"] = s["removed"]

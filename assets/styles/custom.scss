@@ -1979,6 +1979,9 @@ article > .meta {
   z-index: 40;
   min-width: 250px;
   max-width: 360px;
+  max-height: 60vh;        // tall histories scroll instead of running off-screen
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 0.7em 0.85em;
   font-size: 0.8rem; // slightly smaller, and independent of the meta line size
   background: var(--nc-bg);
@@ -1988,6 +1991,17 @@ article > .meta {
   opacity: 0.95; // slightly softer than fully solid
   cursor: default;
   white-space: normal;
+}
+// Transparent bridge over the gap between the label and the popover, so moving
+// the cursor down to hover/scroll the popover doesn't cross a dead zone that
+// drops the :hover (the popover is a descendant, so hovering it keeps it open).
+.nc-popover::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -0.6em;
+  height: 0.6em;
 }
 .note-changes:hover .nc-popover,
 .note-changes:focus-within .nc-popover,
