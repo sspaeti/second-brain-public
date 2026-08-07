@@ -38,7 +38,7 @@ touches note frontmatter.
 
 ```
 content/ (git submodule)
-   │  git log -p (one scan, <=180d)  +  git log --diff-filter=A (first-commit dates)
+   │  git log -p (one scan, <=365d)  +  git log --diff-filter=A (first-commit dates)
    ▼
 utils/recent_updates.py
    └─ data/recent_updates.json   { stem: {status, words, sessions:[…]} }
@@ -53,7 +53,17 @@ dot + "recently updated" + hover popover next to the meta line
 ### Component 1 — `utils/recent_updates.py` (edit)
 
 - `commit_word_stats` now tracks **added and removed words separately** per commit
-  (`(datetime, added, removed)`) instead of a single gross number.
+  (`(datetime, added, removed)`) instead of a single gross number, and **excludes the frontmatter
+  block** from the count: it tracks new/old file line numbers through each diff hunk and skips any
+  `+`/`-` line whose line number is `<= _frontmatter_end_line(file)` (the closing `---`). This keeps
+  metadata-only commits — OG `description:`, `lastmod:`, moved `createddate:` — from reading as
+  content edits. (The `lastmod:` case is also guarded upstream by `revert-lastmod-only.sh`, which
+  drops pure-lastmod diffs before commit; this exclusion is broader and catches any frontmatter
+  field.)
+- `LOOKBACK_DAYS = 365` — the popover history reaches ~1 year back (was 180).
+- **Badge session choice:** the homepage badge uses the most recent session that is the note's
+  creation *or* has non-zero content churn, so a trailing metadata-only commit doesn't make the
+  badge read `0 words`.
 - New `group_sessions()` folds a note's commits into a list of sessions (newest first), grouping
   commits whose gap is `<= 24h` (`SESSION_GAP_HOURS`). Each session sums added/removed and records
   its newest commit datetime (`end`).
@@ -70,7 +80,7 @@ dot + "recently updated" + hover popover next to the meta line
   separate-day sessions keep their `+added / −removed`.
 - Single output `data/recent_updates.json`, keyed by the on-disk filename **stem**
   (== Hugo `.File.BaseFileName`).
-- Lookback stays 180 days: a note untouched for >180d simply shows no dot, which is the right signal.
+- Lookback is 365 days: a note untouched for >1y simply shows no dot, which is the right signal.
 
 ### Component 2 — `layouts/_default/single.html` (edit)
 
