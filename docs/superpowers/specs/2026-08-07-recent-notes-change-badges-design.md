@@ -114,18 +114,17 @@ After the `<h3>` title link, add the pill:
 
 ### Component 3 — `assets/styles/custom.scss` (edit)
 
-Add two kanagawa-palette variables to **both** the `:root` and `[saved-theme="dark"]` blocks, and a
-`.update-badge` rule set. Colors chosen because no existing var reads as a stable green/blue across
-both modes (`--secondary` is red in light mode).
+Add two kanagawa-palette variables to `:root` and a `.update-badge` rule set. The two colors read
+fine on both light and dark backgrounds, so no `[saved-theme="dark"]` override is needed.
 
-| Variable | Light (lotus) | Dark (wave) | Use |
-|----------|---------------|-------------|-----|
-| `--badge-new` | `#6f894e` (lotusGreen) | `#98BB6C` (springGreen) | NEW pill |
-| `--badge-upd` | `#4d699b` (lotusBlue)  | `#7E9CD8` (crystalBlue) | UPD pill |
+| Variable | Value | Use |
+|----------|-------|-----|
+| `--badge-new` | `#76946A` (autumnGreen) | NEW pill border + tint |
+| `--badge-upd` | `#658594` (dragonBlue, same as dark `--secondary` / internal-link accent) | UPD pill border + tint |
 
-Pill style: small inline-block, tinted background via `color-mix` (or a low-alpha rgba), text +
-border in the badge color, `0.7em`-ish font, rounded. Mirror how `_callouts.scss` tints accent
-colors. Place the new SCSS chunk so the **first rule/line is ASCII-only** — see the
+Pill style: small inline-block, **neutral body text** (`color: var(--gray)`, `font-weight: 400`) so
+it doesn't look loud; the color lives only in the `border-color` and a low-alpha `color-mix`
+background tint. Rounded, `0.62em` font. Place the new SCSS chunk so the **first rule/line is ASCII-only** — see the
 `sass-bom-drops-first-rule` memory: a non-ASCII character at the top of a compiled chunk makes Dart
 Sass emit a BOM that silently drops the first rule. Keep the kanagawa names in comments (ASCII) and
 no emoji/smart-quotes at chunk start.
@@ -133,28 +132,27 @@ no emoji/smart-quotes at chunk start.
 Example:
 
 ```scss
-// Recent-notes change badges (kanagawa palette)
+// Recent-notes change badges (kanagawa palette; neutral text, colored border+tint)
 :root {
-  --badge-new: #6f894e; // lotusGreen
-  --badge-upd: #4d699b; // lotusBlue
-}
-[saved-theme="dark"] {
-  --badge-new: #98BB6C !important; // springGreen
-  --badge-upd: #7E9CD8 !important; // crystalBlue
+  --badge-new: #76946A; // autumnGreen
+  --badge-upd: #658594; // dragonBlue (== dark --secondary)
 }
 .update-badge {
   display: inline-block;
   margin-left: 0.5em;
   padding: 0.05em 0.5em;
-  font-size: 0.7em;
-  font-weight: 600;
-  border-radius: 0.4em;
+  font-size: 0.62em;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  border-radius: 0.5em;
   white-space: nowrap;
   vertical-align: middle;
-  border: 1px solid currentColor;
+  color: var(--gray);
+  border: 1px solid transparent;
 }
-.badge-new { color: var(--badge-new); background: color-mix(in srgb, var(--badge-new) 12%, transparent); }
-.badge-upd { color: var(--badge-upd); background: color-mix(in srgb, var(--badge-upd) 12%, transparent); }
+.badge-new { border-color: var(--badge-new); background: color-mix(in srgb, var(--badge-new) 14%, transparent); }
+.badge-upd { border-color: var(--badge-upd); background: color-mix(in srgb, var(--badge-upd) 14%, transparent); }
 ```
 
 ### Component 4 — Newsletter footer (parameterize + include)

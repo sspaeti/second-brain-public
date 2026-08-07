@@ -1892,35 +1892,36 @@ $nav-icon-graph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/sv
 // ========== Recent-notes change badges ========== //
 // Small pill next to a note title in listing pages showing whether it is a new
 // note or how big its most recent edit was (data/recent_updates.json).
-// Kanagawa palette; ASCII-only at the top of this chunk on purpose, see the
-// sass-bom-drops-first-rule note: a non-ASCII char here makes Dart Sass emit a
-// BOM and silently drop the first rule.
+// Text stays the normal body color; only the background tint and border carry
+// the color. Palette reuses existing page tokens: dragonBlue (same as the dark
+// --secondary / internal-link accent) for updates, a muted autumnGreen for new.
+// Both read fine on light and dark backgrounds, so no per-theme override needed.
+// ASCII-only at the top of this chunk on purpose, see the sass-bom-drops-first-
+// rule note: a non-ASCII char here makes Dart Sass emit a BOM and silently drop
+// the first rule.
 :root {
-  --badge-new: #6f894e; // lotusGreen
-  --badge-upd: #4d699b; // lotusBlue
-}
-[saved-theme="dark"] {
-  --badge-new: #98BB6C !important; // springGreen
-  --badge-upd: #7E9CD8 !important; // crystalBlue
+  --badge-new: #76946A; // autumnGreen (kanagawa)
+  --badge-upd: #658594; // dragonBlue (kanagawa, matches dark --secondary)
 }
 .update-badge {
   display: inline-block;
   margin-left: 0.5em;
   padding: 0.05em 0.5em;
   font-size: 0.62em;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.5;
   letter-spacing: 0.02em;
   border-radius: 0.5em;
   white-space: nowrap;
   vertical-align: middle;
-  border: 1px solid currentColor;
+  color: var(--gray);
+  border: 1px solid transparent;
 }
 .badge-new {
-  color: var(--badge-new);
+  border-color: var(--badge-new);
   background: color-mix(in srgb, var(--badge-new) 14%, transparent);
 }
 .badge-upd {
-  color: var(--badge-upd);
+  border-color: var(--badge-upd);
   background: color-mix(in srgb, var(--badge-upd) 14%, transparent);
 }
