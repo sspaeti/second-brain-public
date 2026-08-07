@@ -6,7 +6,7 @@
                 {{partial "date-fmt.html" .}}
             </p>
             <div class="desc">
-              <h3><a href="{{ .Permalink }}" class="internal-link" data-src="{{ .RelPermalink }}">{{- .Title -}}</a></h3>
+              <h3><a href="{{ .Permalink }}" class="internal-link" data-src="{{ .RelPermalink }}">{{- .Title -}}</a>{{ if .File }}{{ with (index hugo.Data.recent_updates .File.BaseFileName) }}{{ if eq .status "new" }}<span class="update-badge badge-new">NEW &middot; {{ lang.FormatNumberCustom 0 .words }}w</span>{{ else if gt (int .words) 0 }}<span class="update-badge badge-upd">UPD &middot; ~{{ lang.FormatNumberCustom 0 .words }}w</span>{{ else }}<span class="update-badge badge-upd">UPD</span>{{ end }}{{ end }}{{ end }}</h3>
             </div>
             <div class="spacer"></div>
             <ul class="tags">

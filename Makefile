@@ -19,6 +19,7 @@ update-force: ## Forcefully pull all changes and don't ask to patch
 prepare-python: ## prepare commands
 	find /home/sspaeti/git/sspaeti.com/second-brain-public/content -type f -not -name ".git" -not -path "*/_img/*" -delete
 	python utils/find-publish-notes.py #copy all notes from my secondbrain with hashtag #publish to quartz
+	python utils/recent_updates.py #per-note change badges (new/updated + words) -> data/recent_updates.json
 	rm -rf public
 	hugo-obsidian -input=content -output=/home/sspaeti/git/sspaeti.com/second-brain-public/assets/indices -index=true -root=.
 	python utils/lower_case.py #change linkIndex to lowercase for proper linking
@@ -33,6 +34,7 @@ prepare: ## prepare commands
 	find /home/sspaeti/git/sspaeti.com/second-brain-public/content -type f -not -name ".git" -not -path "*/_img/*" -delete
 	obsidian-quartz #copy all notes from my secondbrain with hashtag #publish to /content
 	bash utils/revert-lastmod-only.sh #undo lastmod bump when a note's content is unchanged (only lastmod line differs)
+	python utils/recent_updates.py #per-note change badges (new/updated + words) -> data/recent_updates.json
 	cp static/second-brain.jpeg static/feature #the one in feature is used for _index note
 	rm -rf public
 	hugo-obsidian -input=content -output=/home/sspaeti/git/sspaeti.com/second-brain-public/assets/indices -index=true -root=.

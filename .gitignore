@@ -12,6 +12,7 @@ linkmap
 node_modules
 .quartz-cache
 .last_purge_time
+data/recent_updates.json
 utils/hugo-obsidian/hugo-obsidian
 utils/hugo-obsidian/hugo-obsidian-dev
 
