@@ -62,12 +62,31 @@ Key fork additions over upstream: case-insensitive link matching, block-referenc
 Custom render hooks in `layouts/_default/_markup/`:
 * **render-image.html** - Detects YouTube URLs and renders responsive iframe embeds (with timestamp support); all other images pass through normally
 
+### `recent_updates.py`: Change badges & edit history
+
+Stdlib-only Python (`utils/recent_updates.py`, logic ported from the newsletter generator) that scans the `content/` git submodule history and writes `data/recent_updates.json`, keyed by each note's on-disk filename stem (== Hugo `.File.BaseFileName`). Each entry is `{status, words, sessions:[…]}` and drives two UI features:
+- **Recent-notes pills** — a green `NEW · 1,079w` / blue `UPD · ~80w` badge on the homepage recent-notes list (and other listings).
+- **Per-note edit history** — a "recently updated" hover popover on each note page listing recent editing sessions with `+added / −removed` word counts.
+
+Runs in `prepare` / `prepare-python` (one line, no other build change). Tunables at the top of the script: `LOOKBACK_DAYS` (180), `SESSION_GAP_HOURS` (24), `MAX_SESSIONS` (5).
+
 ## Configs
 
 ### Redirects of renamed files
 Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
+
+### 2026-08-07: Change badges + per-note edit history (git word-diffs)
+
+The recent-notes list and every note page now show *how much* a note changed, from the `content/` git history at build time. Recent-notes pills read green `NEW · 1,079w` (brand-new) or blue `UPD · ~80w` (gross words in the last edit); a note page adds a "recently updated" dot whose hover/tap popover lists up to 5 recent editing sessions with `+added / −removed` counts — no commit messages.
+
+- **`utils/recent_updates.py`** (stdlib, ported from the newsletter generator): one `git log` scan → `data/recent_updates.json`, keyed by filename stem (== Hugo `.File.BaseFileName`), each `{status, words, sessions}`. Runs as one line in `prepare` / `prepare-python`. Tunables: `LOOKBACK_DAYS` 180, `SESSION_GAP_HOURS` 24, `MAX_SESSIONS` 5.
+- **Sessions**: commits ≤ 24h apart collapse into one, so a same-afternoon burst reads as a single change. Badge size is *gross* (added + deleted); `new` vs `updated` from whether the note's first commit falls in that session.
+- **Rendering**: pills in `layouts/partials/page-list.html` (shared, so they also show on tag/section/taxonomy listings); popover in `layouts/_default/single.html`, pure-CSS via `:hover` / `:focus-within`, all-`<span>` to stay valid inside `<p>`.
+- **Colors** (`assets/styles/custom.scss`, Kanagawa): `--badge-new` `#76946A`, `--badge-upd` `#658594` (= dark `--secondary`), `--badge-del` `#C34043`; ASCII-only chunk top to avoid the Sass-BOM bug.
+- **Newsletter footer** (`layouts/partials/newsletter-footer.html`): now takes optional `label` / `desc` (`safeHTML`), appended below the recent list via `recent.html`; default callers unchanged.
+- **Files**: `utils/recent_updates.py`, `layouts/partials/page-list.html`, `layouts/_default/single.html`, `layouts/partials/recent.html`, `layouts/partials/newsletter-footer.html`, `assets/styles/custom.scss`, `Makefile`, `.gitignore`.
 
 ### 2026-08-04: `lastmod` no longer bumps when a note's content is unchanged
 
