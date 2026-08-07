@@ -26,6 +26,7 @@ import json
 import re
 import subprocess
 import sys
+import tomllib
 from collections import defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -33,10 +34,27 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 CONTENT = ROOT / "content"
 OUTPUT = ROOT / "data" / "recent_updates.json"
+CONFIG = ROOT / "config.toml"
 
-LOOKBACK_DAYS = 1825 #5 years          # window for word-diff scan (popover history reaches ~1y back)
-SESSION_GAP_HOURS = 24       # commits closer than this fold into one session
-MAX_SESSIONS = 7             # sessions shown in a note's change popover
+
+def _config_params() -> dict:
+    """`[params]` from config.toml, or empty on any read/parse error."""
+    try:
+        with CONFIG.open("rb") as f:
+            return tomllib.load(f).get("params", {})
+    except (OSError, tomllib.TOMLDecodeError):
+        return {}
+
+
+_params = _config_params()
+
+# Tunables live in config.toml `[params]` (recentUpdates*); these are fallbacks.
+# LOOKBACK_DAYS is the git word-diff scan window (~5y). No viewer cost: each popover
+# is capped at MAX_SESSIONS rows and bounded by the note's lastmod; only the local
+# build scan grows.
+LOOKBACK_DAYS = int(_params.get("recentUpdatesLookbackDays", 1825))
+SESSION_GAP_HOURS = int(_params.get("recentUpdatesSessionGapHours", 24))  # fold commits closer than this into one session
+MAX_SESSIONS = int(_params.get("recentUpdatesMaxSessions", 7))            # sessions shown in a note's change popover
 
 
 def _parse_git_date(raw: str) -> datetime:
