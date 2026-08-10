@@ -651,25 +651,25 @@ hr {
   }
 }
 
-// mobile nav reorder: search, blog/vault/book, dark-toggle (newsletter hidden)
-// right cluster sits flush; all slack space goes to the left of search
+// mobile: full blog match — the bar shows only logo + title + burger.
+// Search and the dark-mode toggle move into the burger panel (they proxy to
+// the still-rendered #search-icon / #darkmode-toggle controls, which are hidden
+// in the bar here). The header becomes the positioning context for .mobile-menu.
 @media all and (max-width: 768px) {
   header {
-    & #search-icon {
-      order: 1;
-      margin-right: 0.8em;
-    }
-    & > .icon-links {
-      order: 2;
-      padding: 0;
-      margin-right: 0;
-    }
-    & .newsletter { display: none; }
+    position: relative;
+
+    & > .icon-links,
+    & #search-icon,
+    & .header-divider,
+    & .newsletter,
     & .darkmode {
-      order: 4;
-      float: none;
-      padding-left: 0.3em;
-      padding-right: 0;
+      display: none;
+    }
+
+    & > .menu-toggle {
+      order: 5;
+      margin-left: auto;
     }
   }
 }
