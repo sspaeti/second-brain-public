@@ -51,8 +51,8 @@ Add this to the end of `layouts/partials/blog-nav.html` (after the existing `</d
         <span>Search</span>
     </button>
     <a class='mobile-menu-item' href="/posts/">Blogs</a>
-    <a class='mobile-menu-item mobile-brain-link' href="/brain/"{{ if and (hasPrefix .RelPermalink "/brain/") (not (hasPrefix .RelPermalink "/brain/data-engineering")) }} class="active"{{ end }}>Brain</a>
-    <a class='mobile-menu-item mobile-vault-link' href="/brain/data-engineering/"{{ if hasPrefix .RelPermalink "/brain/data-engineering" }} class="active"{{ end }}>DE Vault</a>
+    <a class='mobile-menu-item mobile-brain-link' href="/brain/">Brain</a>
+    <a class='mobile-menu-item mobile-vault-link' href="/brain/data-engineering/">DE Vault</a>
     <a class='mobile-menu-item' href="https://www.ssp.sh/book/">Book</a>
     <a class='mobile-menu-item' href="https://www.ssp.sh/about/">About</a>
     <button class='mobile-menu-item mobile-darktoggle' type='button'>Toggle theme</button>

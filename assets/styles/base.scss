@@ -659,12 +659,15 @@ hr {
   header {
     position: relative;
 
+    // !important is required: the base `header #search-icon { display:flex }`
+    // rule below has equal specificity and later source order, so it would
+    // otherwise win and keep the search chip visible in the mobile bar.
     & > .icon-links,
     & #search-icon,
     & .header-divider,
     & .newsletter,
     & .darkmode {
-      display: none;
+      display: none !important;
     }
 
     & > .menu-toggle {
