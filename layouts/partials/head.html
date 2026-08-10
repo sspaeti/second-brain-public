@@ -324,12 +324,7 @@
           var p = document.getElementById('mobile-menu');
           if (!t || !p) return;
 
-          // Proxy rows first.
-          if (e.target.closest('.mobile-search')) {
-            t.classList.remove('active'); t.setAttribute('aria-expanded', 'false'); p.classList.remove('active');
-            var si = document.getElementById('search-icon'); if (si) si.click();
-            return;
-          }
+          // Proxy the dark-toggle row to the real control.
           if (e.target.closest('.mobile-darktoggle')) {
             var dt = document.getElementById('darkmode-toggle'); if (dt) dt.click();
             return;

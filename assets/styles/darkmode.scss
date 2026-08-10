@@ -273,28 +273,6 @@
             &:hover { color: #D27E99; }
             &.active { color: var(--dark); font-weight: 700; }
         }
-
-        // Search row rendered as a rounded input-style box (like the blog's
-        // mobile search field). It's a button that opens the existing search
-        // modal on tap; mirrors the desktop #search-icon chip styling.
-        .mobile-search {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            gap: 0.5rem;
-            width: auto;
-            margin: 0.25rem 1rem 0.6rem;
-            padding: 0.55rem 0.8rem;
-            line-height: normal;
-            background: var(--header-background-color);
-            border-radius: 8px;
-            color: var(--global-font-secondary-color);
-            font-size: 0.95rem;
-            text-align: left;
-
-            svg { flex-shrink: 0; }
-            &:hover { color: var(--global-font-secondary-color); }
-        }
     }
 }
 

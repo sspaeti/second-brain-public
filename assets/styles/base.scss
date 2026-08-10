@@ -651,28 +651,29 @@ hr {
   }
 }
 
-// mobile: full blog match — the bar shows only logo + title + burger.
-// Search and the dark-mode toggle move into the burger panel (they proxy to
-// the still-rendered #search-icon / #darkmode-toggle controls, which are hidden
-// in the bar here). The header becomes the positioning context for .mobile-menu.
+// mobile: bar shows logo + title + search chip + burger.
+// The search chip stays in the bar (left of the burger); the burger panel holds
+// only the nav links + dark-mode toggle. The header is the positioning context
+// for the absolute .mobile-menu panel.
 @media all and (max-width: 768px) {
   header {
     position: relative;
 
-    // !important is required: the base `header #search-icon { display:flex }`
-    // rule below has equal specificity and later source order, so it would
-    // otherwise win and keep the search chip visible in the mobile bar.
     & > .icon-links,
-    & #search-icon,
     & .header-divider,
     & .newsletter,
     & .darkmode {
       display: none !important;
     }
 
+    // search chip + burger cluster, pushed right; search sits left of burger
+    & #search-icon {
+      order: 4;
+      margin-left: auto;
+      margin-right: 0.6em;
+    }
     & > .menu-toggle {
       order: 5;
-      margin-left: auto;
     }
   }
 }
