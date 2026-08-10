@@ -258,7 +258,10 @@
             padding: 0;
             background: none;
             border: none;
-            font-family: inherit;
+            // explicit stack: `inherit` would override the `a { font-family:
+            // var(--font-body) }` base rule and fall back to the header's serif
+            // default (Times New Roman). Buttons don't inherit it either.
+            font-family: var(--font-body);
             font-size: 1rem;
             font-weight: 400;
             color: var(--gray);
