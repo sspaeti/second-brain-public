@@ -193,3 +193,99 @@
     color: #DCD7BA !important;
     svg { stroke: #DCD7BA; }
 }
+
+// -- Mobile burger nav (1:1 with the blog's uBlogger hamburger + dropdown) ----
+// Colors/sizes mirror the blog's COMPILED mobile header exactly:
+//   bars   #161209 (light) / #DCD7BA (dark)
+//   panel  bg #f8f8f8 (light) / #252627 (dark), border-top #2c678d / #a9a9b3
+//   items  display:block, line-height 2.5rem, normal weight
+.menu-toggle,
+.mobile-menu {
+    display: none;
+}
+
+@media all and (max-width: 768px) {
+    // Burger button: three bars that animate into an X when .active
+    .menu-toggle {
+        display: inline-flex;
+        flex-direction: column;
+        justify-content: center;
+        background: none;
+        border: none;
+        padding: 6px 4px;
+        cursor: pointer;
+        line-height: 1;
+
+        span {
+            display: block;
+            width: 1.5rem;
+            height: 2px;
+            border-radius: 3px;
+            background: #161209;
+            transition: all 0.3s ease-in-out;
+        }
+        span:nth-child(1) { margin-bottom: 0.5rem; }
+        span:nth-child(3) { margin-top: 0.5rem; }
+
+        &.active {
+            span:nth-child(1) { transform: rotate(45deg) translate(0.4rem, 0.5rem); }
+            span:nth-child(2) { opacity: 0; }
+            span:nth-child(3) { transform: rotate(-45deg) translate(0.4rem, -0.5rem); }
+        }
+    }
+
+    // Dropdown panel: full-width, drops below the header bar
+    .mobile-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        z-index: 200;
+        display: none;
+        text-align: center;
+        padding-top: 0.5rem;
+        background: #f8f8f8;
+        border-top: 2px solid #2c678d;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+
+        &.active { display: block; }
+
+        // matches the blog's .menu .menu-item: block, centered by the parent
+        .mobile-menu-item {
+            display: block;
+            width: 100%;
+            line-height: 2.5rem;
+            padding: 0;
+            background: none;
+            border: none;
+            // explicit stack: `inherit` would override the `a { font-family:
+            // var(--font-body) }` base rule and fall back to the header's serif
+            // default (Times New Roman). Buttons don't inherit it either.
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 400;
+            color: var(--gray);
+            text-decoration: none;
+            cursor: pointer;
+
+            svg { vertical-align: middle; }
+
+            &:hover { color: #D27E99; }
+            &.active { color: var(--dark); font-weight: 700; }
+        }
+    }
+}
+
+[saved-theme="dark"] {
+    @media all and (max-width: 768px) {
+        .menu-toggle span { background: #DCD7BA; }
+        .mobile-menu {
+            background: #252627;
+            border-top-color: #a9a9b3;
+        }
+        .mobile-menu .mobile-menu-item {
+            color: var(--global-font-secondary-color);
+            &.active { color: #DCD7BA; }
+        }
+    }
+}

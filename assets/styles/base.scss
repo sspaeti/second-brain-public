@@ -651,25 +651,29 @@ hr {
   }
 }
 
-// mobile nav reorder: search, blog/vault/book, dark-toggle (newsletter hidden)
-// right cluster sits flush; all slack space goes to the left of search
+// mobile: bar shows logo + title + search chip + burger.
+// The search chip stays in the bar (left of the burger); the burger panel holds
+// only the nav links + dark-mode toggle. The header is the positioning context
+// for the absolute .mobile-menu panel.
 @media all and (max-width: 768px) {
   header {
-    & #search-icon {
-      order: 1;
-      margin-right: 0.8em;
-    }
-    & > .icon-links {
-      order: 2;
-      padding: 0;
-      margin-right: 0;
-    }
-    & .newsletter { display: none; }
+    position: relative;
+
+    & > .icon-links,
+    & .header-divider,
+    & .newsletter,
     & .darkmode {
+      display: none !important;
+    }
+
+    // search chip + burger cluster, pushed right; search sits left of burger
+    & #search-icon {
       order: 4;
-      float: none;
-      padding-left: 0.3em;
-      padding-right: 0;
+      margin-left: auto;
+      margin-right: 0.6em;
+    }
+    & > .menu-toggle {
+      order: 5;
     }
   }
 }
