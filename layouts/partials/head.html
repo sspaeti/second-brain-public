@@ -299,11 +299,58 @@
       // class="active" only reflects the first-loaded page under SPA routing)
       (function () {
         var p = window.location.pathname;
-        document.querySelectorAll('.icon-links a.active').forEach(function (a) { a.classList.remove('active'); });
-        var sel = p.startsWith('/brain/data-engineering')
-          ? '.icon-links .vault-link a'
-          : (p.startsWith('/brain') ? '.icon-links .brain-link a' : null);
-        if (sel) { var el = document.querySelector(sel); if (el) el.classList.add('active'); }
+        document.querySelectorAll('.icon-links a.active, .mobile-menu a.active').forEach(function (a) { a.classList.remove('active'); });
+        var sels = p.startsWith('/brain/data-engineering')
+          ? ['.icon-links .vault-link a', '.mobile-menu .mobile-vault-link']
+          : (p.startsWith('/brain') ? ['.icon-links .brain-link a', '.mobile-menu .mobile-brain-link'] : []);
+        sels.forEach(function (sel) { var el = document.querySelector(sel); if (el) el.classList.add('active'); });
+      })();
+
+      // Mobile burger toggle. Uses document-level delegation bound once (guarded
+      // by a window flag) so it survives SPA DOM swaps; the open panel is closed
+      // on every render() call below so navigation auto-closes it.
+      (function () {
+        var toggle = document.getElementById('mobile-menu-toggle');
+        var panel = document.getElementById('mobile-menu');
+        // Close any open panel on (re)render / navigation.
+        if (toggle) { toggle.classList.remove('active'); toggle.setAttribute('aria-expanded', 'false'); }
+        if (panel) { panel.classList.remove('active'); }
+
+        if (window.__burgerBound) return;
+        window.__burgerBound = true;
+
+        document.addEventListener('click', function (e) {
+          var t = document.getElementById('mobile-menu-toggle');
+          var p = document.getElementById('mobile-menu');
+          if (!t || !p) return;
+
+          // Proxy rows first.
+          if (e.target.closest('.mobile-search')) {
+            t.classList.remove('active'); t.setAttribute('aria-expanded', 'false'); p.classList.remove('active');
+            var si = document.getElementById('search-icon'); if (si) si.click();
+            return;
+          }
+          if (e.target.closest('.mobile-darktoggle')) {
+            var dt = document.getElementById('darkmode-toggle'); if (dt) dt.click();
+            return;
+          }
+          // Nav link tap: let navigation happen, close the panel.
+          if (e.target.closest('.mobile-menu a')) {
+            t.classList.remove('active'); t.setAttribute('aria-expanded', 'false'); p.classList.remove('active');
+            return;
+          }
+          // Burger tap: toggle open/closed.
+          if (e.target.closest('#mobile-menu-toggle')) {
+            var open = t.classList.toggle('active');
+            p.classList.toggle('active', open);
+            t.setAttribute('aria-expanded', open ? 'true' : 'false');
+            return;
+          }
+          // Click outside an open panel: close.
+          if (p.classList.contains('active') && !e.target.closest('#mobile-menu')) {
+            t.classList.remove('active'); t.setAttribute('aria-expanded', 'false'); p.classList.remove('active');
+          }
+        });
       })();
 
       {{if $data.enableFooter | default hugo.Data.config.enableFooter}}
