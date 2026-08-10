@@ -193,3 +193,94 @@
     color: #DCD7BA !important;
     svg { stroke: #DCD7BA; }
 }
+
+// -- Mobile burger nav (matches the blog's hamburger + dropdown) ----
+// Hidden on desktop/tablet; the .icon-links text nav is used there instead.
+.menu-toggle,
+.mobile-menu {
+    display: none;
+}
+
+@media all and (max-width: 768px) {
+    // Burger button: three bars that animate into an X when .active
+    .menu-toggle {
+        display: inline-flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 0;
+        background: none;
+        border: none;
+        padding: 6px 4px;
+        cursor: pointer;
+        line-height: 1;
+
+        span {
+            display: block;
+            width: 1.5rem;
+            height: 2px;
+            border-radius: 3px;
+            background: var(--dark);
+            transition: all 0.3s ease-in-out;
+        }
+        span:nth-child(1) { margin-bottom: 0.4rem; }
+        span:nth-child(3) { margin-top: 0.4rem; }
+
+        &.active {
+            span:nth-child(1) { transform: rotate(45deg) translate(0.35rem, 0.42rem); }
+            span:nth-child(2) { opacity: 0; }
+            span:nth-child(3) { transform: rotate(-45deg) translate(0.35rem, -0.42rem); }
+        }
+    }
+
+    // Dropdown panel: full-width, drops below the header bar
+    .mobile-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        z-index: 200;
+        display: none;
+        text-align: center;
+        padding-top: 0.5rem;
+        background: var(--global-background-secondary-color);
+        border-top: 2px solid var(--gray);
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+
+        &.active { display: block; }
+
+        .mobile-menu-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            width: 100%;
+            line-height: 2.5rem;
+            padding: 0;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            font-family: inherit;
+            color: var(--gray);
+            text-decoration: none;
+            cursor: pointer;
+
+            &:hover { color: #D27E99; }
+            &.active { color: var(--dark); font-weight: 700; }
+        }
+    }
+}
+
+[saved-theme="dark"] {
+    @media all and (max-width: 768px) {
+        .menu-toggle span { background: var(--global-font-secondary-color); }
+        .mobile-menu {
+            background: var(--global-background-secondary-color);
+            border-top-color: var(--global-font-secondary-color);
+        }
+        .mobile-menu .mobile-menu-item {
+            color: var(--global-font-secondary-color);
+            &.active { color: #DCD7BA; }
+        }
+    }
+}
