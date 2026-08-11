@@ -64,13 +64,15 @@ Custom render hooks in `layouts/_default/_markup/`:
 
 ### `recent_updates.py`: Change badges & edit history
 
-Stdlib-only Python (`utils/recent_updates.py`, logic ported from the newsletter generator) that scans the `content/` git submodule history and writes `data/recent_updates.json`, keyed by each note's on-disk filename stem (== Hugo `.File.BaseFileName`). Each entry is `{status, words, sessions:[…]}` and drives two UI features:
+Stdlib-only Python (`utils/recent_updates.py`, logic ported from the newsletter generator) that scans the `content/` git submodule history **plus its uncommitted working tree** and writes `data/recent_updates.json`, keyed by each note's on-disk filename stem (== Hugo `.File.BaseFileName`). Each entry is `{status, words, sessions:[…]}` and drives two UI features:
 - **Recent-notes pills** — a green `NEW · 1,079w` / blue `UPD · ~80w` badge on the homepage recent-notes list (and other listings).
-- **Per-note edit history** — a "recently updated" hover popover on each note page listing recent editing sessions with `+added / −removed` word counts. The note's origin session shows `new · N words`, or `published · N words` when the frontmatter `createddate` predates the first git commit (i.e. the note was written privately before being published) — so it never competes with the "Created" date in the meta line.
+- **Per-note edit history** — a "recently updated" hover popover on each note page listing recent editing sessions with `+added / −removed` word counts. The note's origin session shows `published · N words` when it carries a frontmatter `createddate` (its true creation is already in the meta "Created" line, so the first git commit is the *publish* event — this also holds when it was created and published on the same day), or `new · N words` when it has no `createddate` (born straight on git).
+
+Because it also reads the working tree, a freshly prepared note gets its badge/popover **before** the `content/` submodule is committed: untracked notes count as brand-new creations dated "now", and a tracked note's uncommitted diff folds in as a "now" session (`git diff HEAD`). This decouples the badges from commit timing — previously a just-added note showed nothing until the *next* deploy.
 
 **Two noise filters keep the counts "real content only"** (so tooling/metadata commits don't show as edits):
 - **Frontmatter excluded from word counts** — the parser tracks file line numbers through each diff hunk and ignores any `+`/`-` line inside the `---…---` block. So OG `description:` backfills, `createddate:` extraction, and `lastmod:` bumps contribute 0 words.
-- **`lastmod` ceiling** — sessions dated *after* a note's frontmatter `lastmod` are dropped. `lastmod` is the pipeline's authoritative "real edit" date (set by `obsidian-quartz` from vault mtime, guarded by `revert-lastmod-only.sh`), so the popover never shows a change newer than the note's "Last updated" line. A note whose only recent git activity is tooling gets no dot.
+- **`lastmod` ceiling** — sessions dated *after* a note's frontmatter `lastmod` are dropped. `lastmod` is the pipeline's authoritative "real edit" date (set by `obsidian-quartz` from vault mtime, guarded by `revert-lastmod-only.sh`), so the popover never shows a change newer than the note's "Last updated" line. A note whose only recent git activity is tooling gets no dot. **Two exceptions**: (a) a note's **creation session is never ceilinged** — a note must always show when it was born (and keep its `NEW` badge) even if a later commit that never bumped `lastmod` folded into that session, or the whole note would vanish; (b) a note with a **live uncommitted edit** raises its ceiling to today, since `lastmod` isn't bumped until that edit is committed.
 
 The homepage badge picks the most recent session that is a real content change (or the creation), so a trailing metadata commit never makes it read `0 words`.
 
@@ -82,6 +84,16 @@ Runs in `prepare` / `prepare-python` (one line, no other build change). Tunables
 Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
+
+### 2026-08-11: Change-badge fixes — new notes, creation word counts, publish label
+
+Four fixes to `utils/recent_updates.py` after new notes (e.g. *terminal multiplexer*) showed no `NEW` badge and creation rows read `· 0 words`. Root causes were independent despite surfacing together on fresh notes.
+
+- **Uncommitted content now counts** (`worktree_word_stats`): the generator ran in `prepare` *before* the `content/` submodule was committed, so a just-added note had no git history and produced no JSON entry (no badge, no popover) until the next deploy. It now also scans the working tree — untracked notes as brand-new creations dated "now", tracked edits via `git diff HEAD` folded in as a "now" session. No forced commit; parser is shared with the git-log path.
+- **Creation word counts fixed** (`seen_hunk` flag): a file-creation hunk header is `@@ -0,0 +1,N @@`, so `old_ln` stays `0` for the whole hunk and the old `if old_ln == 0: continue` preamble guard silently dropped *every* added line → creation rows read `0 words`. The guard now gates on "have we passed the first `@@` yet", counting the added body of new files. (Notes committed empty and filled later still read `0` — correct.) Cut zero-word creation rows 551 → 8.
+- **Creation session exempt from the `lastmod` ceiling**: a real content commit newer than a stale `lastmod` (edit that didn't bump the date) was ceilinged away; when it had merged into the creation session, the whole note disappeared — losing its `NEW` badge *and* popover. The creation session is now always kept; live-edited notes also raise their ceiling to today. The tooling-noise ceiling is unchanged for every other session (verified: 0 post-`lastmod` non-creation rows leak).
+- **`published` vs `new` label widened**: the origin row now reads `published` whenever a `createddate` exists (true creation already shown in the meta line), not only when it strictly *predates* the first commit. Same-day create-and-publish notes (155 of them) now read `published` instead of `new`. Homepage `NEW` badge is a separate axis and is unaffected.
+- **Files**: `utils/recent_updates.py`.
 
 ### 2026-08-07: Change badges + per-note edit history (git word-diffs)
 
