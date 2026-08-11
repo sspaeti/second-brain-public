@@ -83,26 +83,19 @@ def _frontmatter_end_line(path: Path) -> int:
     return 0
 
 
-def commit_word_stats(since: datetime) -> dict[str, list[tuple[datetime, int, int]]]:
-    """Per note, a list of `(commit_datetime, added_words, removed_words)` for
-    commits since `since`, counted from `+`/`-` diff lines. Frontmatter lines are
-    excluded (tracked by file line number) so metadata-only commits don't read as
+def _stats_from_diff(text: str) -> dict[str, list[tuple[datetime, int, int]]]:
+    """Parse a `git log -p` / `git diff` stream (commits delimited by
+    `__COMMIT__%ai` marker lines) into per-note `(commit_datetime, added_words,
+    removed_words)`, counted from `+`/`-` diff lines. Frontmatter lines are
+    excluded (tracked by file line number) so metadata-only edits don't read as
     content edits."""
-    result = subprocess.run(
-        [
-            "git", "-c", "core.quotePath=false", "-C", str(CONTENT), "log",
-            f"--since={since.strftime('%Y-%m-%d %H:%M:%S')}",
-            "-p", "--format=__COMMIT__%ai", "--", "*.md",
-        ],
-        capture_output=True, text=True, check=True,
-    )
-
     commits: dict[str, list[tuple[datetime, int, int]]] = defaultdict(list)
     cur_date: datetime | None = None
     cur_path: str | None = None
     cur_added = 0
     cur_removed = 0
     is_binary = False
+    seen_hunk = False          # True once past the per-file diff header preamble
     fm_end = 0                 # last frontmatter line for the current file
     old_ln = new_ln = 0        # running line numbers within the current hunk
 
@@ -112,7 +105,7 @@ def commit_word_stats(since: datetime) -> dict[str, list[tuple[datetime, int, in
             commits[cur_path].append((cur_date, cur_added, cur_removed))
         cur_path, cur_added, cur_removed = None, 0, 0
 
-    for line in result.stdout.splitlines():
+    for line in text.splitlines():
         if line.startswith("__COMMIT__"):
             flush()
             cur_date = _parse_git_date(line[len("__COMMIT__"):])
@@ -122,6 +115,7 @@ def commit_word_stats(since: datetime) -> dict[str, list[tuple[datetime, int, in
             _, _, b_path = line.partition(" b/")
             cur_path = b_path if b_path.endswith(".md") else None
             is_binary = False
+            seen_hunk = False
             fm_end = _frontmatter_end_line(CONTENT / cur_path) if cur_path else 0
             old_ln = new_ln = 0
             continue
@@ -135,8 +129,12 @@ def commit_word_stats(since: datetime) -> dict[str, list[tuple[datetime, int, in
         m = _HUNK_RE.match(line)
         if m:
             old_ln, new_ln = int(m.group(1)), int(m.group(2))
+            seen_hunk = True
             continue
-        if old_ln == 0:        # still in the diff preamble (index / ---/+++ headers)
+        # A file-creation hunk is `@@ -0,0 +1,N @@`, so `old_ln` stays 0 for the
+        # whole hunk -- gate the preamble on "have we seen a hunk yet", not on
+        # `old_ln == 0`, or every added line of a new file is dropped (0 words).
+        if not seen_hunk:      # still in the diff preamble (index / ---/+++ headers)
             continue
         if line.startswith("+"):
             if new_ln > fm_end:            # body only
@@ -152,6 +150,56 @@ def commit_word_stats(since: datetime) -> dict[str, list[tuple[datetime, int, in
     flush()
 
     return commits
+
+
+def commit_word_stats(since: datetime) -> dict[str, list[tuple[datetime, int, int]]]:
+    """Per note, a list of `(commit_datetime, added_words, removed_words)` for
+    committed changes since `since`."""
+    result = subprocess.run(
+        [
+            "git", "-c", "core.quotePath=false", "-C", str(CONTENT), "log",
+            f"--since={since.strftime('%Y-%m-%d %H:%M:%S')}",
+            "-p", "--format=__COMMIT__%ai", "--", "*.md",
+        ],
+        capture_output=True, text=True, check=True,
+    )
+    return _stats_from_diff(result.stdout)
+
+
+def worktree_word_stats(now: datetime) -> tuple[dict[str, list[tuple[datetime, int, int]]], set[str]]:
+    """Uncommitted `content/` changes folded into a single `now` session, so a
+    freshly prepared note gets a badge/popover before the content submodule is
+    committed (the generator otherwise sees only committed history).
+
+    Returns `(stats, new_paths)` where `stats` mirrors `commit_word_stats` (dated
+    `now`) and `new_paths` is the set of untracked -- brand-new -- note paths, so
+    the caller can treat them as creations rather than edits."""
+    marker = "__COMMIT__" + now.strftime("%Y-%m-%d %H:%M:%S %z")
+
+    # Tracked-but-modified notes: reuse the diff parser on the working-tree diff.
+    diff = subprocess.run(
+        [
+            "git", "-c", "core.quotePath=false", "-C", str(CONTENT),
+            "diff", "HEAD", "--", "*.md",
+        ],
+        capture_output=True, text=True, check=True,
+    ).stdout
+    stats = _stats_from_diff(marker + "\n" + diff) if diff.strip() else defaultdict(list)
+
+    # Untracked notes have no diff base -- the whole body is "added".
+    others = subprocess.run(
+        [
+            "git", "-C", str(CONTENT), "ls-files", "--others", "--exclude-standard",
+            "-z", "--", "*.md",
+        ],
+        capture_output=True, text=True, check=True,
+    ).stdout
+    new_paths = {p for p in others.split("\0") if p.endswith(".md")}
+    for p in new_paths:
+        full = CONTENT / p
+        if full.exists():
+            stats.setdefault(p, []).append((now, _word_count(full), 0))
+    return stats, new_paths
 
 
 def first_commit_dates() -> dict[str, datetime]:
@@ -270,6 +318,15 @@ def build() -> dict[str, dict]:
     commits = commit_word_stats(since)
     first = first_commit_dates()
 
+    # Fold in uncommitted `content/` changes as a "now" session so freshly
+    # prepared notes (submodule not yet committed) still get badges/popovers.
+    wt_stats, new_paths = worktree_word_stats(now)
+    wt_paths = set(wt_stats)          # notes with uncommitted (live) edits
+    for path, dated in wt_stats.items():
+        commits.setdefault(path, []).extend(dated)
+    for path in new_paths:
+        first.setdefault(path, now)   # untracked note: its creation is "now"
+
     out: dict[str, dict] = {}
     for path, dated in commits.items():
         if not dated:
@@ -283,21 +340,29 @@ def build() -> dict[str, dict]:
         # Ceiling the history at the note's `lastmod`: git can carry later
         # tooling/restructuring commits that never bumped lastmod, and those
         # would otherwise show as changes newer than the "Last updated" date.
+        # A note with a live uncommitted edit is genuinely changing *now*, before
+        # lastmod is bumped, so raise its ceiling to today or that session drops.
+        # The creation session is always kept, though: a note must show when it
+        # was created (and keep its NEW badge) even if a later commit that never
+        # bumped lastmod folded into it -- otherwise the whole note disappears.
         lastmod = _frontmatter_date(full, "lastmod") if full.exists() else None
         if lastmod is not None:
-            sessions = [s for s in sessions if s["end"].date() <= lastmod]
+            ceiling = max(lastmod, now.date()) if path in wt_paths else lastmod
+            sessions = [
+                s for s in sessions
+                if s["end"].date() <= ceiling
+                or (first_dt is not None and s["start"] <= first_dt <= s["end"])
+            ]
         if not sessions:
             continue
 
-        # If the note existed privately before it was published, its first *git*
-        # commit is the publish, not the creation. Label that row "published"
-        # (the true "Created" date stays in the meta line) to avoid two dates
-        # both reading as the origin.
+        # If the note carries a `createddate`, its true creation is already shown
+        # in the meta line, so the first *git* commit is the publish, not the
+        # creation -- label that row "published" to avoid two dates both reading
+        # as the origin (holds even when created and published fall on one day).
+        # Only a note with no createddate (born straight on git) reads "new".
         created = _frontmatter_date(full, "createddate") if full.exists() else None
-        creation_kind = (
-            "published" if created is not None and first_dt is not None
-            and created < first_dt.date() else "new"
-        )
+        creation_kind = "published" if created is not None else "new"
 
         def _is_creation(s: dict) -> bool:
             return first_dt is not None and s["start"] <= first_dt <= s["end"]
