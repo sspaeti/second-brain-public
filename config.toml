@@ -44,3 +44,29 @@ enableGitInfo = true # produces RSS feed too at /index.xml; it uses `pubDate` fr
   recentUpdatesLookbackDays = 1825    # git word-diff scan window (~5y, tough first commit was ~4 years 022571b · 2022-09-28); history depth only, no viewer cost
   recentUpdatesSessionGapHours = 24   # commits closer than this fold into one editing session
   recentUpdatesMaxSessions = 200        # sessions shown in a note's change popover
+
+# ---------------------------------------------------------------------------
+# LOCAL ADDITION (not from upstream Quartz) — raw Markdown output per note.
+# `make sync-upstream` checks out config.toml from upstream/hugo, which would
+# drop this block. Re-add it after any upstream sync.
+#
+# Publishes every note a second time as plain Markdown at
+# /brain/<slug>/index.md, rendered by layouts/_default/single.md (.RawContent,
+# so wikilinks and callouts stay in their Obsidian source form).
+# Mirrors the same setup in ../sspaeti-hugo-blog/config.toml.
+#
+# Only the `page` kind is overridden. home/section/taxonomy/term keep Hugo's
+# defaults, so the RSS feed at /brain/index.xml and all HTML output are
+# untouched.
+# ---------------------------------------------------------------------------
+[mediaTypes]
+  [mediaTypes."text/plain"]
+    suffixes = ["md"]
+
+[outputFormats.MarkDown]
+  mediaType = "text/plain"
+  isPlainText = true
+  isHTML = false
+
+[outputs]
+  page = ["HTML", "MarkDown"]

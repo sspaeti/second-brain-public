@@ -21,6 +21,7 @@ This is a fork of the [Quartz](https://github.com/jackyzha0/quartz) repo ([v3](h
 * Callout blocks are normalized so compact and spaced forms render identically
 * **Obsidian transclusions / embeds** (`![[Note#^block-id]]` and `![[Note#Heading]]`): block and section references render inline as a quoted blockquote (instead of a broken image), with nested `[[wikilinks]]` and `![[images]]` inside the embed resolved, plus a floated top-right link back to the source note that jumps to the exact spot — the heading for section refs, or the block's enclosing heading for block refs (hover shows the popover preview)
 * **Mermaid → OG image**: set `ogimage: mermaid` (or `mermaid2`, `mermaid3`, …) in a note's frontmatter to render the Nth ` ```mermaid ` block as the social-media preview image (rendered via `mmdc` + ImageMagick to a 1200×630 WebP using a dark theme that matches the site's OG template)
+* **Raw Markdown output**: every note is also published as plain Markdown at `/brain/<slug>/index.md`, so LLMs and scrapers can read the Obsidian source without the site chrome (see [Raw Markdown output per note](#raw-markdown-output-per-note))
 
 The content/notes themselves are not published in this repo, only on [ssp.sh/brain](https://ssp.sh/brain).
 
@@ -80,10 +81,41 @@ Runs in `prepare` / `prepare-python` (one line, no other build change). Tunables
 
 ## Configs
 
+### Raw Markdown output per note
+
+Every note is published twice: as HTML, and as plain Markdown at `/brain/<slug>/index.md`. The Markdown is the Obsidian source, so wikilinks stay as `[[Cal Newport]]` and callouts stay as `> [!note]`.
+
+```bash
+curl https://www.ssp.sh/brain/deep-life/index.md
+```
+
+Two pieces, both local additions (not from upstream Quartz):
+
+- **`config.toml`** — `[mediaTypes]` registers the `md` suffix, `[outputFormats.MarkDown]` defines the format, `[outputs]` adds it to the `page` kind. Only `page` is overridden, so `home` / `section` / `taxonomy` / `term` keep Hugo's defaults and the RSS feed at `/brain/index.xml` plus all HTML output are untouched.
+- **`layouts/_default/single.md`** — the template, `# {{ .Title }}` followed by `{{ .RawContent }}`.
+
+> [!WARNING]
+> `config.toml` is in the upstream checkout list in the `Makefile` (`git checkout upstream/hugo -- … config.toml …`), so a Quartz sync drops the three blocks. They carry a `LOCAL ADDITION` comment; re-add them after any sync. `layouts/` is in that list too, but `single.md` is a new file, so a checkout of tracked paths leaves it alone.
+
+Verified on build: 675 `.md` files generated, `/brain/index.xml` intact, `sitemap.xml` unchanged at 696 URLs with no `.md` entries, no `.md` under `public/tags/`.
+
+The files are not linked from anywhere and are absent from the sitemap by design. They are advertised only in the blog's [`static/llms.txt`](https://www.ssp.sh/llms.txt), which documents the `index.md` convention. Deploy is automatic, the `upload` target rsyncs `public/` with no `.md` exclude. The same setup exists in `../sspaeti-hugo-blog`.
+
 ### Redirects of renamed files
 Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
+
+### 2026-08-14: Raw Markdown output per note
+
+Every note is now published a second time as plain Markdown at `/brain/<slug>/index.md`, matching what the blog has been doing at `/blog/<slug>/index.md`. The point is LLM and scraper access to the source text without nav, graph, backlinks and footer around it.
+
+- **`config.toml`**: added `[mediaTypes."text/plain"]` (`suffixes = ["md"]`), `[outputFormats.MarkDown]`, and `[outputs] page = ["HTML", "MarkDown"]`. Only the `page` kind is overridden so every other kind keeps Hugo's defaults. Marked `LOCAL ADDITION` in the file, since the `Makefile` upstream-sync targets check `config.toml` out from `upstream/hugo`.
+- **`layouts/_default/single.md`**: new two-line template, `# {{ .Title }}` + `{{ .RawContent }}`.
+- **Output is the Obsidian source**: `.RawContent` runs before `textprocessing.html`, so wikilinks, transclusions and callouts appear in their raw form. Frontmatter is stripped, the title is re-added as an H1.
+- **Verified**: 675 `.md` files, `/brain/index.xml` intact (575 KB), `sitemap.xml` still 696 URLs with 0 `.md` entries, 0 `.md` under `public/tags/`, sampled `deep-life/index.html` renders normally.
+- **Not discoverable by crawl**: no sitemap entry (a second format of the same content muddies duplicate-content signals) and no `<link rel="alternate">` in the page head. The convention is documented in the blog's `static/llms.txt`.
+- **Files**: `config.toml`, `layouts/_default/single.md`.
 
 ### 2026-08-11: Change-badge fixes — new notes, creation word counts, publish label
 
