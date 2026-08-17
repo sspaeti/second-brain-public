@@ -849,22 +849,50 @@ header {
   text-align: center;
   padding: 1em 12vw 1.5em;
 
+  // Nothing out here sets a font or color — font-family is only applied to
+  // content elements, not body, so this block falls back to the browser default
+  // serif and black (unreadable in dark mode). Set both explicitly.
+  // Values match the blog body color: #161209 light / #DCD7BA dark.
+  font-family: var(--font-body);
+  color: #161209;
+
   @media all and (max-width: 1200px) {
     padding: 1em 5vw 1.5em;
   }
 
-  ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
+  // mirrors the blog footer (uBlogger assets/css/_partial/_footer.scss)
+  footer {
+    width: 100%;
+    margin: 3rem 0 1rem 0;
+    line-height: 1.25rem;
+  }
 
-    li {
-      display: inline-block;
-    }
+  .footer-container {
+    font-size: 0.875rem;
+  }
 
-    li a {
-      padding: 0 1em;
+  .footer-line {
+    width: 100%;
+  }
+
+  // Same link pair as the blog footer (see _override.scss "Footer Links").
+  // Light: ink-blue instead of the global var(--secondary) red. Dark: the
+  // existing dragonBlue token, unchanged. Not bold — the blog footer isn't.
+  a {
+    font-weight: 400;
+    color: #3150AA;
+
+    &:hover {
+      color: #D27E99 !important; // blog footer hover
     }
+  }
+}
+
+[saved-theme="dark"] #contact_buttons {
+  color: #DCD7BA;
+
+  a {
+    color: var(--secondary); // #658594 dragonBlue
   }
 }
 

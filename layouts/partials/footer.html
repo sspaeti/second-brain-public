@@ -8,5 +8,10 @@
         {{partial "graph.html" .}}
     </div>
 </div>
+<!-- This is the container the script actually fills: it comes first in the
+     document and webmention.js uses getElementById. The hideWebmentions guard
+     lives here for that reason. -->
+{{if not .Params.hideWebmentions}}
 <div id="webmentions"></div>
+{{end}}
 {{end}}

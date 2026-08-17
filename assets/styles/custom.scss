@@ -479,6 +479,12 @@ $nav-icon-graph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/sv
   transform: translateY(-1px);
 }
 
+.webmentions-empty {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--global-font-secondary-color);
+}
+
 .bluesky-icon {
   width: 20px;
   height: 20px;

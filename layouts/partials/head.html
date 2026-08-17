@@ -536,7 +536,13 @@
   </script>
   <!-- Webmentions -->
   {{ partial "webmentions" . }}
-  <script src="/brain/webmention.js" async></script>
+  {{- /* Same Bluesky search URL the footer "Discuss" link uses, so the
+         "Join the conversation" button lands on this page's replies rather
+         than on the bare profile. Built here because the JS has no way to
+         reproduce Hugo's permalink. */ -}}
+  <script src="/brain/webmention.js"
+          data-discuss-url="{{ print "https://bsky.app/search?q=domain%3A" " https://www.ssp.sh" .RelPermalink | safeURL }}"
+          async></script>
 
   {{ $externalLinks := resources.Get "js/external-links.js" | resources.Fingerprint "md5" | resources.Minify }}
   <script src="{{$externalLinks.Permalink}}"></script>

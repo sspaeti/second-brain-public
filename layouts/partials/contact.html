@@ -1,29 +1,11 @@
-<!-- set data/config yaml file based on website language -->
-{{ $config := cond (eq $.Site.Language.Lang "en") "config" (printf "config.%s" $.Site.Language.Lang) }}
-{{ $data := index hugo.Data $config }}
 <!-- Contact Info -->
+<!-- Single-line footer, mirrors the blog's uBlogger footer (params.footer in config.toml) -->
 <div id="contact_buttons">
-    <footer>
-        <!-- {{ $name := $data.name | default hugo.Data.config.name }} -->
-        <!-- {{ $year := dateFormat "2006" now }} -->
-        <!-- <p>{{ i18n "copyright" (dict "name" $name "year" $year) | safeHTML}}</p> -->
-        <ul>
-
-            <!-- Not needed anymore, as navigation has been unified in top nav -->
-            <!-- {{ if not .IsHome }} -->
-            <!-- <li><a href="{{ $.Site.BaseURL}}">{{ i18n "home" }}</a></li> -->
-            <!-- {{end}} -->
-            <!-- <li><a href="https://ssp.sh/">Blog</a></li> -->
-
-            <li><a href="https://github.com/sspaeti" target="_blank" rel="noopener">GitHub</a></li>
-            <li><a href="https://ko-fi.com/sspaeti" target="_blank" rel="noopener">Support</a></li>
-            <!-- <li><a href="https://explore.ssp.sh/" target="_blank" rel="noopener">Explore</a></li> -->
-            <!-- {{- range $data.links | default hugo.Data.config.links -}} -->
-            <!-- <li><a href="{{.link}}">{{.link_name}}</a></li> -->
-            <!-- {{- end -}} -->
-            <li>{{partial "discuss.html" .}}</li>
-            <li><a href="https://ssp.sh/ai/">AI Use</a></li>
-            <li><a href="https://ssp.sh/services/">Services</a></li>
-        </ul>
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-line">
+                <i>©</i> <span>2004-{{ now.Year }}</span>&nbsp;sspaeti&nbsp;|&nbsp;<span class="license"><a href="https://ssp.sh/copyright-policy/">All Rights Reserved</a> &amp; <a href="https://ssp.sh/impressum-privacy/">Legal</a></span>&nbsp;|&nbsp;<a href="https://ssp.sh/ai/">AI Use</a>&nbsp;|&nbsp;<a href="https://ssp.sh/services/">Services</a>
+            </div>
+        </div>
     </footer>
 </div>

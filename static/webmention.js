@@ -23,6 +23,15 @@
   const commentsAreReactions = getAttribute("comments-are-reactions", false);
   const queryWwwRedirects = getAttribute("query-www-redirects", false);
 
+  // Where "Join the conversation" points when this page has no Bluesky
+  // webmention to link to. Hugo passes the same search URL the footer
+  // "Discuss" link uses; the literal below is only a safety net for pages
+  // rendered without the data attribute.
+  const discussUrl = getAttribute(
+    "discuss-url",
+    "https://bsky.app/search?q=domain%3A%20" + pageUrl
+  );
+
   // Owner's Bluesky DID — used to filter out self-webmentions (bridgy-fed
   // bridges your own bsky posts back as webmentions; we don't want to show
   // them as comments on our own articles).
@@ -126,6 +135,34 @@
     });
   }
   
+  // "Join the conversation on Bluesky" link — used by the comments block, the
+  // reactions block, and the empty state, so it lives in one place.
+  function renderJoinLink(url) {
+    return `
+      <a href="${url}" target="_blank" rel="noopener" class="join-conversation">
+        <span>Join the conversation on Bluesky</span>
+        <svg class="bluesky-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -3.268 64 68.414" width="20" height="20">
+          <path d="M13.873 3.805C21.21 9.332 29.103 20.537 32 26.55v15.882c0-.338-.13.044-.41.867-1.512 4.456-7.418 21.847-20.923 7.944-7.111-7.32-3.819-14.64 9.125-16.85-7.405 1.264-15.73-.825-18.014-9.015C1.12 23.022 0 8.51 0 6.55 0-3.268 8.579-.182 13.873 3.805zm36.254 0C42.79 9.332 34.897 20.537 32 26.55v15.882c0-.338.13.044.41.867 1.512 4.456 7.418 21.847 20.923 7.944 7.111-7.32 3.819-14.64-9.125-16.85 7.405 1.264 15.73-.825 18.014-9.015C62.88 23.022 64 8.51 64 6.55c0-9.818-8.578-6.732-13.873-2.745z" class="bluesky-icon-path"/>
+        </svg>
+      </a>
+    `;
+  }
+
+  // Most notes have no webmentions, and the API can fail. In both cases the
+  // block used to render nothing at all, leaving the page with no way to
+  // reply — show the header and the Bluesky link anyway, minus the list.
+  function renderEmptyState(container) {
+    container.innerHTML = `
+      <div class="webmentions-container">
+        <div class="webmentions-header-container">
+          <h3 class="webmentions-header">${t("Comments & Replies")}</h3>
+          ${renderJoinLink(discussUrl)}
+        </div>
+        <p class="webmentions-empty">${t("No replies yet — start the conversation.")}</p>
+      </div>
+    `;
+  }
+
   // Render a reaction (like, bookmark, etc.)
   function renderReaction(webmention) {
     // Clean up broken emoji characters in author names
@@ -360,6 +397,7 @@
       }
     } catch (error) {
       console.error("Request failed", error);
+      renderEmptyState(container);
       return;
     }
 
@@ -414,7 +452,7 @@
       const uniqueComments = removeDuplicates(sortedComments);
       
       // Find the most recent comment URL to link to for "Join the conversation"
-      let conversationUrl = "https://bsky.app/profile/ssp.sh";
+      let conversationUrl = discussUrl;
       
       // Try to find a comment with a URL to Bluesky
       if (uniqueComments.length > 0) {
@@ -433,12 +471,7 @@
         <div class="webmentions-comments">
           <div class="webmentions-header-container">
             <h3 class="webmentions-header">${t("Comments & Replies")}</h3>
-            <a href="${conversationUrl}" target="_blank" rel="noopener" class="join-conversation">
-              <span>Join the conversation on Bluesky</span>
-              <svg class="bluesky-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -3.268 64 68.414" width="20" height="20">
-                <path d="M13.873 3.805C21.21 9.332 29.103 20.537 32 26.55v15.882c0-.338-.13.044-.41.867-1.512 4.456-7.418 21.847-20.923 7.944-7.111-7.32-3.819-14.64 9.125-16.85-7.405 1.264-15.73-.825-18.014-9.015C1.12 23.022 0 8.51 0 6.55 0-3.268 8.579-.182 13.873 3.805zm36.254 0C42.79 9.332 34.897 20.537 32 26.55v15.882c0-.338.13.044.41.867 1.512 4.456 7.418 21.847 20.923 7.944 7.111-7.32 3.819-14.64-9.125-16.85 7.405 1.264 15.73-.825 18.014-9.015C62.88 23.022 64 8.51 64 6.55c0-9.818-8.578-6.732-13.873-2.745z" class="bluesky-icon-path"/>
-              </svg>
-            </a>
+            ${renderJoinLink(conversationUrl)}
           </div>
           <ul>${uniqueComments.map(renderComment).join("")}</ul>
         </div>
@@ -456,7 +489,7 @@
       const uniqueReactions = removeDuplicates(sortedReactions);
       
       // If there are no comments, find a reaction URL to link to
-      let conversationUrl = "https://bsky.app/profile/ssp.sh";
+      let conversationUrl = discussUrl;
       
       // Only look for reaction URL if we don't already have a comment URL
       if (comments.length === 0 || comments === reactions) {
@@ -478,28 +511,24 @@
         <div>
           <div class="webmentions-header-container">
             <h3 class="webmentions-header">${t("Reactions")}</h3>
-            ${comments.length === 0 || comments === reactions ? `
-              <a href="${conversationUrl}" target="_blank" rel="noopener" class="join-conversation">
-                <span>Join the conversation on Bluesky</span>
-                <svg class="bluesky-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -3.268 64 68.414" width="20" height="20">
-                  <path d="M13.873 3.805C21.21 9.332 29.103 20.537 32 26.55v15.882c0-.338-.13.044-.41.867-1.512 4.456-7.418 21.847-20.923 7.944-7.111-7.32-3.819-14.64 9.125-16.85-7.405 1.264-15.73-.825-18.014-9.015C1.12 23.022 0 8.51 0 6.55 0-3.268 8.579-.182 13.873 3.805zm36.254 0C42.79 9.332 34.897 20.537 32 26.55v15.882c0-.338.13.044.41.867 1.512 4.456 7.418 21.847 20.923 7.944 7.111-7.32 3.819-14.64-9.125-16.85 7.405 1.264 15.73-.825 18.014-9.015C62.88 23.022 64 8.51 64 6.55c0-9.818-8.578-6.732-13.873-2.745z" class="bluesky-icon-path"/>
-                </svg>
-              </a>
-            ` : ''}
+            ${comments.length === 0 || comments === reactions ? renderJoinLink(conversationUrl) : ''}
           </div>
           <ul class="webmentions-list">${uniqueReactions.map(renderReaction).join("")}</ul>
         </div>
       `;
     }
     
-    if (commentsHTML || reactionsHTML) {
-      container.innerHTML = `
-        <div class="webmentions-container">
-          ${reactionsHTML}
-          ${commentsHTML}
-        </div>
-      `;
+    if (!commentsHTML && !reactionsHTML) {
+      renderEmptyState(container);
+      return;
     }
+
+    container.innerHTML = `
+      <div class="webmentions-container">
+        ${reactionsHTML}
+        ${commentsHTML}
+      </div>
+    `;
   });
 })();
 // @license-end
