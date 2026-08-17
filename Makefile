@@ -35,7 +35,6 @@ prepare: ## prepare commands
 	obsidian-quartz #copy all notes from my secondbrain with hashtag #publish to /content
 	bash utils/revert-lastmod-only.sh #undo lastmod bump when a note's content is unchanged (only lastmod line differs)
 	python utils/recent_updates.py #per-note change badges (new/updated + words) -> data/recent_updates.json
-	python utils/bsky_index.py #map page -> announcing bluesky post -> data/bsky_posts.json (skips itself if the API is down)
 	cp static/second-brain.jpeg static/feature #the one in feature is used for _index note
 	rm -rf public
 	hugo-obsidian -input=content -output=/home/sspaeti/git/sspaeti.com/second-brain-public/assets/indices -index=true -root=.
@@ -47,6 +46,9 @@ prepare: ## prepare commands
 	-$(MAKE) -C ../../book/dedp link-index #refresh book linkIndex.js so book->brain edges are current
 	obsidian-quartz enrich-with-book #merge book->brain incoming edges into brain indices
 	obsidian-quartz enrich-with-memories #merge memory->brain edges into brain indices (graph only, after search merge)
+
+bsky-index: ## refresh page -> announcing bluesky post map (~10s of API calls; deploy-only, local serve reuses the committed data/bsky_posts.json)
+	python utils/bsky_index.py #-> data/bsky_posts.json; leaves the existing file alone if the API is unreachable
 
 word-count:
 	find content -type f -not -path '*/\.*' -name '*.md' -exec cat {} \; | wc -w
@@ -140,6 +142,7 @@ serve: prepare run
 serve-old: prepare-python run
 
 
-upload-only: hugo-generate upload
-deploy: stop-brain prepare hugo-generate upload purge-cdn-changed
-deploy-clean: stop-brain prepare hugo-generate upload-clean purge-cdn ## deploy and remove orphaned hashed assets (full purge required — may briefly break stale HTML until purge propagates)
+upload-only: hugo-generate upload ## quick redeploy; skips prepare, so it ships the bluesky map as last indexed
+# bsky-index must come before hugo-generate: hugo reads data/bsky_posts.json at build time
+deploy: stop-brain prepare bsky-index hugo-generate upload purge-cdn-changed
+deploy-clean: stop-brain prepare bsky-index hugo-generate upload-clean purge-cdn ## deploy and remove orphaned hashed assets (full purge required — may briefly break stale HTML until purge propagates)
