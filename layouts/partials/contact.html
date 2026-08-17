@@ -8,18 +8,22 @@
         <!-- {{ $year := dateFormat "2006" now }} -->
         <!-- <p>{{ i18n "copyright" (dict "name" $name "year" $year) | safeHTML}}</p> -->
         <ul>
-            {{ if not .IsHome }}
-            <li><a href="{{ $.Site.BaseURL}}">{{ i18n "home" }}</a></li>
-            {{end}}
-            <li><a href="https://ssp.sh/">Blog</a></li>
+
+            <!-- Not needed anymore, as navigation has been unified in top nav -->
+            <!-- {{ if not .IsHome }} -->
+            <!-- <li><a href="{{ $.Site.BaseURL}}">{{ i18n "home" }}</a></li> -->
+            <!-- {{end}} -->
+            <!-- <li><a href="https://ssp.sh/">Blog</a></li> -->
+
             <li><a href="https://github.com/sspaeti" target="_blank" rel="noopener">GitHub</a></li>
             <li><a href="https://ko-fi.com/sspaeti" target="_blank" rel="noopener">Support</a></li>
             <!-- <li><a href="https://explore.ssp.sh/" target="_blank" rel="noopener">Explore</a></li> -->
             <!-- {{- range $data.links | default hugo.Data.config.links -}} -->
             <!-- <li><a href="{{.link}}">{{.link_name}}</a></li> -->
             <!-- {{- end -}} -->
-            <li><a href="https://ssp.sh/ai/">AI Use</a></li>
             <li>{{partial "discuss.html" .}}</li>
+            <li><a href="https://ssp.sh/ai/">AI Use</a></li>
+            <li><a href="https://ssp.sh/services/">Services</a></li>
         </ul>
     </footer>
 </div>
