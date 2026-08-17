@@ -540,8 +540,21 @@
          "Join the conversation" button lands on this page's replies rather
          than on the bare profile. Built here because the JS has no way to
          reproduce Hugo's permalink. */ -}}
+  {{- /* The Bluesky post that announced this page, from utils/bsky_index.py.
+         brid.gy only reports posts whose link is in the text, so posts that
+         carry the URL only in the embed card never reach webmention.io; the
+         script fetches their likes and replies directly instead. */ -}}
+  {{- $bskyRkey := "" -}}
+  {{- $bskyDid := "" -}}
+  {{- with index hugo.Data "bsky_posts" -}}
+    {{- $bskyDid = index (index . "meta" | default dict) "did" | default "" -}}
+    {{- with index (index . "paths" | default dict) (strings.Trim $.RelPermalink "/") -}}
+      {{- $bskyRkey = index . "rkey" | default "" -}}
+    {{- end -}}
+  {{- end -}}
   <script src="/brain/webmention.js"
-          data-discuss-url="{{ print "https://bsky.app/search?q=domain%3A" " https://www.ssp.sh" .RelPermalink | safeURL }}"
+          data-discuss-url="{{ printf "https://bsky.app/search?%s" (querify "q" (printf "domain: https://www.ssp.sh%s" .RelPermalink)) | safeURL }}"
+          {{ with $bskyRkey }}data-bsky-post="{{ . }}" data-bsky-did="{{ $bskyDid }}"{{ end }}
           async></script>
 
   {{ $externalLinks := resources.Get "js/external-links.js" | resources.Fingerprint "md5" | resources.Minify }}

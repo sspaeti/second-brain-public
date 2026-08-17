@@ -11,8 +11,17 @@
     return document.currentScript.getAttribute("data-" + name) || defaultValue;
   }
   
+  // `hugo server` serves from localhost, so webmention.io would be asked for
+  // mentions of http://localhost:1313/brain/<note>/ and always answer with
+  // nothing. Rewrite local origins to production so comments are visible while
+  // developing — the note's path is the same either way.
+  const PROD_ORIGIN = "https://www.ssp.sh";
+  function toProductionUrl(url) {
+    return url.replace(/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?/, PROD_ORIGIN);
+  }
+
   // Configuration
-  const pageUrl = getAttribute("page-url", window.location.href.replace(/#.*$/, ""));
+  const pageUrl = toProductionUrl(getAttribute("page-url", window.location.href.replace(/#.*$/, "")));
   const additionalUrls = getAttribute("add-urls", undefined);
   const containerID = getAttribute("id", "webmentions");
   const wordCount = getAttribute("wordcount");
@@ -36,17 +45,49 @@
   // bridges your own bsky posts back as webmentions; we don't want to show
   // them as comments on our own articles).
   const OWN_BSKY_DID = "did:plc:edglm4muiyzty2snc55ysuqx";
+  const OWN_BSKY_HANDLE = "ssp.sh";
+
+  // Bridgy drops the `did:` prefix when it builds like URLs
+  // (`...#liked_by_did:plc:xxx`), so matching on the full DID never fired on
+  // reactions — our own likes on our own posts showed up as reactions. The
+  // bare form is a substring of the full one, so it covers both shapes.
+  const OWN_BSKY_DID_BARE = OWN_BSKY_DID.replace(/^did:/, "");
+
+  // The Bluesky post announcing this page, baked in by utils/bsky_index.py.
+  // Absent on pages that were never posted about.
+  const bskyRkey = getAttribute("bsky-post", "");
+  const bskyDid = getAttribute("bsky-did", "");
 
   // Extract the actor (DID or handle) from a bsky.app profile URL.
   function getBskyActor(url) {
     if (!url) return null;
+
+    // A like is `.../profile/<post author>/post/<rkey>#liked_by_did:<liker>`,
+    // so the handle in the path is *ours*, not the reactor's. Reading the path
+    // credited every like that arrived without author data to the post owner.
+    const liked = url.match(/#liked_by_did:(.+)$/);
+    if (liked) {
+      const did = decodeURIComponent(liked[1]);
+      return did.startsWith("did:") ? did : "did:" + did;
+    }
+
     const m = url.match(/bsky\.app\/profile\/([^/?#]+)/);
     return m ? decodeURIComponent(m[1]) : null;
   }
 
   function isOwnBskyPost(webmention) {
     const url = webmention[preventSpoofingField] || webmention.url || "";
-    return url.includes(OWN_BSKY_DID);
+    if (url.includes(OWN_BSKY_DID_BARE)) return true;
+
+    // Bridgy reports replies as bsky.app/profile/<handle>/post/<rkey> — the DID
+    // never appears, so the check above never actually matched our own replies
+    // and they rendered as comments on our own notes.
+    // Likes must be excluded from this rule: they arrive as
+    // <our post URL>#liked_by_did:<liker>, so the handle in the path is ours
+    // even though the reaction belongs to somebody else.
+    const property = webmention["wm-property"];
+    if (property !== "in-reply-to" && property !== "mention-of") return false;
+    return url.includes("bsky.app/profile/" + OWN_BSKY_HANDLE + "/");
   }
 
   // Fetch a Bluesky profile from the public AppView (no auth required).
@@ -94,6 +135,81 @@
     });
   }
   
+  // One unauthenticated AppView call; null on any failure, since none of this
+  // is essential to the page.
+  async function bskyGet(method, params) {
+    try {
+      const query = new URLSearchParams(params).toString();
+      const resp = await window.fetch(`https://public.api.bsky.app/xrpc/${method}?${query}`);
+      if (!resp.ok) return null;
+      return await resp.json();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // Likes and replies straight from Bluesky for the post that announced this
+  // page. brid.gy only reports posts whose link is in the text, so anything
+  // posted with the URL in the embed card alone never produces a webmention —
+  // this fills that gap. Both endpoints are public, so the counts are live at
+  // page load rather than frozen at the last build.
+  //
+  // The results are shaped like webmention.io entries so the existing
+  // renderers and removeDuplicates() work on them unchanged; in particular the
+  // like URLs copy Bridgy's `#liked_by_did:` form, so a like reported by both
+  // sources collapses into one.
+  async function fetchBskyEngagement() {
+    const empty = { comments: [], reactions: [] };
+    if (!bskyRkey || !bskyDid) return empty;
+
+    const atUri = `at://${bskyDid}/app.bsky.feed.post/${bskyRkey}`;
+    const postUrl = `https://bsky.app/profile/${OWN_BSKY_HANDLE}/post/${bskyRkey}`;
+
+    const [thread, likes] = await Promise.all([
+      bskyGet("app.bsky.feed.getPostThread", { uri: atUri, depth: 1 }),
+      bskyGet("app.bsky.feed.getLikes", { uri: atUri, limit: 100 })
+    ]);
+
+    const comments = [];
+    (((thread || {}).thread || {}).replies || []).forEach(function(node) {
+      const post = node.post;
+      if (!post || !post.author) return;
+      if (post.author.did === bskyDid) return; // our own replies in the thread
+      const record = post.record || {};
+      comments.push({
+        "wm-property": "in-reply-to",
+        url: `https://bsky.app/profile/${post.author.handle}/post/${(post.uri || "").split("/").pop()}`,
+        published: record.createdAt || post.indexedAt || null,
+        author: {
+          name: post.author.displayName || post.author.handle,
+          photo: post.author.avatar || "",
+          url: `https://bsky.app/profile/${post.author.handle}`
+        },
+        content: { text: record.text || "" }
+      });
+    });
+
+    const reactions = [];
+    (((likes || {}).likes) || []).forEach(function(like) {
+      const actor = like.actor;
+      if (!actor || actor.did === bskyDid) return;
+      reactions.push({
+        "wm-property": "like-of",
+        // Bridgy's exact shape — `did:` stripped — so the same like arriving
+        // from both sources collapses in removeDuplicates().
+        url: `${postUrl}#liked_by_did:${actor.did.replace(/^did:/, "")}`,
+        published: like.createdAt || null,
+        author: {
+          name: actor.displayName || actor.handle,
+          photo: actor.avatar || "",
+          url: `https://bsky.app/profile/${actor.handle}`
+        }
+      });
+    });
+
+    return { comments, reactions };
+  }
+
   // Translation mappings
   const propertyText = {
     "in-reply-to": t("replied"),
@@ -385,6 +501,10 @@
       apiUrl += `&target[]=${encodeURIComponent("http:" + url)}&target[]=${encodeURIComponent("https:" + url)}`;
     });
     
+    // Start the Bluesky lookup alongside the webmention request; neither
+    // depends on the other.
+    const bskyPromise = fetchBskyEngagement();
+
     // Fetch webmentions
     let webmentionsData = {};
     try {
@@ -396,9 +516,9 @@
         throw new Error(response.statusText);
       }
     } catch (error) {
+      // Carry on with whatever Bluesky returns rather than dropping the block.
       console.error("Request failed", error);
-      renderEmptyState(container);
-      return;
+      webmentionsData = { children: [] };
     }
 
     // Drop self-webmentions (bridgy-fed bridges our own bsky posts back).
@@ -436,7 +556,14 @@
         bucket.push(webmention);
       }
     });
-    
+
+    // Merge in the Bluesky-native engagement brid.gy never reported. Duplicates
+    // with webmention.io collapse later in removeDuplicates(), which compares
+    // full URLs — hence the matching URL shapes in fetchBskyEngagement().
+    const bsky = await bskyPromise;
+    comments.push(...bsky.comments);
+    reactions.push(...bsky.reactions);
+
     // Render HTML
     let commentsHTML = "";
     let reactionsHTML = "";
@@ -450,28 +577,12 @@
       });
       
       const uniqueComments = removeDuplicates(sortedComments);
-      
-      // Find the most recent comment URL to link to for "Join the conversation"
-      let conversationUrl = discussUrl;
-      
-      // Try to find a comment with a URL to Bluesky
-      if (uniqueComments.length > 0) {
-        // Find the first comment from Bluesky (should already be sorted newest first)
-        const blueskyComment = uniqueComments.find(comment => 
-          comment.url && (comment.url.includes("bsky.app") || comment[preventSpoofingField].includes("bsky.app"))
-        );
-        
-        // Use the URL from that comment if found
-        if (blueskyComment) {
-          conversationUrl = blueskyComment[preventSpoofingField] || blueskyComment.url;
-        }
-      }
-      
+
       commentsHTML = `
         <div class="webmentions-comments">
           <div class="webmentions-header-container">
             <h3 class="webmentions-header">${t("Comments & Replies")}</h3>
-            ${renderJoinLink(conversationUrl)}
+            ${renderJoinLink(discussUrl)}
           </div>
           <ul>${uniqueComments.map(renderComment).join("")}</ul>
         </div>
@@ -487,31 +598,12 @@
       });
       
       const uniqueReactions = removeDuplicates(sortedReactions);
-      
-      // If there are no comments, find a reaction URL to link to
-      let conversationUrl = discussUrl;
-      
-      // Only look for reaction URL if we don't already have a comment URL
-      if (comments.length === 0 || comments === reactions) {
-        // Try to find a reaction with a URL to Bluesky
-        if (uniqueReactions.length > 0) {
-          // Find the first reaction from Bluesky (should already be sorted newest first)
-          const blueskyReaction = uniqueReactions.find(reaction => 
-            reaction.url && (reaction.url.includes("bsky.app") || reaction[preventSpoofingField].includes("bsky.app"))
-          );
-          
-          // Use the URL from that reaction if found
-          if (blueskyReaction) {
-            conversationUrl = blueskyReaction[preventSpoofingField] || blueskyReaction.url;
-          }
-        }
-      }
-      
+
       reactionsHTML = `
         <div>
           <div class="webmentions-header-container">
             <h3 class="webmentions-header">${t("Reactions")}</h3>
-            ${comments.length === 0 || comments === reactions ? renderJoinLink(conversationUrl) : ''}
+            ${comments.length === 0 || comments === reactions ? renderJoinLink(discussUrl) : ''}
           </div>
           <ul class="webmentions-list">${uniqueReactions.map(renderReaction).join("")}</ul>
         </div>

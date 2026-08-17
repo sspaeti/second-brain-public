@@ -35,6 +35,7 @@ prepare: ## prepare commands
 	obsidian-quartz #copy all notes from my secondbrain with hashtag #publish to /content
 	bash utils/revert-lastmod-only.sh #undo lastmod bump when a note's content is unchanged (only lastmod line differs)
 	python utils/recent_updates.py #per-note change badges (new/updated + words) -> data/recent_updates.json
+	python utils/bsky_index.py #map page -> announcing bluesky post -> data/bsky_posts.json (skips itself if the API is down)
 	cp static/second-brain.jpeg static/feature #the one in feature is used for _index note
 	rm -rf public
 	hugo-obsidian -input=content -output=/home/sspaeti/git/sspaeti.com/second-brain-public/assets/indices -index=true -root=.

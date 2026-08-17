@@ -18,3 +18,6 @@ utils/hugo-obsidian/hugo-obsidian-dev
 
 .superpowers
 __pycache__
+
+
+data/bsky_posts.json
