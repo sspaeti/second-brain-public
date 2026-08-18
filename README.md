@@ -106,6 +106,60 @@ Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
 
+### 2026-08-18: Frontmatter aliases publish redirects again
+
+`aliases:` in a note's frontmatter now produces working URLs. `dag.md` with
+`aliases: Directed Acyclic Graphs, Directed Acyclic Graphs (DAGs)` publishes
+`/brain/directed-acyclic-graphs` and `/brain/directed-acyclic-graphs-dags`, both
+redirecting to `/brain/dag`. 293 alias URLs across 189 notes, generated on every
+`make prepare` — no more hand-maintaining `static/.htaccess` for renames that a
+note already declares an alias for.
+
+- **Why it was off**: Obsidian writes aliases as ONE comma-separated scalar
+  (`aliases: OLAP, OLAP Cubes`). Hugo casts a scalar via `strings.Fields`, i.e.
+  splits on **whitespace**, so that line published `/OLAP/`, `/OLAP,/` and
+  `/Cubes/`. Hugo writes an alias page with no conflict check, so on a
+  case-insensitive filesystem `/OLAP/` overwrote the real `olap` note with a
+  redirect. Hence `disableAliases = true`.
+- **Hugo never slugifies an alias** — it uses the string verbatim and ignores
+  `disablePathToLower`. A correct YAML list alone would publish
+  `/brain/Directed Acyclic Graphs/`, so the canonical slug rules have to be
+  applied before Hugo sees them.
+- **What changed**:
+  - `utils/obsidian-quartz/src/slug.rs` (new) — the crate's single copy of
+    `UnicodeSanitize`, moved out of `enrich_with_blog.rs` (which re-exports it,
+    so `merge_search_index` / `enrich_with_memories` are untouched). Adds
+    `brain_slug()` for one URL segment: lowercase, fold `/` and `\` to `-`,
+    sanitize. Unit tests pin it to real published note URLs.
+  - `file_utils.rs` — splits the alias scalar on `,`, slugs each entry, dedupes,
+    and emits a real YAML list (`aliases: [a, b]`, flow style like `tags`). The
+    key is matched case-insensitively: `aws s3.md` used `Aliases:`, which Hugo
+    honours and an exact-match lookup would have skipped.
+  - Self-collisions dropped while writing: `olap.md` aliasing `OLAP` would
+    overwrite itself with a redirect. 8 notes lost their alias line this way
+    (`quartz`, `todays office`, `pl-sql`, …); `olap` keeps `olap-cubes`.
+  - `file_utils.rs::resolve_alias_collisions` — post-pass over `content/` once
+    every note exists, since a clash between two notes can't be seen one file at
+    a time. Real notes always beat aliases; between two notes the first in sorted
+    filename order wins.
+  - **A collision fails the build.** The losing alias is stripped from `content/`
+    first (so Hugo can never overwrite a real note with a redirect), then
+    `make prepare` exits non-zero, which stops `make serve` and `make deploy`
+    before `hugo-generate`/`upload` run. An alias is a URL someone may already
+    have linked — dropping it and deploying anyway is how a URL dies unnoticed.
+    The error names both notes and the contested `/brain/` path. Fix it in the
+    vault (`content/` is regenerated every build): drop the alias on the losing
+    note, or rename the note that took the URL. Real example: adding a note
+    `OLAP Cubes.md` collides with `OLAP.md`'s `OLAP Cubes` alias, since the new
+    note now owns `/brain/olap-cubes`.
+  - `config.toml` — `disableAliases = false`.
+- **Tradeoff**: alias pages are meta-refresh + `<link rel="canonical">`, not
+  301s. `static/.htaccess` still holds the hand-written 301s for renames where
+  no alias exists. Where both cover the same URL (5 today, e.g.
+  `learning-in-public`) Apache rewrites first, so the 301 wins.
+- **Files**: `utils/obsidian-quartz/src/slug.rs`, `file_utils.rs`,
+  `enrich_with_blog.rs`, `main.rs`, `config.toml`
+
 ### 2026-08-14: Raw Markdown output per note
 
 Every note is now published a second time as plain Markdown at `/brain/<slug>/index.md`, matching what the blog has been doing at `/blog/<slug>/index.md`. The point is LLM and scraper access to the source text without nav, graph, backlinks and footer around it.
@@ -335,19 +389,19 @@ The local graph on every brain note now surfaces connections to two sister sites
 
 ## Inconsistencies (later TODO's)
 
-### Slug rules — 5 spots, only 1 canonical
+### Slug rules — 4 spots, only 1 canonical
 
-Brain note `no meetings (async).md` → URL slug `/no-meetings-async`. Five files do slug work. Two can disagree. One is source of truth.
+Brain note `no meetings (async).md` → URL slug `/no-meetings-async`. Four files do slug work. Two can disagree. One is source of truth.
 
 Canonical: `utils/hugo-obsidian/util.go::UnicodeSanitize`. Strips `()`, `&`, `@`, `–`, `'`, etc. Collapses `-`/whitespace runs to one `-`.
 
 | # | File | Lang | Role |
 |---|------|------|------|
 | 1 | `utils/hugo-obsidian/util.go::UnicodeSanitize` | Go | **Canonical**. Brain + blog hugo-obsidian use it. |
-| 2 | `utils/obsidian-quartz/src/enrich_with_blog.rs::unicode_sanitize` | Rust | **Mirror** of #1. Tight loop, no shell-out. |
-| 3 | `utils/obsidian-quartz/src/file_utils.rs:826` | Rust | Filename lowercase only. #1 slugifies after. |
+| 2 | `utils/obsidian-quartz/src/slug.rs` | Rust | **Mirror** of #1, and the only Rust copy. `unicode_sanitize` (paths) + `brain_slug` (one URL segment: lowercases, folds `/` and `\` to `-`). Every Rust caller goes through here — `enrich_with_blog` re-exports it for `merge_search_index` and `enrich_with_memories`; `file_utils` uses `brain_slug` for frontmatter aliases. Unit-tested against real note URLs. |
+| 3 | `utils/obsidian-quartz/src/file_utils.rs::process_file` (writing step) | Rust | Filename lowercase only. #1 slugifies after. |
 | 4 | `sspaeti-hugo-blog/helper-scripts/enrich-link-index.py:41` | Python | **Divergent**. Only `.lower().replace(" ", "-")`. Keeps parens. Source of paren-drop bugs. |
-| 5 | `utils/obsidian-quartz/src/file_utils.rs:925` | Rust | BASE-page filename. Same as #3. |
+| 5 | `utils/obsidian-quartz/src/file_utils.rs::process_base_file` | Rust | BASE-page filename. Same as #3. |
 
 Real disagreement: #1 vs #4. #2 compensates by re-canonicalising before matching brain IDs. #3 + #5 not slug generators — feed into #1.
 

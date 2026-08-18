@@ -10,6 +10,7 @@ use std::fs::copy;
 
 use serde_yaml::Value;
 
+use crate::slug::brain_slug;
 use crate::svg_generator::{
     extract_title_from_md, generate_mermaid_og_image, generate_og_image, ImageConfig,
     MermaidConfig,
@@ -690,6 +691,67 @@ pub fn process_file(
 
             // Redundant check removed - we now handle empty tags earlier
 
+            // Aliases -> Hugo alias redirect pages (config.toml: disableAliases = false).
+            //
+            // Obsidian writes them as ONE comma-separated scalar
+            // ("aliases: OLAP, OLAP Cubes"). Handing that to Hugo is what
+            // originally forced disableAliases = true: Hugo casts a scalar with
+            // strings.Fields, i.e. splits on WHITESPACE, so that line published
+            // /OLAP/, /OLAP,/ and /Cubes/ instead of the two pages meant. Split
+            // on ',' here and emit a real YAML list so Hugo gets exactly the
+            // URLs we intend.
+            //
+            // Hugo never slugifies an alias — it uses the string verbatim and
+            // ignores disablePathToLower — so the canonical slug rules have to be
+            // applied here, or "/brain/Directed Acyclic Graphs/" is what ships.
+            //
+            // An alias that slugs to the note's own URL is dropped: Hugo writes
+            // alias pages with no conflict check, so "olap.md" aliased "OLAP"
+            // would overwrite the note with a redirect to itself. Cross-note
+            // clashes need every note on disk and are handled afterwards by
+            // resolve_alias_collisions().
+            let own_slug = brain_slug(
+                path.file_stem()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or_default(),
+            );
+            // Hugo lowercases frontmatter keys, so "Aliases:" in the vault is just
+            // as live as "aliases:" — match case-insensitively or those notes skip
+            // the rewrite below and reach Hugo as the scalar it mis-splits.
+            let alias_key = existing_frontmatter
+                .keys()
+                .find(|k| k.eq_ignore_ascii_case("aliases"))
+                .cloned();
+            if let Some(alias_value) = alias_key.and_then(|k| existing_frontmatter.remove(&k)) {
+                let raw_aliases: Vec<String> = match alias_value {
+                    serde_yaml::Value::String(s) => {
+                        s.split(',').map(|a| a.trim().to_string()).collect()
+                    }
+                    serde_yaml::Value::Sequence(seq) => seq
+                        .iter()
+                        .filter_map(|v| v.as_str().map(|s| s.trim().to_string()))
+                        .collect(),
+                    _ => vec![],
+                };
+
+                let mut alias_slugs: Vec<serde_yaml::Value> = vec![];
+                let mut seen: Vec<String> = vec![];
+                for alias in raw_aliases {
+                    let slug = brain_slug(&alias);
+                    if slug.is_empty() || slug == own_slug || seen.contains(&slug) {
+                        continue;
+                    }
+                    seen.push(slug.clone());
+                    alias_slugs.push(serde_yaml::Value::String(slug));
+                }
+
+                if !alias_slugs.is_empty() {
+                    println!("Aliases for {}: {:?}", own_slug, seen);
+                    existing_frontmatter
+                        .insert("aliases".to_string(), serde_yaml::Value::Sequence(alias_slugs));
+                }
+            }
+
             // Sorting and reconstructing frontmatter
             let mut frontmatter_items: Vec<(&String, &serde_yaml::Value)> =
                 existing_frontmatter.iter().collect();
@@ -698,8 +760,11 @@ pub fn process_file(
             let mut sorted_frontmatter = String::from("---\n");
             for (key, value) in frontmatter_items {
                 // Generate the value string based on the type
-                // Special handling for tags key
-                if key == "tags" {
+                // Special handling for tags and aliases: both are string lists
+                // and need YAML flow style. The generic Sequence arm below joins
+                // with ", " and no brackets, which would turn `aliases` back into
+                // the scalar Hugo mis-splits on whitespace.
+                if key == "tags" || key == "aliases" {
                     if let serde_yaml::Value::Sequence(seq) = value {
                         // Skip completely empty tag arrays
                         if seq.is_empty() {
@@ -1166,4 +1231,130 @@ pub fn inject_base_tables_if_present(
     }
 
     Ok(result)
+}
+
+/// Cross-note alias collision guard.
+///
+/// Hugo writes an alias as `<alias>/index.html` with no conflict check, so an
+/// alias that slugs to another note's URL silently replaces that note with a
+/// redirect — the failure that made aliases untrustworthy in the first place.
+/// `process_file` drops an alias colliding with its *own* note, but it sees one
+/// note at a time; a clash between two notes can only be spotted once every
+/// note is written, which is what this pass does.
+///
+/// Real notes always win over aliases. Between two notes claiming the same
+/// alias the first in sorted filename order keeps it, so the outcome is stable
+/// across runs.
+///
+/// A collision is a **build failure**: `content/` is left consistent (the losing
+/// alias is stripped, so Hugo never sees it) but this returns `Err`, which fails
+/// `make prepare` and so stops `make serve` and `make deploy` before anything
+/// ships. The alias is a redirect someone may already have linked -- silently
+/// dropping it and deploying anyway is how a URL dies unnoticed. Fix it in the
+/// vault: rename the alias, or delete it if the new note supersedes it.
+pub fn resolve_alias_collisions(public_folder: &str) -> std::io::Result<()> {
+    use crate::slug::brain_slug;
+    use std::collections::HashMap as Map;
+
+    let alias_line = Regex::new(r"(?m)^aliases: \[(.*)\]$").unwrap();
+
+    let mut notes: Vec<(PathBuf, String, String)> = vec![]; // path, slug, body
+    for entry in fs::read_dir(public_folder)? {
+        let path = entry?.path();
+        if path.extension().and_then(|e| e.to_str()) != Some("md") {
+            continue;
+        }
+        let slug = brain_slug(path.file_stem().and_then(|s| s.to_str()).unwrap_or_default());
+        let body = fs::read_to_string(&path)?;
+        notes.push((path, slug, body));
+    }
+    notes.sort_by(|a, b| a.0.cmp(&b.0));
+
+    let note_slugs: Map<String, String> = notes
+        .iter()
+        .map(|(p, slug, _)| (slug.clone(), p.file_name().unwrap().to_string_lossy().to_string()))
+        .collect();
+
+    let mut claimed: Map<String, String> = Map::new();
+    let mut collisions: Vec<String> = vec![];
+    let mut total = 0usize;
+
+    for (path, _slug, body) in &notes {
+        // Only look inside the frontmatter block, never at note prose.
+        let fm_end = body
+            .strip_prefix("---\n")
+            .and_then(|rest| rest.find("\n---\n").map(|i| i + 4))
+            .unwrap_or(0);
+        let caps = match alias_line.captures(&body[..fm_end]) {
+            Some(c) => c,
+            None => continue,
+        };
+        let file_name = path.file_name().unwrap().to_string_lossy().to_string();
+        let aliases: Vec<String> = caps[1]
+            .split(',')
+            .map(|a| a.trim().to_string())
+            .filter(|a| !a.is_empty())
+            .collect();
+
+        let mut kept: Vec<String> = vec![];
+        for alias in aliases {
+            total += 1;
+            if let Some(owner) = note_slugs.get(&alias) {
+                if owner != &file_name {
+                    collisions.push(format!(
+                        "  /brain/{alias}\n      alias declared in : {file_name}\n      but that URL is   : {owner}  (a real note always wins)"
+                    ));
+                    continue;
+                }
+            }
+            if let Some(owner) = claimed.get(&alias) {
+                collisions.push(format!(
+                    "  /brain/{alias}\n      alias declared in : {file_name}\n      already claimed by: {owner}  (first note in filename order wins)"
+                ));
+                continue;
+            }
+            claimed.insert(alias.clone(), file_name.clone());
+            kept.push(alias);
+        }
+
+        if kept.len() == caps[1].split(',').filter(|a| !a.trim().is_empty()).count() {
+            continue; // nothing dropped, leave the file alone
+        }
+
+        let old_line = caps[0].to_string();
+        let new_body = if kept.is_empty() {
+            body.replacen(&format!("{}\n", old_line), "", 1)
+        } else {
+            body.replacen(&old_line, &format!("aliases: [{}]", kept.join(", ")), 1)
+        };
+        fs::write(path, new_body)?;
+    }
+
+    if !collisions.is_empty() {
+        eprintln!();
+        eprintln!("========================================================================");
+        eprintln!(" ALIAS COLLISION -- BUILD STOPPED ({} conflicting alias(es))", collisions.len());
+        eprintln!("========================================================================");
+        for c in &collisions {
+            eprintln!("{c}");
+        }
+        eprintln!();
+        eprintln!(" Two notes want the same /brain/ URL. The losing alias was stripped from");
+        eprintln!(" content/ so Hugo cannot overwrite a real note with a redirect, but that");
+        eprintln!(" URL may already be linked from elsewhere -- deploying would break it.");
+        eprintln!();
+        eprintln!(" Fix in the vault (not in content/, that is regenerated every build):");
+        eprintln!("   - rename or drop the alias on the losing note, or");
+        eprintln!("   - rename the note that took the URL");
+        eprintln!(" Then re-run. Aliases live in each note's frontmatter `aliases:` line.");
+        eprintln!("========================================================================");
+        eprintln!();
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::InvalidData,
+            format!("{} alias collision(s) -- refusing to build", collisions.len()),
+        ));
+    }
+
+    println!("Alias redirects: {} kept, 0 collisions", total);
+    Ok(())
 }

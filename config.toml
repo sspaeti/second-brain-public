@@ -3,7 +3,14 @@ locale = "en-us"
 googleAnalytics = ""
 relativeURLs = false
 disablePathToLower = true
-disableAliases = true #as blanks are not handled and e.g. "OLAP Cubes" will create two aliases OLAP and Cubes and break the actual note "olap"
+# Alias redirect pages (/brain/directed-acyclic-graphs -> /brain/dag) are back on.
+# Was true because Obsidian writes `aliases: OLAP, OLAP Cubes` as ONE scalar and
+# Hugo splits a scalar on WHITESPACE, publishing /OLAP/, /OLAP,/ and /Cubes/ --
+# and /OLAP/ then overwrote the real "olap" note with a redirect.
+# utils/obsidian-quartz now splits on ',' and writes a proper YAML list of
+# canonical slugs (slug.rs), skipping any that collide with a real note, so Hugo
+# only ever sees URLs we mean. Do not re-enable this flag without reverting that.
+disableAliases = false
 # ignoreFiles = [
 #     "/content/templates/*",
 #     "/content/private/*",

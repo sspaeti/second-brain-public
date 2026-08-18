@@ -4,6 +4,8 @@ use std::path::{Path, PathBuf};
 use std::collections::HashMap;
 use std::error::Error;
 
+mod slug;
+
 mod file_utils;
 use file_utils::process_file;
 
@@ -52,6 +54,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             Ok(_) => (),
             Err(e) => println!("An error occurred: {}", e),
         }
+
+        // Needs every note on disk: an alias can only be checked against the
+        // other notes' URLs once they all exist.
+        file_utils::resolve_alias_collisions(&public_folder_path_copy)?;
     }
 
     Ok(())

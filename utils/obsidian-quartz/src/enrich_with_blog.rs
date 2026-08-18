@@ -85,41 +85,10 @@ fn strip_fragment_and_slash(s: &str, frag_re: &Regex) -> String {
     }
 }
 
-// Rust port of hugo-obsidian's UnicodeSanitize. The blog's
-// enrich-link-index.py only lowercases filenames and replaces spaces, so
-// brain slugs in the blog's linkIndex keep parens, apostrophes, en-dashes,
-// runs of '-', etc. Brain canonical slugs strip those via hugo-obsidian.
-// Reproducing the same rules here lets /no-meetings-(async) resolve to
-// /no-meetings-async, /why-i-don't-research to /why-i-dont-research, etc.
-//
-// KEEP IN SYNC WITH: ../../hugo-obsidian/util.go::UnicodeSanitize
-pub fn unicode_sanitize(input: &str) -> String {
-    let source: Vec<char> = input.chars().collect();
-    let mut out: Vec<char> = Vec::with_capacity(source.len());
-    let mut prepend_hyphen = false;
-    for (i, &r) in source.iter().enumerate() {
-        let is_punct_allowed =
-            r == '.' || r == '/' || r == '\\' || r == '_' || r == '#' || r == '+' || r == '~';
-        let is_pct_escape = r == '%'
-            && i + 2 < source.len()
-            && source[i + 1].is_ascii_hexdigit()
-            && source[i + 2].is_ascii_hexdigit();
-        // Note: Go's unicode.IsMark has no stable stdlib equivalent.
-        // is_alphanumeric() handles precomposed Unicode letters (ö, é, …)
-        // which is what brain filenames use in practice.
-        let is_allowed = is_punct_allowed || r.is_alphanumeric() || is_pct_escape;
-        if is_allowed {
-            if prepend_hyphen {
-                out.push('-');
-                prepend_hyphen = false;
-            }
-            out.push(r);
-        } else if !out.is_empty() && (r == '-' || r.is_whitespace()) {
-            prepend_hyphen = true;
-        }
-    }
-    out.into_iter().collect()
-}
+// The slug rules live in slug.rs (single copy in this crate, mirrored from
+// hugo-obsidian's util.go). Re-exported here because merge_search_index and
+// enrich_with_memories already import it from this module.
+pub use crate::slug::unicode_sanitize;
 
 // Brain canonical slug from a blog-linkIndex source/target string.
 fn normalize_brain_slug(raw: &str, frag_re: &Regex) -> String {
