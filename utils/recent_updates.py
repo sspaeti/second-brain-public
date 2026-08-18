@@ -159,7 +159,8 @@ def commit_word_stats(since: datetime) -> dict[str, list[tuple[datetime, int, in
         [
             "git", "-c", "core.quotePath=false", "-C", str(CONTENT), "log",
             f"--since={since.strftime('%Y-%m-%d %H:%M:%S')}",
-            "-p", "--format=__COMMIT__%ai", "--", "*.md",
+            "-p", "--src-prefix=a/", "--dst-prefix=b/",
+            "--format=__COMMIT__%ai", "--", "*.md",
         ],
         capture_output=True, text=True, check=True,
     )
@@ -177,10 +178,13 @@ def worktree_word_stats(now: datetime) -> tuple[dict[str, list[tuple[datetime, i
     marker = "__COMMIT__" + now.strftime("%Y-%m-%d %H:%M:%S %z")
 
     # Tracked-but-modified notes: reuse the diff parser on the working-tree diff.
+    # `--src-prefix/--dst-prefix` pin the `a/`..`b/` headers the parser keys on:
+    # with the user's `diff.mnemonicPrefix=true`, `git diff HEAD` emits `c/`..`w/`
+    # instead and every uncommitted edit parses to nothing (note reads NEW again).
     diff = subprocess.run(
         [
             "git", "-c", "core.quotePath=false", "-C", str(CONTENT),
-            "diff", "HEAD", "--", "*.md",
+            "diff", "HEAD", "--src-prefix=a/", "--dst-prefix=b/", "--", "*.md",
         ],
         capture_output=True, text=True, check=True,
     ).stdout
