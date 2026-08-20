@@ -8,6 +8,39 @@
   -->
   {{$notes := .Site.RegularPages.ByLastmod.Reverse}}
   {{partial "page-list.html" (first $.Site.Params.recentNotes $notes)}}
+
+  {{/* Older notes preloaded in three groups, revealed step by step by the
+       "Show more" button (js/show-more-notes.js):
+       1. notes 31..recentShowNotes (the latest 100)
+       2. everything beyond that still modified within 3 months
+       3. modified 3-12 months ago
+       Notes older than 1 year stay unrendered. */}}
+  {{$showCap := $.Site.Params.recentShowNotes}}
+  {{$cutoff3m := now.AddDate 0 -3 0}}
+  {{$cutoff1y := now.AddDate -1 0 0}}
+  {{$bucketTop := after $.Site.Params.recentNotes (first $showCap $notes)}}
+  {{$rest := after $showCap $notes}}
+  {{$bucket3m := where $rest "Lastmod" "ge" $cutoff3m}}
+  {{$bucket1y := where (where $rest "Lastmod" "lt" $cutoff3m) "Lastmod" "ge" $cutoff1y}}
+  {{$buckets := slice}}
+  {{if gt (len $bucketTop) 0}}
+    {{$buckets = $buckets | append (dict "pages" $bucketTop "divider" (printf "latest %d notes" $showCap) "label" (printf "last %d" $showCap))}}
+  {{end}}
+  {{if gt (len $bucket3m) 0}}
+    {{$buckets = $buckets | append (dict "pages" $bucket3m "divider" "older &middot; last 3 months" "label" (printf "last 3 months (%d)" (len $bucket3m)))}}
+  {{end}}
+  {{if gt (len $bucket1y) 0}}
+    {{$buckets = $buckets | append (dict "pages" $bucket1y "divider" "3&ndash;12 months ago" "label" (printf "last year (%d)" (len $bucket1y)))}}
+  {{end}}
+  {{range $buckets}}
+  <div class="more-notes notes-hidden" data-label="{{.label}}">
+    <div class="bucket-divider"><p>{{.divider | safeHTML}}</p></div>
+    {{partial "page-list.html" .pages}}
+  </div>
+  {{end}}
+  {{if gt (len $buckets) 0}}
+  <button class="show-more-btn" id="show-more-btn" type="button">Show more <span class="count">&middot; {{(index $buckets 0).label}}</span></button>
+  {{end}}
   {{ partial "newsletter-footer.html" (dict
       "label" "Get the monthly digest"
       "desc" "Above you see the latest changes to my Second Brain. Once a month I send a consolidated summary by email, including as well updates on blog posts, books I'm reading, chapters of my own book, and social highlights.<br><br>Subscribe below to get the next one.") }}

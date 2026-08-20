@@ -46,7 +46,8 @@ enableGitInfo = true # produces RSS feed too at /index.xml; it uses `pubDate` fr
   # author name
   author = "Simon Späti"
   authorUrl = "https://www.ssp.sh"
-  recentNotes = 30 #notes for SecondBrain
+  recentNotes = 5 #notes for SecondBrain
+  recentShowNotes = 100 #details links to show more
   # recent-updates edit history (read by utils/recent_updates.py, build-time only)
   recentUpdatesLookbackDays = 1825    # git word-diff scan window (~5y, tough first commit was ~4 years 022571b · 2022-09-28); history depth only, no viewer cost
   recentUpdatesSessionGapHours = 24   # commits closer than this fold into one editing session

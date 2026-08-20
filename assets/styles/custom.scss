@@ -2051,3 +2051,60 @@ article > .meta {
 }
 .nc-add { color: var(--badge-new); }
 .nc-del { color: var(--badge-del); }
+
+// ---------------------------------------------------------------------------
+// "Show more" time buckets under Recent Notes (partials/recent.html,
+// js/show-more-notes.js). Keep this block ASCII-only (Sass BOM trap).
+// ---------------------------------------------------------------------------
+.more-notes.notes-hidden {
+  display: none;
+}
+.bucket-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 1.4rem 0 0.2rem;
+}
+.bucket-divider::before,
+.bucket-divider::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--lightgray);
+}
+.bucket-divider p {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+.show-more-btn {
+  display: block;
+  margin: 1.2rem auto 0;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--gray);
+  background: transparent;
+  border: 1px solid var(--lightgray);
+  border-radius: 8px;
+  padding: 0.45rem 1.2rem;
+  cursor: pointer;
+}
+.show-more-btn .count {
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+.show-more-btn:hover {
+  border-color: var(--secondary);
+  color: var(--secondary);
+}
+.show-more-btn:hover .count {
+  opacity: 1;
+}
+// Hide the button entirely when JS is disabled (list falls back to top 30).
+@media (scripting: none) {
+  .show-more-btn {
+    display: none;
+  }
+}

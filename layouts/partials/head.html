@@ -168,7 +168,7 @@
   {{$lightSyntax := resources.Get "styles/_light_syntax.scss" | css.Sass (dict "outputStyle" "compressed") | resources.Fingerprint "md5" | resources.Minify  }}
   <link href="{{$lightSyntax.Permalink}}" rel="stylesheet" id="theme-link">
    <!-- Base scripts -->
-  {{$scripts := (slice "js/darkmode.js" "js/util.js" "js/toc-scrollspy.js")}}
+  {{$scripts := (slice "js/darkmode.js" "js/util.js" "js/toc-scrollspy.js" "js/show-more-notes.js")}}
   {{range $scripts}}
   {{$scriptname := .}}
   {{ $s := resources.Get $scriptname | resources.ExecuteAsTemplate $scriptname . | resources.Fingerprint "md5" | resources.Minify }}
