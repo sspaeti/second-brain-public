@@ -1,5 +1,12 @@
 <div class="content-list">
-  <h2 id="recent-notes">{{ i18n "recent_notes" }}</h2>
+  <div class="recent-head">
+    <h2 id="recent-notes">{{ i18n "recent_notes" }}</h2>
+    <div class="note-filter" role="group" aria-label="Filter notes by change type">
+      <button class="filter-btn active" type="button" data-filter="all" aria-pressed="true">All</button>
+      <button class="filter-btn filter-btn-new" type="button" data-filter="new" aria-pressed="false">NEW</button>
+      <button class="filter-btn filter-btn-upd" type="button" data-filter="upd" aria-pressed="false">UPD</button>
+    </div>
+  </div>
   <!--
   You can also configure this to find related pages!
   All you need to pass into the "page-list.html" partial

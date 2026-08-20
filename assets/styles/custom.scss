@@ -2108,3 +2108,64 @@ article > .meta {
     display: none;
   }
 }
+
+// NEW/UPD filter chips for Recent Notes (recent.html, js/show-more-notes.js).
+// Keep ASCII-only (Sass BOM trap).
+.recent-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.note-filter {
+  display: flex;
+  gap: 0.4rem;
+}
+.filter-btn {
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: var(--gray);
+  background: transparent;
+  border: 1px solid var(--lightgray);
+  border-radius: 999px;
+  padding: 0.15em 0.7em;
+  cursor: pointer;
+}
+.filter-btn:hover {
+  border-color: var(--secondary);
+  color: var(--secondary);
+}
+.filter-btn.active {
+  border-color: var(--gray);
+  background: var(--lightgray);
+}
+.filter-btn-new.active {
+  border-color: var(--badge-new);
+  color: var(--badge-new);
+  background: color-mix(in srgb, var(--badge-new) 14%, transparent);
+}
+.filter-btn-upd.active {
+  border-color: var(--badge-upd);
+  color: var(--badge-upd);
+  background: color-mix(in srgb, var(--badge-upd) 14%, transparent);
+}
+// Active filter: show only matching rows across ALL groups (also the ones the
+// "Show more" button has not revealed yet), hide dividers and the button.
+.content-list.filter-new li.section-li:not(:has(.badge-new)),
+.content-list.filter-upd li.section-li:not(:has(.badge-upd)) {
+  display: none;
+}
+// Time groups and the "Show more" stepping stay active while filtered; a
+// revealed group with no matching rows is hidden entirely (incl. divider).
+// Button counts stay the unfiltered totals on purpose.
+.content-list.filter-new .more-notes:not(.notes-hidden):not(:has(.badge-new)),
+.content-list.filter-upd .more-notes:not(.notes-hidden):not(:has(.badge-upd)) {
+  display: none;
+}
+@media (scripting: none) {
+  .note-filter {
+    display: none;
+  }
+}
