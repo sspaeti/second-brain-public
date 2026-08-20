@@ -18,7 +18,7 @@
 // Three variations: external (pink underline), internal working (teal underline), internal broken (dashed)
 
 // Remove bold from article prose links (underline replaces bold)
-article p a,
+article p a:not(.subscribe-button),
 article li:not(.tags li):not(.mainTOC li):not(#contact_buttons li) a,
 article blockquote a {
   font-weight: normal !important;
@@ -43,7 +43,7 @@ article blockquote a {
 
     // Internal links (both .internal-link and relative hrefs): body text + dragonBlue/teal underline
     a.internal-link:not(.broken),
-    a:not(.internal-link):not(.hanchor):not([href^="http"]) {
+    a:not(.internal-link):not(.hanchor):not([href^="http"]):not(.subscribe-button) {
       color: var(--gray);
       background-color: transparent;
       text-decoration: underline !important;
@@ -91,7 +91,7 @@ article {
     }
 
     a.internal-link:not(.broken),
-    a:not(.internal-link):not(.hanchor):not([href^="http"]) {
+    a:not(.internal-link):not(.hanchor):not([href^="http"]):not(.subscribe-button) {
       color: var(--gray);
       background-color: transparent;
       text-decoration: underline !important;
@@ -393,6 +393,7 @@ $nav-icon-graph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/sv
 .subscribe-button:hover {
   transform: translateY(-3px);
   box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+  color: white !important; // beat global `a:hover` color from base.scss
 }
 
 /* Responsive adjustments */
