@@ -20,6 +20,14 @@ func parse(dir, pathPrefix string) []Link {
 	var links []Link
 	fmt.Printf("[Parsing note] %s => ", trim(dir, pathPrefix, ".md"))
 
+	// Obsidian embeds/transclusions (![[Note]], ![[Note#Heading]]) should count
+	// as links too, but goldmark's image parser consumes the leading "![" so the
+	// wikilink extension never sees them. Dropping the "!" turns them into
+	// regular wikilinks for link extraction only (page content is indexed
+	// separately in walk.go). Asset embeds (![[img.webp]]) resolve to targets
+	// with a file extension and are removed by filter() as before.
+	source = bytes.ReplaceAll(source, []byte("![["), []byte("[["))
+
 	var buf bytes.Buffer
 	if err := md.Convert(source, &buf); err != nil {
 		panic(err)
