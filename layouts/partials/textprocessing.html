@@ -98,6 +98,11 @@
         {{end}}
       {{end}}
       {{$md = delimit $section "\n"}}
+      {{/* Same cleanup as whole-note embeds: a section reaching the end of the
+           note would otherwise drag in the "---" Origin/References footer and
+           stray Obsidian block ids (^abc123) */}}
+      {{$md = $md | replaceRE "(?s)\\n-{3,}[ \\t]*\\n+[ \\t]*\\**(?:Origin|Source|Sources|Reference|References)\\**\\s*:.*$" ""}}
+      {{$md = $md | replaceRE "(?m)([ \\t]|^)\\^[A-Za-z0-9-]{4,}[ \\t]*$" ""}}
     {{else}}
       {{/* Whole-note embed: the full body (RawContent already excludes the
            frontmatter), minus the trailing "---" / Origin/Source/References

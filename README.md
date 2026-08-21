@@ -106,6 +106,27 @@ Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
 
+### 2026-08-21: Embeds create backlinks; heading transclusions drop the footer
+
+Two fixes around Obsidian embeds (`![[…]]`):
+
+- **Embeds now count as backlinks** (`utils/hugo-obsidian/parse.go`): an embed
+  like `![[Note#Heading]]` never appeared in the link index — goldmark's image
+  parser eats the leading `![`, so the wikilink extension never saw it and no
+  `<a>` was produced. Fixed by rewriting `![[` → `[[` before conversion, for
+  link extraction only. Image embeds (`![[img.webp]]`, PNG/JPG/…) are still
+  excluded by the existing extension `filter()`, so nothing new leaks into the
+  graph. Full before/after diff of `linkIndex.json`: 0 links removed, 34
+  note-embed links added. See
+  [utils/hugo-obsidian/README.md](./utils/hugo-obsidian/README.md) changelog.
+- **Heading transclusions strip the note footer**
+  (`layouts/partials/textprocessing.html`): the `---` +
+  `Origin:/Source:/References:` footer strip (and stray `^blockid` cleanup)
+  only ran for whole-note embeds. A heading reference whose section runs to the
+  end of the note (no later same-or-higher heading) dragged the footer into the
+  transcluded quote. The heading-reference branch now applies the same two
+  strips as the whole-note branch.
+
 ### 2026-08-18: Frontmatter aliases publish redirects again
 
 `aliases:` in a note's frontmatter now produces working URLs. `dag.md` with
