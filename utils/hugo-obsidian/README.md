@@ -42,6 +42,10 @@ jobs:
 
 ## Changelog
 
+### 2026-08-21
+
+- **Embeds/transclusions now count as links/backlinks** (`![[Note]]`, `![[Note#Heading]]`, `![[Note#^block]]`): goldmark's image parser consumes the leading `![`, so the wikilink extension never saw embeds — they rendered as literal text, produced no `<a>` tag, and were silently missing from the link index and graph. `parse.go` now rewrites `![[` to `[[` before the markdown conversion. This only affects link extraction; content indexing (`walk.go`) is untouched. Asset embeds (`![[img.webp]]`, PNG/JPG/…) still resolve to targets with a file extension and are removed by the existing `filter()`, so images stay out of backlinks and the graph exactly as before. Verified with a full before/after index diff: 0 links removed, 34 note-embed links added.
+
 ### 2026-06-05
 
 - Added enrichment of Blogs and Book articles, see
