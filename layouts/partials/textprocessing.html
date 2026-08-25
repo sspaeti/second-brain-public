@@ -161,10 +161,16 @@
     {{if (hasPrefix . "!")}}
       {{$inner := . | strings.TrimPrefix "![[" | strings.TrimSuffix "]]" }}
       {{$split := split $inner "|"}}
-      {{$path := index $split 0 | relURL}}
+      {{$rawPath := index $split 0}}
+      {{$path := $rawPath | relURL}}
       {{$width := index $split 1}}
-      {{$img := printf "<img src=\"%s\" width=\"%s\" loading=\"lazy\" />" $path (default "auto" $width)}}
-      {{$content = replace $content . $img}}
+      {{if hasSuffix (lower $rawPath) ".mp4"}}
+        {{$video := printf "<video controls preload=\"metadata\" style=\"max-width: 100%%;\"%s><source src=\"%s\" type=\"video/mp4\">Your browser does not support the video tag.</video>" (cond (eq (default "" $width) "") "" (printf " width=\"%s\"" $width)) $path}}
+        {{$content = replace $content . $video}}
+      {{else}}
+        {{$img := printf "<img src=\"%s\" width=\"%s\" loading=\"lazy\" />" $path (default "auto" $width)}}
+        {{$content = replace $content . $img}}
+      {{end}}
     {{else}}
       {{$inner := . | strings.TrimPrefix "[[" | strings.TrimSuffix "]]" }}
       {{$split := split $inner "|"}}
