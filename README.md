@@ -18,6 +18,7 @@ This is a fork of the [Quartz](https://github.com/jackyzha0/quartz) repo ([v3](h
   - Examples: [Coffee Beans](https://ssp.sh/brain/coffee-beans-base), [Books](https://ssp.sh/brain/books-base)
 * **Gallery shortcode** (`layouts/shortcodes/gallery.html`): `{{< gallery folder="_img/todays-office/todays-office-recent" >}}` renders all images in a `content/` subfolder as a CSS grid with Lightbox2 click-to-enlarge. Supports `exclude="file1.jpg,file2.jpg"` to skip individual files. Uses `readDir` instead of page resources so it works with the flat `.md` file structure (no page bundles needed). A similar shortcode exists in the blog at `sspaeti-hugo-blog/layouts/shortcodes/gallery.html`, but that one uses `.Page.Resources.ByType "image"` (page-bundle approach). Run `make compress-gallery` to batch-compress gallery JPEGs in-place via ImageMagick.
 * YouTube links in Obsidian image syntax (`![title](https://youtube.com/watch?v=XXX)`) render as embedded video players instead of broken images
+* **Local video embeds** (`![[video.mp4]]`): Obsidian video wikilinks render as native HTML5 `<video controls>` players — the mp4 is copied from the vault alongside images and served from `/brain/`. Optional width via `![[video.mp4|400]]`
 * Callout blocks are normalized so compact and spaced forms render identically
 * **Obsidian transclusions / embeds** (`![[Note#^block-id]]` and `![[Note#Heading]]`): block and section references render inline as a quoted blockquote (instead of a broken image), with nested `[[wikilinks]]` and `![[images]]` inside the embed resolved, plus a floated top-right link back to the source note that jumps to the exact spot — the heading for section refs, or the block's enclosing heading for block refs (hover shows the popover preview)
 * **Mermaid → OG image**: set `ogimage: mermaid` (or `mermaid2`, `mermaid3`, …) in a note's frontmatter to render the Nth ` ```mermaid ` block as the social-media preview image (rendered via `mmdc` + ImageMagick to a 1200×630 WebP using a dark theme that matches the site's OG template)
@@ -105,6 +106,30 @@ The files are not linked from anywhere and are absent from the sitemap by design
 Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
+
+### 2026-08-25: Local mp4 video embeds render as players
+
+`![[video.mp4]]` — the notation Obsidian plays natively — used to render as a
+broken `<img>` on the site, and the mp4 never even reached the public folder.
+Two independent breaks, both fixed:
+
+- **Videos are now copied from the vault** (`utils/obsidian-quartz/src/main.rs`):
+  `build_images_map` only indexed `png`/`jpg`/`gif`/`webp`, so an mp4 matched the
+  wikilink-asset regex in `file_utils.rs` (which already listed `mp4`) but the
+  map lookup failed silently and nothing was copied. The map now also indexes
+  `jpeg`, `svg`, and `mp4`, bringing it in line with the regex.
+- **Embeds render as `<video>`** (`layouts/partials/textprocessing.html`): the
+  `![[...]]` embed branch emitted `<img src="...">` for every extension —
+  browsers show a broken-image icon for an mp4 in `<img>`. Paths ending in
+  `.mp4` now emit `<video controls preload="metadata">` with a `<source>` tag
+  (`max-width: 100%`); an optional `![[video.mp4|400]]` width is passed through.
+  All other embeds take the unchanged `<img>` path, and the YouTube iframe
+  handling in `render-image.html` is untouched.
+- **Verified**: 3 vault mp4s now copied and all 3 referencing pages render
+  `<video>`; zero `<img src="*.mp4">` left in `public/`; no diffs in any other
+  published note.
+- **Files**: `utils/obsidian-quartz/src/main.rs`,
+  `layouts/partials/textprocessing.html`.
 
 ### 2026-08-21: Embeds create backlinks; heading transclusions drop the footer
 

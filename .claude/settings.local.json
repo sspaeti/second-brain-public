@@ -8,7 +8,8 @@
       "Bash(make)",
       "Bash(command -v lighthouse lhci)",
       "Bash(command -v google-chrome google-chrome-stable chromium chromium-browser)",
-      "Bash(command -v node npx)"
+      "Bash(command -v node npx)",
+      "Bash(python3 *)"
     ],
     "deny": [],
     "ask": []

@@ -399,6 +399,15 @@ pub fn process_file(
             .and_then(|v| v.as_str())
             .and_then(parse_mermaid_ogimage);
 
+        // Tall/dense diagrams (e.g. gantt charts with many rows) get squeezed
+        // unreadable when forced into the standard 630px OG height. Let a note
+        // opt into a taller render via `ogheight: <px>` in frontmatter.
+        let mermaid_height = existing_frontmatter
+            .get("ogheight")
+            .and_then(|v| v.as_u64())
+            .map(|h| h as u32)
+            .unwrap_or(OG_HEIGHT);
+
         if let Some(n) = mermaid_n {
             let body_slice: &[String] = if line_end_frontmatter < lines.len() {
                 &lines[line_end_frontmatter..]
@@ -425,7 +434,7 @@ pub fn process_file(
                         source,
                         output_path: output_path.clone(),
                         width: OG_WIDTH,
-                        height: OG_HEIGHT,
+                        height: mermaid_height,
                     };
 
                     match generate_mermaid_og_image(&cfg) {
@@ -440,7 +449,7 @@ pub fn process_file(
                             );
                             existing_frontmatter.insert(
                                 "ogheight".to_string(),
-                                Value::Number(serde_yaml::Number::from(OG_HEIGHT)),
+                                Value::Number(serde_yaml::Number::from(mermaid_height)),
                             );
                         }
                         Err(e) => {
