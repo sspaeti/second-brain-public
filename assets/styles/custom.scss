@@ -717,6 +717,79 @@ $nav-icon-graph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/sv
 }
 /* END: Hacker News Banner */
 
+/* START: Hacker News meta badge (inline in the note meta line) */
+// The prose-link rules above are !important and specific ([saved-theme] + p +
+// a[href^="http"]:not(.hanchor)), so the badge selector carries two extra
+// attribute qualifiers to out-specify them and keep the badge underline-free.
+article p a.hn-badge[href][target],
+a.hn-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  margin-left: 0.7em;
+  padding: 0;
+  vertical-align: middle;
+  font-size: 0.86em;
+  font-weight: 400;
+  line-height: 1.6;
+  white-space: nowrap;
+  color: #cc5200 !important;
+  text-decoration: none !important;
+  border: none;
+  background-color: transparent;
+  opacity: 0.8;
+  transition: opacity 0.2s ease, color 0.2s ease;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+    color: #cc5200 !important;
+    text-decoration: underline !important;
+    text-decoration-color: rgba(255, 102, 0, 0.6) !important;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+}
+
+[saved-theme="dark"] article p a.hn-badge[href][target],
+[saved-theme="dark"] a.hn-badge {
+  color: #ff9966 !important;
+  text-decoration: none !important;
+
+  &:hover,
+  &:focus-visible {
+    color: #ff9966 !important;
+    text-decoration: underline !important;
+    text-decoration-color: rgba(255, 153, 102, 0.6) !important;
+  }
+}
+
+.hn-badge-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25em;
+  height: 1.25em;
+  border-radius: 2px;
+  background-color: #ff6600;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.82em;
+  font-weight: 700;
+  font-style: normal;
+  line-height: 1;
+}
+
+@media all and (max-width: 600px) {
+  .hn-badge-text {
+    display: none;
+  }
+  .hn-badge::after {
+    content: "HN";
+  }
+}
+/* END: Hacker News meta badge */
+
 /* START: Data Engineering Toolkit styles */
 
 /* Toolkit page container */

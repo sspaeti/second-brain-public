@@ -40,6 +40,11 @@
           </span>
           {{ end }}{{ end }}
           {{end}}
+          {{- /* Hacker News badge: sits inline in the meta line (skipped when
+                 hackernews_bottom is set, where the banner lives at the bottom). */ -}}
+          {{- if not .Params.hackernews_bottom }}{{ with .Params.hackernews }}
+          <a class="hn-badge" href="{{ . }}" target="_blank" rel="noopener" title="Featured on Hacker News - read the comments"><span class="hn-badge-mark" aria-hidden="true">Y</span><span class="hn-badge-text">Hacker News</span></a>
+          {{ end }}{{ end }}
           <!-- {{ partial "github.html" . }} -->
       </p>
       {{- /* Recent-changes popover: tap to toggle on touch devices (no hover),
@@ -65,16 +70,6 @@
         });
       })();
       </script>
-      {{- /* Hacker News Banner (skipped when hackernews_bottom is set — banner is placed inline at the bottom of the note) */ -}}
-      {{- if not .Params.hackernews_bottom -}}
-      {{- with .Params.hackernews -}}
-      <div class="article-hackernews-banner">
-          <span class="hn-icon">🔶</span>
-          Featured on Hacker News. <a href="{{ . }}" target="_blank" rel="noopener">Read the comments</a>
-      </div>
-      {{- end -}}
-      {{- end -}}
-
       {{partial "textprocessing.html" . }}
       {{ with (.GetTerms "tags") }}
       <ul class="tags tags-footer">
