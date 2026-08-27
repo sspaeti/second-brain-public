@@ -1,0 +1,61 @@
+{{/* Bluesky embed shortcode with dark mode support. */}}
+{{/* Uses Bluesky oEmbed API: embed.bsky.app/oembed */}}
+{{/* Usage: {{< bluesky "handle" "postid" >}} or {{< bluesky "https://bsky.app/profile/handle/post/postid" >}} */}}
+{{- $url := "" -}}
+{{- if not (.Get 1) -}}
+  {{- $url = .Get 0 -}}
+{{- else -}}
+  {{- $url = printf "https://bsky.app/profile/%s/post/%s" (.Get 0) (.Get 1) -}}
+{{- end -}}
+{{- $oembedURL := printf "https://embed.bsky.app/oembed?url=%s&format=json" $url -}}
+{{- $result := try (resources.GetRemote $oembedURL) -}}
+{{- with $result.Err -}}
+  {{- errorf "Bluesky oEmbed error: %s" . -}}
+{{- else -}}
+  {{- $data := unmarshal $result.Value.Content -}}
+  <div class="bluesky-embed-wrapper" style="display: flex; justify-content: center; margin: 1.5em 0;">
+    {{ $data.html | safeHTML }}
+  </div>
+  <script>
+  (function() {
+    if (window.__blueskyThemeSync) { window.__blueskyThemeSync(); return; }
+    function currentTheme() {
+      // Quartz darkmode.js sets saved-theme on <html>; absent means "follow system".
+      var saved = document.documentElement.getAttribute('saved-theme');
+      if (saved) return saved;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    function updateBlueskyTheme() {
+      var mode = currentTheme();
+      // Update blockquotes not yet rendered by embed.js
+      document.querySelectorAll('.bluesky-embed').forEach(function(el) {
+        el.setAttribute('data-bluesky-embed-color-mode', mode);
+      });
+      // Reload rendered iframes with new color mode
+      document.querySelectorAll('.bluesky-embed-wrapper iframe').forEach(function(iframe) {
+        var src = iframe.src;
+        if (src) {
+          var url = new URL(src);
+          if (url.searchParams.get('colorMode') !== mode) {
+            url.searchParams.set('colorMode', mode);
+            iframe.src = url.toString();
+          }
+        }
+      });
+    }
+    window.__blueskyThemeSync = updateBlueskyTheme;
+    // Set initial theme before embed.js renders
+    updateBlueskyTheme();
+    // React to the theme toggle
+    new MutationObserver(function(mutations) {
+      mutations.forEach(function(m) {
+        if (m.attributeName === 'saved-theme') updateBlueskyTheme();
+      });
+    }).observe(document.documentElement, { attributes: true });
+    // React to system theme changes while no explicit choice is stored
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+      if (!document.documentElement.hasAttribute('saved-theme')) updateBlueskyTheme();
+    });
+  })();
+  </script>
+{{- end -}}

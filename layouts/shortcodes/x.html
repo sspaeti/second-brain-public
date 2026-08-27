@@ -1,0 +1,70 @@
+{{/* Custom X (Twitter) embed shortcode with dark mode support. */}}
+{{/* Based on Hugo built-in _shortcodes/x.html (Hugo v0.157.0). */}}
+{{/* Source: https://github.com/gohugoio/hugo/blob/master/tpl/tplimpl/embedded/templates/_shortcodes/x.html */}}
+{{/* Usage: {{< x user="handle" id="1234567890" >}} */}}
+{{- $pc := site.Config.Privacy.X -}}
+{{- if not $pc.Disable -}}
+  {{- $id := or (.Get "id") "" -}}
+  {{- $user := or (.Get "user") "" -}}
+  {{- if and $id $user -}}
+    {{- $url := printf "https://x.com/%v/status/%v" $user $id -}}
+    {{- $query := querify "url" $url "dnt" $pc.EnableDNT -}}
+    {{- $request := printf "https://publish.x.com/oembed?%s" $query -}}
+    {{- with try (resources.GetRemote $request) -}}
+      {{- with .Err -}}
+        {{- warnidf "shortcode-x-getremote" "The %q shortcode was unable to retrieve the remote data: %s. See %s" $.Name . $.Position -}}
+      {{- else with .Value -}}
+        {{- $html := (. | transform.Unmarshal).html -}}
+        <div class="x-embed-wrapper" style="display: flex; justify-content: center; margin: 1.5em 0;">
+          {{ $html | safeHTML }}
+        </div>
+        <script>
+        (function() {
+          if (window.__xThemeSync) { window.__xThemeSync(); return; }
+          function currentTheme() {
+            // Quartz darkmode.js sets saved-theme on <html>; absent means "follow system".
+            var saved = document.documentElement.getAttribute('saved-theme');
+            if (saved) return saved;
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          function updateXTheme() {
+            var theme = currentTheme();
+            // Update blockquotes not yet rendered by widget.js
+            document.querySelectorAll('blockquote.twitter-tweet').forEach(function(el) {
+              el.setAttribute('data-theme', theme);
+            });
+            // Reload rendered iframes with new theme
+            document.querySelectorAll('.x-embed-wrapper iframe').forEach(function(iframe) {
+              var src = iframe.src;
+              if (src) {
+                var url = new URL(src);
+                if (url.searchParams.get('theme') !== theme) {
+                  url.searchParams.set('theme', theme);
+                  iframe.src = url.toString();
+                }
+              }
+            });
+          }
+          window.__xThemeSync = updateXTheme;
+          // Set initial theme before widget.js renders
+          updateXTheme();
+          // React to the theme toggle
+          new MutationObserver(function(mutations) {
+            mutations.forEach(function(m) {
+              if (m.attributeName === 'saved-theme') updateXTheme();
+            });
+          }).observe(document.documentElement, { attributes: true });
+          // React to system theme changes while no explicit choice is stored
+          window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+            if (!document.documentElement.hasAttribute('saved-theme')) updateXTheme();
+          });
+        })();
+        </script>
+      {{- else -}}
+        {{- warnidf "shortcode-x-getremote" "The %q shortcode was unable to retrieve the remote data. See %s" $.Name $.Position -}}
+      {{- end -}}
+    {{- end -}}
+  {{- else -}}
+    {{- errorf "The %q shortcode requires two named parameters: user and id. See %s" .Name .Position -}}
+  {{- end -}}
+{{- end -}}
