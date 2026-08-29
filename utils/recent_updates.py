@@ -6,7 +6,7 @@ the homepage badge fields and the per-note-page popover history:
 
     {
       "status": "new" | "updated",  # homepage recent-notes badge
-      "words": N,                    # new -> total note words; updated -> gross
+      "words": N,                    # new -> total note words; updated -> words changed
       "sessions": [ {"date","iso","rel","added","removed"}, ... ]  # newest first
     }
 
@@ -27,7 +27,7 @@ import re
 import subprocess
 import sys
 import tomllib
-from collections import defaultdict
+from collections import Counter, defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -95,7 +95,11 @@ def _resolve_rename(path: str, renames: dict[str, str]) -> str:
 def _stats_from_diff(text: str) -> tuple[dict[str, list[tuple[datetime, int, int, bool]]], dict[str, str]]:
     """Parse a `git log -p` / `git diff` stream (commits delimited by
     `__COMMIT__%ai` marker lines) into per-note `(commit_datetime, added_words,
-    removed_words, bumped_lastmod)`, counted from `+`/`-` diff lines.
+    removed_words, bumped_lastmod)`. Word counts are the *word-level* churn per
+    commit: the multiset difference between all removed and all added words, so
+    a one-word grammar fix inside a 100-word one-line paragraph counts as ~1
+    word, not 200 (git diffs whole lines; most prose here is one line per
+    paragraph). A paragraph moved verbatim likewise counts as 0.
     Frontmatter lines are excluded (tracked by file line number) so
     metadata-only edits don't read as content edits; a `+lastmod:` line still
     marks the commit as a real publish (`bumped_lastmod`).
@@ -109,8 +113,8 @@ def _stats_from_diff(text: str) -> tuple[dict[str, list[tuple[datetime, int, int
     cur_date: datetime | None = None
     cur_path: str | None = None
     rename_from: str | None = None
-    cur_added = 0
-    cur_removed = 0
+    cur_add_words: Counter = Counter()
+    cur_rem_words: Counter = Counter()
     cur_bumped = False
     is_binary = False
     seen_hunk = False          # True once past the per-file diff header preamble
@@ -118,10 +122,14 @@ def _stats_from_diff(text: str) -> tuple[dict[str, list[tuple[datetime, int, int
     old_ln = new_ln = 0        # running line numbers within the current hunk
 
     def flush() -> None:
-        nonlocal cur_path, cur_added, cur_removed, cur_bumped
+        nonlocal cur_path, cur_add_words, cur_rem_words, cur_bumped
         if cur_path is not None and cur_date is not None:
-            commits[cur_path].append((cur_date, cur_added, cur_removed, cur_bumped))
-        cur_path, cur_added, cur_removed, cur_bumped = None, 0, 0, False
+            # Word-level churn: words that survive a line rewrite cancel out.
+            added = sum((cur_add_words - cur_rem_words).values())
+            removed = sum((cur_rem_words - cur_add_words).values())
+            commits[cur_path].append((cur_date, added, removed, cur_bumped))
+        cur_path, cur_bumped = None, False
+        cur_add_words, cur_rem_words = Counter(), Counter()
 
     for line in text.splitlines():
         if line.startswith("__COMMIT__"):
@@ -170,11 +178,11 @@ def _stats_from_diff(text: str) -> tuple[dict[str, list[tuple[datetime, int, int
             if line.startswith("+lastmod:"):
                 cur_bumped = True
             if new_ln > fm_end:            # body only
-                cur_added += len(line[1:].split())
+                cur_add_words.update(line[1:].split())
             new_ln += 1
         elif line.startswith("-"):
             if old_ln > fm_end:            # body only
-                cur_removed += len(line[1:].split())
+                cur_rem_words.update(line[1:].split())
             old_ln += 1
         else:                              # context line: advances both sides
             old_ln += 1
