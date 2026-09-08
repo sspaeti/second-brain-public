@@ -569,6 +569,24 @@ hr {
   }
 }
 
+.rss-footer-link {
+  display: flex;
+  justify-content: center;
+  margin: 1em 0 0.5em;
+
+  & a {
+    display: inline-flex;
+    color: var(--gray);
+    opacity: 0.55;
+    transition: opacity 0.2s ease, color 0.2s ease;
+
+    &:hover {
+      opacity: 1;
+      color: #D27E99;
+    }
+  }
+}
+
 .centered {
   margin-top: 30vh;
 }
