@@ -25,9 +25,9 @@
       <title>{{ .Title }}</title>
       <link>{{ .Permalink }}</link>
       <pubDate>{{ .Lastmod.Format "Mon, 02 Jan 2006 15:04:05 -0700" | safeHTML }}</pubDate>
-      <guid>{{ .Permalink }}</guid>
+      <guid isPermaLink="false">{{ .Permalink }}?v={{ .Lastmod.Format "20060102" }}</guid>
       {{- if .Site.Params.rssFullContent }}
-      <description>{{ .Content | html }}</description>
+      <description>{{ (partial "textprocessing.html" .) | html }}</description>
       {{- else }}
       <description>{{ .Summary | html }}</description>
       {{- end }}

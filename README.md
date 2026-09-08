@@ -102,6 +102,12 @@ Verified on build: 675 `.md` files generated, `/brain/index.xml` intact, `sitema
 
 The files are not linked from anywhere and are absent from the sitemap by design. They are advertised only in the blog's [`static/llms.txt`](https://www.ssp.sh/llms.txt), which documents the `index.md` convention. Deploy is automatic, the `upload` target rsyncs `public/` with no `.md` exclude. The same setup exists in `../sspaeti-hugo-blog`.
 
+### RSS: full HTML content, versioned guid
+
+`layouts/_default/rss.xml` (`rssFullContent = true` in `config.toml`) renders each item's `<description>` through `layouts/partials/textprocessing.html` — the same partial `single.html` uses — so wikilinks, embeds, and callouts show up as real HTML in the feed instead of raw Obsidian syntax.
+
+Each item's `<guid>` is `{{ .Permalink }}?v={{ .Lastmod.Format "20060102" }}` (`isPermaLink="false"`), not the bare permalink. RSS 2.0 has no "updated item" concept (that's Atom's `<updated>`), so a stable guid means readers never resurface an edited note. Bumping the guid on every `lastmod` change is the workaround: readers (FreshRSS, Newsboat, …) treat each edit as a new item, so followers see every meaningfully-updated note again — at the cost of the same note appearing multiple times in reader history across edits. Deliberate tradeoff, chosen so updates aren't silently missed.
+
 ### Redirects of renamed files
 Find these in [.htaccess](static/.htaccess)
 
