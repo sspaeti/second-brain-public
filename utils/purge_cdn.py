@@ -201,12 +201,18 @@ def main():
         else:
             print(f"  Purged: ssp.sh/brain/{slug}")
 
-    # Always purge the index page (holds recent updates list)
+    # Always purge the index page (holds recent updates list) and the RSS feed
     if not purge_url("", api_key):
         failed = True
         print(f"  FAILED: ssp.sh/brain/")
     else:
         print(f"  Purged: ssp.sh/brain/")
+
+    if not purge_url("index.xml", api_key):
+        failed = True
+        print(f"  FAILED: ssp.sh/brain/index.xml")
+    else:
+        print(f"  Purged: ssp.sh/brain/index.xml")
 
     if failed:
         print("Some purges failed — NOT updating .last_purge_time")
