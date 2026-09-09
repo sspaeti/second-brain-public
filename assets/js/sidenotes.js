@@ -30,9 +30,22 @@
       !/-callout(\s|$)/.test(el.className) && !el.classList.contains('sn-home');
   }
 
+  // vertical label text; acronyms and compound types get a readable form
+  var LABEL = { tldr: 'TLDR', faq: 'FAQ', seealso: 'see also', todo: 'to do' };
   function typeOf(el) {
     var m = (' ' + el.className + ' ').match(/\s([a-z]+)-callout\s/);
-    return m ? m[1] : 'note';
+    var t = m ? m[1] : 'note';
+    return LABEL[t] || t;
+  }
+
+  // `> [!type]` with no title renders as <p><br>body…</p>: the theme treats
+  // that first <p> as the title row. Flag it so the CSS shows it as body text.
+  function flagNoTitle(co) {
+    var p1 = co.firstElementChild;
+    if (!p1 || p1.tagName !== 'P') return;
+    var n = p1.firstChild;
+    while (n && n.nodeType === 3 && !n.textContent.trim()) n = n.nextSibling;
+    if (n && n.tagName === 'BR') co.classList.add('sn-notitle');
   }
 
   function removeAll(sel) {
@@ -48,7 +61,7 @@
     var stale = document.querySelectorAll('.sn-side, .sn-fn-ref, [data-sn-src], .sn-hot');
     for (var i = 0; i < stale.length; i++) {
       var el = stale[i];
-      el.classList.remove('sn-side', 'sn-fn-ref', 'sn-hot');
+      el.classList.remove('sn-side', 'sn-fn-ref', 'sn-hot', 'sn-notitle');
       el.removeAttribute('data-sn-type');
       el.removeAttribute('data-sn-id');
       el.removeAttribute('data-sn-src');
@@ -72,6 +85,7 @@
       home.className = 'sn-home';
       co.parentNode.insertBefore(home, co);
       co.setAttribute('data-sn-type', typeOf(co));
+      flagNoTitle(co);
       co.classList.add('sn-side');
       co.setAttribute('data-sn-id', ++id);
       home.setAttribute('data-sn-id', id);
@@ -118,7 +132,7 @@
       sup.classList.add('sn-fn-ref');
       sup.setAttribute('data-sn-src', id);
       sup.parentNode.insertBefore(aside, sup.nextSibling);
-      notes.push({ el: aside, anchorEl: sup, stubEl: null, container: article });
+      notes.push({ el: aside, anchorEl: sup, stubEl: null, container: article, num: num });
     }
 
     if (!notes.length) return;
@@ -148,7 +162,9 @@
     for (var k = 0; k < placed.length; k++) {
       var t = Math.max(placed[k].top, prevBottom + 14);
       placed[k].el.style.top = t + 'px';
-      prevBottom = t + placed[k].el.offsetHeight;
+      // the vertical type label (::before) can be taller than a one-line note
+      var labelH = parseFloat(getComputedStyle(placed[k].el, '::before').height) || 0;
+      prevBottom = t + Math.max(placed[k].el.offsetHeight, labelH);
     }
   }
   function schedule() { raf(layout); }
@@ -175,6 +191,28 @@
   document.addEventListener('mouseover', function (ev) { setHot(ev, true); });
   document.addEventListener('mouseout', function (ev) { setHot(ev, false); });
 
+  // #fn:N deep links: the bottom list is hidden in side mode, so scroll to the
+  // margin note instead (covers page load, hash changes and clicking the ref)
+  function jumpToFootnote() {
+    if (!mq.matches) return;
+    var m = /^#fn:(\d+)$/.exec(location.hash);
+    if (!m) return;
+    for (var i = 0; i < notes.length; i++) {
+      if (notes[i].num === m[1]) {
+        var el = notes[i].el;
+        el.scrollIntoView({ block: 'center' });
+        el.classList.add('sn-hot');
+        setTimeout(function () { el.classList.remove('sn-hot'); }, 1500);
+        return;
+      }
+    }
+  }
+  window.addEventListener('hashchange', jumpToFootnote);
+  document.addEventListener('click', function (ev) {
+    var a = ev.target.closest ? ev.target.closest('sup.sn-fn-ref > a') : null;
+    if (a && mq.matches) setTimeout(jumpToFootnote, 0);
+  });
+
   // callouts.js toggles collapse on click; keep margin notes open (links still work)
   document.addEventListener('click', function (ev) {
     if (!mq.matches) return;
@@ -185,7 +223,7 @@
   /* run */
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
-  window.addEventListener('load', schedule);
+  window.addEventListener('load', function () { schedule(); setTimeout(jumpToFootnote, 150); });
   window.addEventListener('resize', schedule);
   if (mq.addEventListener) mq.addEventListener('change', schedule);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);

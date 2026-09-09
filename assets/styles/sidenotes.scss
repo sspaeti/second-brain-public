@@ -134,6 +134,7 @@ $sn-alias: (
         line-height: 1;
         letter-spacing: .05em;
         text-transform: capitalize;
+        white-space: nowrap;   // multi-word labels ("see also") must not wrap into a 2nd column
         color: var(--sn-c, var(--outlinegray));
       }
 
@@ -161,6 +162,14 @@ $sn-alias: (
 
       > ul, > ol { margin: .25rem 0; padding-left: 1.1rem; }
       li, li a { color: var(--gray); }
+
+      // no title (`> [!type]` alone): first <p> is body text, drop its <br>
+      &.sn-notitle > p:first-child {
+        font-size: .82rem;
+        font-weight: 400;
+        padding-bottom: 0 !important;
+        > br:first-child { display: none; }
+      }
 
       // never collapsed in the margin (theme hides children with !important)
       &.callout-collapsed > *:not(:first-child) { display: block !important; }
