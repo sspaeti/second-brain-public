@@ -13,6 +13,7 @@ This is a public second brain website built with Hugo and the Quartz theme (v3).
   - Python scripts (`utils/find-publish-notes.py`) - legacy approach
   - Rust utility (`utils/obsidian-quartz/`) - current preferred approach
 - **Link Generation**: Uses `hugo-obsidian` (forked version) to generate backlinks and graph connections
+- **Margin sidenotes**: `assets/styles/sidenotes.scss` + `assets/js/sidenotes.js` move callouts and footnotes into the right gutter and the TOC/backlinks into the left gutter at ≥1420px (see README changelog 2026-09-09). The JS re-runs on `million:navigate`; opt out per note with `sidenotes: false`.
 - **Deployment**: Static files generated to `public/` and uploaded via rsync
 
 ## Core Commands

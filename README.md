@@ -113,6 +113,41 @@ Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
 
+### 2026-09-09: Callouts and footnotes as margin sidenotes; TOC + backlinks in the left gutter
+
+On viewports ≥ 1420px every callout (`> [!note] …`) and footnote leaves the
+text and renders as a small note outside the card on the right, in the style
+of the Obsidian *sidenote-callout* plugin (vertical type label + 2px accent
+bar, no box). A hairline stub stays below the source paragraph; hovering stub,
+note or paragraph highlights all three. To make room, the table of contents and
+backlinks move from inside the card to the left gutter (still sticky and
+scrollable), and backlinks are now a collapsible `<details>` like the TOC.
+Below 1420px nothing changes. Mirrors the same feature on the blog
+(`../sspaeti-hugo-blog`, spec in its `docs/superpowers/specs/2026-09-09-margin-sidenotes-design.md`).
+
+- **`assets/styles/sidenotes.scss`** (no underscore on purpose: `head.html`
+  compiles `styles/[!_]*.scss` separately, so the file is self-contained and
+  uses only the theme's CSS variables). One `min-width: 1420px` media query:
+  card margins `max(12vw, 280px)`, `.side-gutter` absolute in the left gutter
+  spanning the card height (keeps `.backlinks-container` sticky), notes
+  `position: absolute` right of the card, type aliases (tip/hint → important…)
+  mapped to `--callout-<group>` colours.
+- **`assets/js/sidenotes.js`** (added to the base `$scripts` in `head.html`):
+  inserts the stub markers, builds margin notes from the `.footnotes` list,
+  sets each note's `top` and resolves overlap, hover linking, `#fn:N` deep
+  links. `init()` is idempotent and re-runs on `million:navigate` because the
+  SPA router swaps `.singlePage`.
+- **`layouts/_default/single.html`**: `sn-on` class on `.singlePage` (opt out
+  per note with `sidenotes: false`), `.side-gutter` wrapper around the sidebar.
+- **`layouts/partials/backlinks.html`** + `base.scss`: backlinks as
+  `<details open>` with the TOC's summary styling and indent.
+- **Gotchas**: text colour is set explicitly (`var(--gray)`) — the theme
+  colours `p`/`li`, not containers, so `inherit` renders black in dark mode.
+  Floats were rejected for note placement (any following `overflow:auto` block
+  drops below the float). Empty-title callouts (`<p><br>body</p>`) are flagged
+  `sn-notitle` and shown as body text; `tldr`/`faq`/`seealso` get readable
+  labels.
+
 ### 2026-08-25: Local mp4 video embeds render as players
 
 `![[video.mp4]]` — the notation Obsidian plays natively — used to render as a
