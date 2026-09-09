@@ -83,6 +83,8 @@ stop-brain: ## kill any running hugo server to prevent localhost URLs in product
 run: ## run hugo from a clean state
 	hugo --gc && hugo server --enableGitInfo --minify
 
+serve-only: run
+
 hugo-generate: ## generate hugo from clean but don't run
 	rm -rf resources/_gen/ #helps prevent localhost:1313 in deployed website if accidentally an old hugo process running or from my book
 	hugo --gc && hugo

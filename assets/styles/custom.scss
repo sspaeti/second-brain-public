@@ -376,6 +376,38 @@ $nav-icon-graph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/sv
   text-align: center;
   background: linear-gradient(135deg, rgba(255,93,98,0.1) 0%, rgba(210,126,153,0.1) 100%);
   border-radius: 12px;
+
+  p {
+    max-width: 620px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  p:first-of-type {
+    font-size: 1.1rem;
+  }
+}
+
+// Secondary actions row below the subscribe button — a tidy, muted,
+// dot-separated list instead of a long run-on sentence with 4 inline
+// links wrapping raggedly across lines.
+.newsletter-section .newsletter-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-top: 1.75rem;
+  font-size: 0.9rem;
+  color: var(--gray);
+
+  a {
+    color: var(--gray) !important;
+  }
+
+  span {
+    opacity: 0.5;
+  }
 }
 
 .subscribe-button {
