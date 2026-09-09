@@ -77,7 +77,7 @@
             const _bar = document.getElementById('search-bar')
             if (_bar) {
               const total = Object.keys(allData).length
-              if (total > 0) _bar.placeholder = `Search ${total.toLocaleString()} notes (blog + brain)… · Ctrl+K or /`
+              if (total > 0) _bar.placeholder = `Search ${total.toLocaleString()} notes (blog + brain) · "quotes" for exact phrase · Ctrl+K or /`
             }
             resolve()
           }
@@ -119,6 +119,7 @@
   }
 
   // Expose globally so search-modal.html inline script can call openSearch()
+  window.__searchStartLoad = _startLoad // for tests/console
   window.openSearch  = _openSearch
   window.closeSearch = _closeSearch
 
@@ -213,6 +214,47 @@
 
   // ── Search ─────────────────────────────────────────────────────────────────
 
+  // Returns ordered ids for a term. Multi-word terms rank exact-phrase hits
+  // (title, then content) above FlexSearch's loose word-AND hits, which are
+  // also capped by the index limit and so miss phrase matches. Wrapping the
+  // term in double quotes returns only the phrase tier.
+  function rankResults(term, source, date) {
+    const strict = /^\s*"[^"]+"\s*$/.test(term)
+    const phrase = (strict ? term.trim().slice(1, -1) : term).trim().toLowerCase()
+    if (!phrase) return []
+
+    const passes = (e) => e && passesDate(e, date) && (source === 'all' || e.source === source)
+
+    // Punctuation-insensitive phrase match: "note taking" hits "Note-Taking".
+    const norm = (s) => (s || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim()
+    const needle = norm(phrase)
+    const titleHits = [], contentHits = []
+    if (needle && (strict || needle.includes(' '))) {
+      for (const [id, e] of Object.entries(allData)) {
+        if (!passes(e)) continue
+        if (norm(e.title).includes(needle)) titleHits.push(id)
+        else if (norm(_removeMarkdown(e.content)).includes(needle)) contentHits.push(id)
+      }
+    }
+
+    const loose = []
+    if (!strict) {
+      // Title first: FlexSearch returns hits in insertion order, not by score,
+      // and results are merged in field order, so title matches must lead.
+      const raw = idx.search(phrase, [
+        { field: 'title',   limit: 8  },
+        { field: 'content', limit: 15 },
+      ])
+      for (const r of raw) for (const id of r.result) if (passes(allData[id])) loose.push(id)
+    }
+
+    // Blog entries float first within each tier (blog-boost)
+    const boost = (ids) => [...ids.filter(id => allData[id].source === 'blog'), ...ids.filter(id => allData[id].source !== 'blog')]
+    const seen = new Set()
+    return [...boost(titleHits), ...boost(contentHits), ...boost(loose)].filter(id => !seen.has(id) && seen.add(id))
+  }
+  window.searchRank = rankResults
+
   function doSearch(term, source, date, resultsEl) {
     if (!resultsEl) return
     if (!term) {
@@ -220,31 +262,7 @@
       return
     }
 
-    const raw = idx.search(term, [
-      { field: 'content', limit: 15 },
-      { field: 'title',   limit: 8  },
-    ])
-
-    const seen = new Set()
-    const ids  = []
-    for (const r of raw) {
-      for (const id of r.result) {
-        if (!seen.has(id)) { seen.add(id); ids.push(id) }
-      }
-    }
-
-    // Blog entries float first (blog-boost)
-    const blog  = []
-    const brain = []
-    for (const id of ids) {
-      const e = allData[id]
-      if (!e) continue
-      if (!passesDate(e, date)) continue
-      if (source !== 'all' && e.source !== source) continue
-      e.source === 'blog' ? blog.push(id) : brain.push(id)
-    }
-
-    const ordered = [...blog, ...brain]
+    const ordered = rankResults(term, source, date)
     if (ordered.length === 0) {
       resultsEl.innerHTML = `<button class="result-card">
         <h3>No results.</h3>
@@ -253,14 +271,15 @@
       return
     }
 
-    resultsEl.innerHTML = ordered.map(id => resultCard(id, allData[id], term)).join('\n')
+    const hl = term.replace(/^\s*"|"\s*$/g, '')
+    resultsEl.innerHTML = ordered.map(id => resultCard(id, allData[id], hl)).join('\n')
 
     // Navigation: SPA on brain, plain href on blog
     const baseUrl = typeof BASE_URL !== 'undefined' ? BASE_URL.replace(/\/$/, '') : ''
     resultsEl.querySelectorAll('.result-card[id]').forEach(card => {
       card.addEventListener('click', () => {
         // card.id is the absolute path e.g. /brain/zettelkasten or /blog/post
-        const textFrag = '#:~:text=' + encodeURIComponent(term)
+        const textFrag = '#:~:text=' + encodeURIComponent(hl)
         const source = (allData[card.id] || {}).source
         if (source === 'brain' && window.Million?.navigate) {
           // SPA navigation: BASE_URL already includes /brain/, strip it from card.id
