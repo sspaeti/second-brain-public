@@ -1,7 +1,8 @@
 {{ $linkIndex := resources.Get "indices/linkIndex.json" | transform.Unmarshal }}
 {{ $contentTable := resources.Get "indices/contentIndex.json" | transform.Unmarshal }}
 
-<h3>{{ i18n "backlinks" }}</h3>
+<details class="backlinks-details" open>
+<summary>{{ i18n "backlinks" }}</summary>
 <ul class="backlinks">
     {{$url := urls.Parse .Site.BaseURL }}
     {{$host := strings.TrimRight "/" $url.Path }}
@@ -56,3 +57,4 @@
     </li>
     {{end}}
 </ul>
+</details>

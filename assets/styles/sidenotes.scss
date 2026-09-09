@@ -1,0 +1,230 @@
+/* ssp.sh/brain sidenotes — mirrors the blog (sspaeti-hugo-blog,
+   assets/css/_sidenotes.scss). On wide viewports (≥ $sn-bp):
+     - the TOC + backlinks column leaves the card and sits in the LEFT gutter
+       (still sticky, still scrollable, backlinks now a collapsible <details>);
+     - every Obsidian callout (blockquote.<type>-callout) and footnote moves into
+       a note column OUTSIDE the card on the right (on the darker page
+       background, like the blog), styled like the Obsidian
+       "sidenote-callout" plugin: vertical type label + 2px accent bar, small
+       text, no box. A hairline stub stays in the text where the callout was;
+       hovering stub, note or source paragraph highlights all three.
+   Below $sn-bp nothing here applies: sidebar inside the card, inline callouts,
+   footnotes at the bottom, exactly as before.
+
+   Companion JS: assets/js/sidenotes.js (markers, footnote asides, vertical
+   placement + overlap resolution, hover, re-init on the Million SPA router's
+   `million:navigate`). Enabled via the `sn-on` class on .singlePage
+   (layouts/_default/single.html); opt out per note with `sidenotes: false`.
+
+   This file is compiled on its own (head.html bundles styles/[!_]*.scss
+   separately), so it uses only the theme's CSS custom properties. */
+
+$sn-bp: 1420px;   // needs room for a ~240px gutter column on the left
+$sn-w: 230px;     // note column width
+$sn-gap: 28px;    // gap between card edge and note column
+$sn-margin: 280px; // minimum card side margin: gutter column left, notes right
+
+// callout alias → theme colour group (same grouping as _callouts.scss)
+$sn-alias: (
+  note: note,
+  info: info, todo: info,
+  tip: important, hint: important, important: important,
+  warning: warning, caution: warning, attention: warning,
+  danger: danger, error: danger,
+  example: example,
+  question: question, help: question, faq: question,
+  quote: quote, cite: quote,
+  summary: summary, abstract: summary, tldr: summary,
+  bug: bug,
+  fail: fail, failure: fail, missing: fail,
+  done: done, success: done, check: done,
+);
+
+// Markers and margin footnotes exist in the DOM at every width; visible only
+// inside the media query below.
+.sn-home,
+.sn-fn { display: none; }
+
+// Below the breakpoint the wrapper is transparent: .backlinks-container stays
+// the flex item it always was.
+.side-gutter { display: contents; }
+
+@media only screen and (min-width: $sn-bp) {
+  .singlePage.sn-on,
+  body:has(.singlePage.sn-on) .header-fullwidth { --sn-margin: max(12vw, #{$sn-margin}); }
+
+  // card margins at least 280px so the gutter column (left) and the note
+  // column (right) fit outside the card (12vw only exceeds that above
+  // ~2330px); header padding follows so the edges keep lining up
+  .singlePage.sn-on {
+    position: relative;
+    margin-left: var(--sn-margin);
+    margin-right: var(--sn-margin);
+  }
+  body:has(.singlePage.sn-on) .header-fullwidth {
+    padding-left: var(--sn-margin);
+    padding-right: var(--sn-margin);
+  }
+
+  .singlePage.sn-on {
+
+    > article {
+      position: relative;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    /* ---- TOC + backlinks: left gutter, full card height, inner stays sticky ---- */
+    .side-gutter {
+      display: block;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: calc(16px - var(--sn-margin));
+      width: calc(var(--sn-margin) - 16px - 24px);
+    }
+    .side-gutter .backlinks-container {
+      padding-left: 0;
+      padding-right: 0;
+      min-width: 0;
+      overflow-x: hidden;
+    }
+
+    @each $alias, $group in $sn-alias {
+      blockquote.#{$alias}-callout { --sn-c: var(--callout-#{$group}); }
+    }
+
+    /* ---- shared: absolutely positioned note outside the card's right edge
+       (article sits 1.5em inside the card, see .singlePage padding) ---- */
+    .sn-side {
+      position: absolute;
+      right: calc(-1.5em - #{$sn-gap + $sn-w});
+      width: $sn-w;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0 0 0 .7rem !important;
+      font-size: .82rem;
+      line-height: 1.45;
+      color: var(--gray);   // body-text colour (theme sets it on p/li, not containers)
+      background: none !important;
+      border: 0 !important;
+      border-left: 2px solid var(--sn-c, var(--outlinegray)) !important;
+      border-radius: 0;
+      overflow: visible;
+      opacity: .92;
+      cursor: default;
+      transition: opacity .15s;
+
+      &:hover,
+      &.sn-hot { opacity: 1; }
+    }
+
+    /* ---- callouts ---- */
+    blockquote.sn-side {
+      &::before {
+        content: attr(data-sn-type);
+        position: absolute;
+        left: -1.25rem;
+        top: 0;
+        writing-mode: vertical-lr;
+        text-orientation: upright;
+        font-family: var(--font-header);
+        font-size: .68rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: .05em;
+        text-transform: capitalize;
+        color: var(--sn-c, var(--outlinegray));
+      }
+
+      // the theme's +/- collapse indicator
+      &::after { display: none !important; }
+
+      > p {
+        margin: 0 0 .5rem;
+        padding: 0 !important;
+        color: var(--gray);
+        background: none !important;
+        border-radius: 0;
+      }
+      > p:last-child { margin-bottom: 0; }
+
+      // title row
+      > p:first-child {
+        padding: 0 0 .2rem !important;
+        font-size: .78rem;
+        font-weight: 700;
+        color: var(--gray);
+
+        &::after { display: none !important; }  // type icon
+      }
+
+      > ul, > ol { margin: .25rem 0; padding-left: 1.1rem; }
+      li, li a { color: var(--gray); }
+
+      // never collapsed in the margin (theme hides children with !important)
+      &.callout-collapsed > *:not(:first-child) { display: block !important; }
+    }
+
+    /* ---- footnotes (built by JS from the .footnotes list) ---- */
+    .sn-fn {
+      display: block;
+      font-size: .78rem;
+      line-height: 1.4;
+      font-weight: 400;
+      font-style: normal;
+      text-align: left;
+      opacity: .82;
+      border-left-color: var(--outlinegray) !important;
+
+      p { display: inline; margin: 0; }
+
+      .sn-fn-num {
+        display: inline-block;
+        min-width: 1.1em;
+        margin-right: .35em;
+        font-family: var(--font-header);
+        font-size: .72rem;
+        font-weight: 700;
+        color: var(--gray);
+      }
+    }
+
+    .footnotes { display: none; }
+
+    /* ---- hairline stub where the callout used to be ----
+       Its own tiny block right below the source paragraph. 6px padding = hover
+       hit area. Consecutive callouts share one row (--sn-i offsets). */
+    .sn-home {
+      display: block;
+      position: relative;
+      box-sizing: content-box;
+      width: 3.5rem;
+      height: 2px;
+      padding: 6px 0;
+      margin: calc(-.55rem - 6px) 0 calc(1.15rem - 6px) calc(var(--sn-i, 0) * 2.6rem);
+      overflow: visible;
+
+      &::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 6px;
+        width: 2rem;
+        height: 2px;
+        border-radius: 1px;
+        background: var(--sn-c, var(--outlinegray));
+        opacity: .6;
+        transition: opacity .15s, width .2s;
+      }
+
+      &:hover::after,
+      &.sn-hot::after {
+        opacity: 1;
+        width: 3rem;
+      }
+
+      &:not([data-sn-i="0"]) { margin-top: calc(-1.15rem - 8px); }
+    }
+  }
+}

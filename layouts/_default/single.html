@@ -7,7 +7,8 @@
 <div class="header-fullwidth">
 {{partial "header.html" .}}
 </div>
-<div class="singlePage">
+{{- /* margin sidenotes (callouts + footnotes, TOC/backlinks in the left gutter) — see assets/styles/sidenotes.scss; opt out with `sidenotes: false` */ -}}
+<div class="singlePage{{ if ne .Params.sidenotes false }} sn-on{{ end }}">
     <!-- Begin actual content -->
     <article class="h-entry">
 
@@ -82,9 +83,11 @@
       {{partial "footer.html" .}}
     </article>
     {{if not .Params.hideBacklinks}}
+    <div class="side-gutter">
     <div class="backlinks-container">
         {{partial "toc.html" .}}
         {{partial "backlinks.html" .}}
+    </div>
     </div>
     {{end}}
     
