@@ -75,7 +75,7 @@ article blockquote a {
     // Internal broken links: lighter teal + dashed underline
     a.internal-link.broken {
       color: #8BA4B0;
-      opacity: 0.7;
+      opacity: 0.85; // 0.7 blended to 3.8:1 on the card; 0.85 is 4.8:1
       background-color: transparent;
       text-decoration: underline dashed !important;
       text-decoration-color: #8BA4B0 !important;
@@ -122,6 +122,7 @@ article {
 
     a.internal-link.broken {
       color: #000000;
+      opacity: 0.65; // base.scss 0.5 blends to 3.9:1 on the light card; 0.65 = 6.4:1
       background-color: transparent;
       text-decoration: underline dashed !important;
       text-decoration-color: #555 !important;
@@ -161,7 +162,7 @@ article {
 :root {
   --global-background-color: #ffffff;             // outer body bg
   --global-background-secondary-color: #faf8f8;   // inner card bg (header + content)
-  --global-font-secondary-color: #939090;         // muted nav-text / secondary text
+  --global-font-secondary-color: #727070;         // muted nav-text / secondary text (was #939090: 3.0:1 on the card, now 4.7:1 for the note meta line)
   --header-background-color: #eaecef;             // search input chip bg
 }
 
@@ -512,7 +513,7 @@ $nav-icon-graph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/sv
 .webmentions-header {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--secondary);
+  color: var(--secondary-aa); // large heading, 4.0:1 on the light card (--secondary was 2.8:1); dark = --secondary
   margin: 0;
 }
 
@@ -2036,7 +2037,12 @@ a.hn-badge {
 // the first rule.
 :root {
   --badge-new: #76946A; // autumnGreen (kanagawa)
-  --badge-upd: #658594; // dragonBlue (kanagawa, matches dark --secondary)
+  // text colour of the "recently updated" label too: 4.6:1 on the light card
+  // (#658594 was 3.9:1, #587381 is 4.7:1); dark mode swaps in --secondary below
+  --badge-upd: #587381;
+}
+[saved-theme="dark"] {
+  --badge-upd: #7093A3; // = dark --secondary, 4.97:1 on the card
 }
 .update-badge {
   display: inline-block;

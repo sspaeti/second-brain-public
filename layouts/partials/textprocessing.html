@@ -147,13 +147,19 @@
 {{/* Wikilinks */}}
 {{$wikilinks := $content | findRE "!?\\[\\[\\S[^\\[\\]\\|]*(?:\\|[^\\[\\]]*)?\\S\\]\\]" }}
 {{$codefences := $raw | findRE "\\x60[^\\x60\\n]+\\x60"}}
-{{$codeblocks := $raw | findRE "\\x60{3}[^\\x60]+\\x60{3}"}}
+{{/* (?s) + non-greedy: a fenced block that contains inline backticks used to
+     escape this pattern, so its [[wikilinks]] were rendered as real links. */}}
+{{$codeblocks := $raw | findRE "(?s)\\x60{3}.*?\\x60{3}"}}
 {{$code := union $codefences $codeblocks}}
 {{range $wikilinks}}
   {{$cur := .}}
+  {{/* $wikilinks come from the rendered HTML, $code from the raw markdown:
+       unescape so a link containing quotes or < > (e.g. a Templater
+       expression inside a fence) still matches its code block. */}}
+  {{$curRaw := htmlUnescape $cur}}
   {{$incode := false}}
   {{range $code}}
-    {{if (in . $cur)}}
+    {{if or (in . $cur) (in . $curRaw)}}
       {{$incode = true}}
     {{end}}
   {{end}}
@@ -168,8 +174,17 @@
         {{$video := printf "<video controls preload=\"metadata\" style=\"max-width: 100%%;\"%s><source src=\"%s\" type=\"video/mp4\">Your browser does not support the video tag.</video>" (cond (eq (default "" $width) "") "" (printf " width=\"%s\"" $width)) $path}}
         {{$content = replace $content . $video}}
       {{else}}
-        {{$img := printf "<img src=\"%s\" width=\"%s\" loading=\"lazy\" />" $path (default "auto" $width)}}
-        {{$content = replace $content . $img}}
+        {{- /* `|400` / `|353x116` is a width, any other alias is alt text (Obsidian
+             uses both); the first image of a note loads eagerly since it is
+             usually the LCP element, the rest stay lazy. Rendering lives in
+             partials/responsive-image.html (srcset + width/height). */ -}}
+        {{$alias := default "" $width}}
+        {{$isWidth := findRE `^\d+(x\d+)?$` $alias}}
+        {{$alt := cond (or $isWidth (eq $alias $rawPath) (eq $alias (path.Base $rawPath))) "" $alias}}
+        {{$n := $.Scratch.Get "imgCount" | default 0}}
+        {{$.Scratch.Set "imgCount" (add $n 1)}}
+        {{$img := partial "responsive-image.html" (dict "path" $rawPath "width" (cond $isWidth $alias "") "alt" $alt "eager" (eq $n 0))}}
+        {{$content = replace $content . (string $img)}}
       {{end}}
     {{else}}
       {{$inner := . | strings.TrimPrefix "[[" | strings.TrimSuffix "]]" }}

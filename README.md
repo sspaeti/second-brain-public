@@ -113,6 +113,72 @@ Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
 
+### 2026-09-10: Responsive note images, code-fence guard, per-note accessibility
+
+Follow-up to the Lighthouse pass below, triggered by an image-heavy note
+(`managing-my-business-with-obsidian`) that scored 88 desktop performance /
+85 accessibility / 92 SEO in the user's browser. Part of that 88 was a browser
+extension injecting ad-tech into the run; measured clean the page was already
+99/100 on performance. The site-side items were real and are fixed for every
+note:
+
+- **Responsive images** (`layouts/partials/responsive-image.html`, used by the
+  `![[image]]` embed branch in `textprocessing.html` and by
+  `_markup/render-image.html`). Note images live flat in `content/` (no page
+  bundles), so `config.toml` now mounts `content/` a second time under
+  `assets/notes`; that makes them Hugo resources and `resources.Get "notes/…"`
+  + `.Resize` work. Raster images wider than 800 px get 800 / 1200 / 1600 px
+  WebP variants (`srcset`, `sizes="(max-width: 900px) 100vw, 840px"`) with the
+  original as the largest candidate; every processed image carries
+  `width`/`height` (no layout shift; `img { height: auto }` in `base.scss`).
+  The first image of a note loads `eager` + `fetchpriority=high` (it is usually
+  the LCP element), the rest stay lazy. `![[img|400]]` / `![[img|353x116]]` still
+  set the width; any other alias becomes the `alt` text, otherwise `alt=""`.
+  SVG, GIF, external and missing files fall back to the plain `<img>`.
+  Variants are content-hashed under `resources/_gen/images/` (~90 MB, 1,100+
+  files, ~40 s on a cold build, ~1 s warm); `hugo-generate` now only wipes
+  `resources/_gen/assets` so deploys keep the cache. The published variants land
+  in `public/notes/` (~60 MB, uploaded once by rsync).
+- **Code-fence guard fixed** (`textprocessing.html`): the "is this wikilink
+  inside a code block" check used `` ```[^`]+``` ``, which fails on any fence
+  containing inline backticks — then it paired the *closing* fence with the next
+  opening one and treated the prose in between as code, so real wikilinks and
+  image embeds there were never rendered (e.g. `obsidian-webclipper`). Now
+  `(?s)```.*?```. The comparison also `htmlUnescape`s the link, so a wikilink
+  with quotes or `<`/`>` (a Templater expression in a fence) is recognised too.
+- **Accessibility**: copy button gets `aria-label`; the "recently updated"
+  control's accessible name now contains its visible text; webmention
+  reactions are `<li>`s (a `<ul>` had `<a>` children); contrast: broken
+  internal links (light opacity .5→.65, dark .7→.85), callout titles in dark
+  mode use the body text colour (peach `--dark` on the dark accents was 3.2:1),
+  code line numbers (#7f7f7f → #6d6d6d light / #8d8d8d dark), the note meta
+  line (`--global-font-secondary-color` #939090 → #727070), the
+  `--badge-upd` label (#658594 → #587381 light, `--secondary` dark), the
+  webmentions heading (`--secondary-aa`) and the whole light syntax palette
+  (`_light_syntax.scss`, monokailight): every token colour darkened along its
+  own hue until it reaches 4.8:1 on the #f0f0f0 code-block background (they
+  were 2.5–3.6:1; the originals are in git history).
+- **Small SEO/structure fixes**: every page without a summary (tags, sections)
+  now falls back to the site description for its meta description
+  (`head.html`); the tags overview uses one `h1` and `h2.tag-title` per tag
+  (was `h1` per tag, so the note list's `h3`s skipped a level).
+- **Not changed (your call)**: in light mode the peach accent `--secondary`
+  (#FF5D62) is 2.8:1 wherever it is used as *text* on the card — tag pills,
+  backlink/section-list links, the webmentions heading. Prose links were
+  already restyled (grey + underline) and pass; dark mode passes everywhere.
+  Fixing the rest means a dedicated light link colour (e.g. Kanagawa
+  `#BD3A40`, 5.2:1 on the card and 4.8:1 on the tag pills) applied only to
+  text uses, keeping #FF5D62 for borders, buttons and the header title. Until
+  then note pages score 97 accessibility in light mode, 100 in dark.
+- **Verified** (local gzip build, Lighthouse 13.4): the note is 100/100/100/100
+  desktop and 97/100/100/100 mobile in dark mode (97 accessibility in light,
+  see above); home unchanged at 100 desktop / 96 mobile in both themes; the
+  tags page went from 94/92 to 100/100 (accessibility/SEO). Smoke test passes. Internal-link count across all 994 pages:
+  +1 (the webclipper note), no other page changed.
+- **Files**: `config.toml`, `layouts/partials/{responsive-image,textprocessing,single}.html`,
+  `layouts/_default/_markup/render-image.html`, `assets/js/{clipboard,webmention}.js`,
+  `assets/styles/{base,custom,_callouts,_dark_syntax,_light_syntax}.scss`, `Makefile`
+
 ### 2026-09-10: Lighthouse 100 (desktop) / 95 (mobile) — loading order, lazy libraries, contrast
 
 PageSpeed read mobile 63 / desktop 83 performance and 85 accessibility. Local

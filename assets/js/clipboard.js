@@ -18,6 +18,8 @@ const addCopyButtons = () => {
         const button = document.createElement("button");
         button.className = "clipboard-button";
         button.type = "button";
+        button.setAttribute("aria-label", "Copy code to clipboard");
+        button.title = "Copy code";
         button.innerHTML = svgCopy;
         // remove every second newline from lastCodeBlock.innerText
         button.addEventListener("click", () => {

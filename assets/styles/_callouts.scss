@@ -92,6 +92,9 @@ blockquote[class*="-callout"] {
       font-weight: 600;
       color: var(--dark);
       padding: 0.4em 30px;
+      // dark mode: --dark is the peach accent (#FF5D62), only 3.2:1 on the
+      // dark callout backgrounds (e.g. note #003ca1); body text colour is 11:1
+      [saved-theme="dark"] & { color: var(--gray); }
     }
   }
 }

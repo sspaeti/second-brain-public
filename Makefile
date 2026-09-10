@@ -86,7 +86,7 @@ run: ## run hugo from a clean state
 serve-only: run
 
 hugo-generate: ## generate hugo from clean but don't run
-	rm -rf resources/_gen/ #helps prevent localhost:1313 in deployed website if accidentally an old hugo process running or from my book
+	rm -rf resources/_gen/assets #helps prevent localhost:1313 in deployed website if accidentally an old hugo process running or from my book (keeps resources/_gen/images: the resized note images are content-hashed and slow to regenerate)
 	hugo --gc && hugo
 
 purge-cdn: ## Purge Bunny CDN cache for ssp.sh/brain only (all brain pages)

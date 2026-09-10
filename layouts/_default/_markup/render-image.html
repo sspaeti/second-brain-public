@@ -22,8 +22,11 @@
 <a href="{{ $src }}">{{ .Text }}</a>
   {{- end -}}
 {{- else if $external -}}
-<img src="{{ $src }}" width="{{ $width }}" alt="{{ .Text | default .Title | default "" }}" {{ with .Title }} title="{{ . }}" {{ end }} loading="lazy" />
+<img src="{{ $src }}"{{ if ne $width "auto" }} width="{{ $width }}"{{ end }} alt="{{ index (split .Text "|") 0 | default .Title | default "" }}" {{ with .Title }} title="{{ . }}" {{ end }} loading="lazy" decoding="async" />
 {{- else -}}
-{{- $fixedUrl := (cond (hasPrefix $src "/") $src (print "/" $src)) | urlize -}}
-<img src="{{.Page.Site.BaseURL}}{{ $fixedUrl }}" width="{{ $width }}" alt="{{ .Text | default .Title | default "" }}" {{ with .Title }} title="{{ . }}" {{ end }} loading="lazy" />
+{{- /* local image: same responsive rendering as the ![[wikilink]] embeds */ -}}
+{{- $n := .Page.Scratch.Get "imgCount" | default 0 -}}
+{{- .Page.Scratch.Set "imgCount" (add $n 1) -}}
+{{- $alt := index (split .Text "|") 0 | default .Title | default "" -}}
+{{- partial "responsive-image.html" (dict "path" (strings.TrimPrefix "/" $dest) "width" (cond (eq $width "auto") "" $width) "alt" $alt "eager" (eq $n 0)) -}}
 {{- end -}}

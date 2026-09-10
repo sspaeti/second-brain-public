@@ -23,7 +23,7 @@
           {{- end -}}
           {{ if gt .ReadingTime 0 }} · <span class="meta-reading-time">{{ .ReadingTime }} min read</span>{{ end }}
           {{ with (index hugo.Data.recent_updates .File.BaseFileName) }}{{ with .sessions }}
-          <span class="note-changes" tabindex="0" role="button" aria-label="Recent changes to this note">
+          <span class="note-changes" tabindex="0" role="button" aria-label="Recently updated: show recent changes to this note">
             <span class="nc-dot"></span><span class="nc-label">recently updated</span>
             <span class="nc-popover" role="tooltip">
               <span class="nc-title">Recent changes</span>

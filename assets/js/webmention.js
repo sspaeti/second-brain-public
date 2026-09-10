@@ -316,7 +316,9 @@
       rsvpMark = `<sub>${rsvpEmoji[webmention.rsvp]}</sub>`;
     }
     
+    // <li> wrapper: the reactions sit in a <ul>, which may only contain <li>
     return `
+      <li>
       <a
         class="reaction"
         rel="nofollow ugc"
@@ -327,6 +329,7 @@
         <span>${propertyEmoji[webmention["wm-property"]] || "💥"}</span>
         ${rsvpMark}
       </a>
+      </li>
     `;
   }
   
