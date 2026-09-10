@@ -167,7 +167,13 @@
     {{if (hasPrefix . "!")}}
       {{$inner := . | strings.TrimPrefix "![[" | strings.TrimSuffix "]]" }}
       {{$split := split $inner "|"}}
-      {{$rawPath := index $split 0}}
+      {{- /* $content is rendered HTML, so "&" in a file name arrives as "&amp;":
+           unescape it here (templates re-escape on output) so the file is
+           found on disk and the URL is not double-escaped. */ -}}
+      {{$rawPath := index $split 0 | htmlUnescape}}
+      {{- /* goldmark already ran: "_name_" / "__name__" in a file name became
+           <em>/<strong>; put the underscores back so the file is found. */ -}}
+      {{$rawPath = $rawPath | replaceRE "</?em>" "_" | replaceRE "</?strong>" "__"}}
       {{$path := $rawPath | relURL}}
       {{$width := index $split 1}}
       {{if hasSuffix (lower $rawPath) ".mp4"}}

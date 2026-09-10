@@ -170,6 +170,60 @@ note:
   `#BD3A40`, 5.2:1 on the card and 4.8:1 on the tag pills) applied only to
   text uses, keeping #FF5D62 for borders, buttons and the header title. Until
   then note pages score 97 accessibility in light mode, 100 in dark.
+- **File-name edge cases in image embeds** (`textprocessing.html`): the
+  wikilink text comes from rendered HTML, so `&` arrives as `&amp;` and
+  `_name_` as `<em>name</em>`. The embed branch now `htmlUnescape`s the path
+  and restores `_`/`__` from `<em>`/`<strong>`, so
+  `![[img_Notebook & Desktops…]]` and `![[CDP _Customer Data Platform_-…]]`
+  resolve to their files (the second was a broken `<img>` before).
+- **Regression check against the pre-session build**: built commit `b024b49`
+  (before any of today's changes) with the same `content/` and indices and
+  structurally diffed all 1,031 pages (links with class/href, image/video/
+  iframe sources, callout classes, transclusions, footnotes, tables, BASE
+  tables, mermaid, gallery, badges, headings, meta, visible text). Apart from
+  the intended attribute changes, the only differences are: 5 pages that lose
+  wikilink-turned-links *inside code blocks* (the fence fix), 2 pages that
+  gain an image/link that the old fence pairing had swallowed, 1 page whose
+  broken `<img>` is now valid, and 20 tag/section pages that gained a meta
+  description. A headless-browser run of every README feature (block and
+  heading transclusions with back-links, sidenotes, YouTube embed, mp4
+  player, gallery + Lightbox2, mermaid + expand, tables, callouts, copy
+  buttons, TOC scrollspy, BASE table, frontmatter aliases, `[[image]]` links
+  with image popover, popover previews, raw `index.md`, RSS guid, sitemap,
+  unified search + filters, graph legend, `?ref=` links, theme persistence,
+  DE-vault icon, tags overview, og:image) passes 45/45.
+- **Known, pre-existing, not changed**: a `![[Note#Heading]]` transclusion
+  *inside* a code fence (daily-notes template) is still expanded, because the
+  transclusion pre-pass has no fence guard; and no note uses real footnote
+  syntax (`[^1]:` definitions), so the footnote → sidenote path has no live
+  instance to test.
+- **Blurry images after the first deploy, fixed the same evening**: the first
+  version declared `sizes="… 840px"`, but the article column is 992–1898 px on
+  wide screens (margin-sidenotes layout), so browsers picked the 1200 px
+  variant and stretched it. `sizes` is now measured per breakpoint
+  (`(max-width: 1299px) 88vw, (max-width: 1419px) 820px, 75vw`, each a slight
+  overestimate so the browser rounds *up*), variants are resampled with
+  Lanczos at q92 instead of Hugo's default Box filter at q80, and the original
+  file stays the largest candidate — so a generated variant is only ever shown
+  at or below its own pixel width, and Retina/wide screens get the original as
+  before. Verified at 14 viewport × pixel-ratio combinations.
+- **Variants only when they actually save bytes**: the vault images are
+  already lossy WebP (Obsidian converts on paste), so a downscaled re-encode
+  is often *not* smaller than the original — site-wide the 1600 px variants
+  were a median 97 % of the original's size, and for a 2517 px Zen-Mode
+  screenshot the 1600 px variant was 141 KB against a 124 KB original. The
+  partial now compares bytes and only lists a variant that is at least 15 %
+  smaller; otherwise the browser gets the original, which is lighter *and*
+  sharper. Result: 1068 variants instead of 1740 (94 MB instead of 157 MB
+  under `/notes/`), and every slot wider than ~1200 px, i.e. a 1920 px or
+  27" monitor, now receives the original file.
+- **Image cache behaviour**: variants are named by a content hash
+  (`…_hu_<hash>.webp`), so replacing or editing an image regenerates its
+  variants on the next build and the page points at the new names; `hugo
+  --gc` (part of `make run` / `hugo-generate`) deletes the stale ones from
+  `resources/_gen/images`. `make upload` keeps old variants on the server
+  (`--filter='P /notes/***'`, like `/js/` and `/styles/`) so CDN-cached HTML
+  never points at a deleted file; `upload-clean` removes them.
 - **Verified** (local gzip build, Lighthouse 13.4): the note is 100/100/100/100
   desktop and 97/100/100/100 mobile in dark mode (97 accessibility in light,
   see above); home unchanged at 100 desktop / 96 mobile in both themes; the
