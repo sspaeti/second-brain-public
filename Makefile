@@ -86,7 +86,7 @@ run: ## run hugo from a clean state
 serve-only: run
 
 hugo-generate: ## generate hugo from clean but don't run
-	rm -rf resources/_gen/ #helps prevent localhost:1313 in deployed website if accidentally an old hugo process running or from my book
+	rm -rf resources/_gen/assets #helps prevent localhost:1313 in deployed website if accidentally an old hugo process running or from my book (keeps resources/_gen/images: the resized note images are content-hashed and slow to regenerate)
 	hugo --gc && hugo
 
 purge-cdn: ## Purge Bunny CDN cache for ssp.sh/brain only (all brain pages)
@@ -121,13 +121,14 @@ purge-cdn-today: ## Purge all brain notes updated today (legacy, date-only granu
 		-H "AccessKey: $$BUNNY_API_KEY"; \
 	echo "Purged brain index + $$total notes updated $$today"
 
-upload: ## upload to server (preserves old hashed /js/, /styles/, /indices/ and root styles.*.min.css so stale CDN/browser HTML keeps working)
+upload: ## upload to server (preserves old hashed /js/, /styles/, /indices/, /notes/ image variants and root styles.*.min.css so stale CDN/browser HTML keeps working)
 	rsync -avz --delete \
 		--exclude='/_img/' \
 		--filter='P /js/***' \
 		--filter='P /styles/***' \
 		--filter='P /indices/***' \
 		--filter='P /styles.*.min.css' \
+		--filter='P /notes/***' \
 		public/ sspaeti@sspaeti.com:~/www/ssp/brain
 	rsync -av --delete --size-only \
 		--skip-compress=jpg,jpeg,png,gif,webp,avif,ico,woff,woff2 \

@@ -1,0 +1,60 @@
+{{- /*
+  Renders one note image as a responsive <img>.
+  dict: path (string, the wikilink / markdown target, e.g. "Note-123.webp" or
+        "_img/x.png"), width (string, optional: "400" or "353x116"),
+        alt (string, optional), eager (bool: first image of the note).
+
+  The vault images are copied flat into content/ and published as-is; config.toml
+  additionally mounts content/ under assets/notes so they are also reachable as
+  Hugo resources. For raster images wider than 800px we emit resized WebP
+  variants (800w, 1200w, 1600w, Lanczos q92, each only if it is at least 15%
+  smaller than the original) plus the original, with width/height attributes so
+  the browser reserves the space (no CLS). Anything that cannot be processed (svg,
+  gif, missing file) falls back to the plain <img> as before.
+*/ -}}
+{{- $path := .path -}}
+{{- $widthAttr := .width | default "" -}}
+{{- $alt := .alt | default "" -}}
+{{- $eager := .eager | default false -}}
+{{- $src := $path | relURL -}}
+{{- $srcEnc := replace $src " " "%20" -}}
+{{- $ext := lower (path.Ext $path) -}}
+{{- $res := "" -}}
+{{- if in (slice ".png" ".jpg" ".jpeg" ".webp") $ext -}}
+  {{- $res = resources.Get (printf "notes/%s" (strings.TrimPrefix "/" $path)) -}}
+{{- end -}}
+{{- $loading := cond $eager "eager" "lazy" -}}
+{{- $prio := cond $eager ` fetchpriority="high"` "" -}}
+{{- /* explicit width from `![[img|400]]` or `![[img|353x116]]` */ -}}
+{{- $reqW := 0 -}}
+{{- if findRE `^\d+(x\d+)?$` $widthAttr -}}{{- $reqW = int (index (split $widthAttr "x") 0) -}}{{- end -}}
+{{- if and $res (gt $res.Width 0) -}}
+  {{- $w := $res.Width -}}{{- $h := $res.Height -}}
+  {{- $dispW := cond (gt $reqW 0) $reqW $w -}}
+  {{- $dispH := int (math.Round (mul $h (div (float $dispW) (float $w)))) -}}
+  {{- $cands := slice -}}
+  {{- range $bp := slice 800 1200 1600 -}}
+    {{- if lt $bp $w -}}
+      {{- /* Lanczos keeps screenshot text crisp (Hugo's default Box filter blurs) */ -}}
+      {{- $v := $res.Resize (printf "%dx webp q92 Lanczos" $bp) -}}
+      {{- /* The vault images are already lossy WebP (Obsidian converts on paste), so a
+           downscaled re-encode is often *not* smaller than the original. Only offer a
+           variant that saves at least 15%; otherwise the browser gets the original,
+           which is both lighter and sharper. */ -}}
+      {{- if lt (len $v.Content) (mul (len $res.Content) 0.85) -}}
+        {{- $cands = $cands | append (printf "%s %dw" (replace $v.RelPermalink " " "%20") $v.Width) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $cands = $cands | append (printf "%s %dw" $srcEnc $w) -}}
+  {{- /* `sizes` must never be smaller than the real slot or the browser picks a
+       variant that is then stretched (blurry). Measured slot widths of the
+       article column (2026-09-10): <=1299px viewport ~87vw (single column),
+       1300-1419px a fixed ~812px card, >=1420px (margin-sidenotes layout)
+       57-75vw growing with the viewport. Each value below is a slight
+       overestimate, so the browser rounds *up* to the next variant. */ -}}
+  {{- $sizes := cond (gt $reqW 0) (printf "%dpx" $reqW) "(max-width: 1299px) 88vw, (max-width: 1419px) 820px, 75vw" -}}
+  <img src="{{ $srcEnc | safeURL }}"{{ if gt (len $cands) 1 }} srcset="{{ delimit $cands ", " | safeHTMLAttr }}" sizes="{{ $sizes }}"{{ end }} width="{{ $dispW }}" height="{{ $dispH }}" alt="{{ $alt }}" loading="{{ $loading }}" decoding="async"{{ $prio | safeHTMLAttr }} />
+{{- else -}}
+  <img src="{{ $srcEnc | safeURL }}"{{ if gt $reqW 0 }} width="{{ $reqW }}"{{ end }} alt="{{ $alt }}" loading="{{ $loading }}" decoding="async"{{ $prio | safeHTMLAttr }} />
+{{- end -}}

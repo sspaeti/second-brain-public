@@ -314,6 +314,7 @@ td, th {
 
 img {
   max-width: 100%;
+  height: auto; // width/height attrs reserve space, this keeps the ratio when scaled down
   border-radius: 3px;
   margin: 1em 0;
 }
@@ -418,7 +419,7 @@ article {
 
   & .meta {
     margin: 1.5em 0;
-    & > h1 {
+    & > h1, & > h2.tag-title {
       margin: 0;
     }
     & > p {

@@ -69,6 +69,39 @@ enableGitInfo = true # produces RSS feed too at /index.xml; it uses `pubDate` fr
 # defaults, so the RSS feed at /brain/index.xml and all HTML output are
 # untouched.
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# LOCAL ADDITION — note images as Hugo resources.
+# The vault's images are copied flat into content/ (no page bundles), which
+# Hugo publishes as plain files. Mounting content/ a second time under
+# assets/notes lets layouts/partials/responsive-image.html call
+# `resources.Get "notes/<file>"` and generate resized srcset variants with
+# width/height attributes. Defining any mount replaces Hugo's defaults, so the
+# standard directories are listed too (no archetypes/ in this repo).
+# Re-add after any upstream Quartz sync (config.toml is in the checkout list).
+# ---------------------------------------------------------------------------
+[module]
+  [[module.mounts]]
+    source = "content"
+    target = "content"
+  [[module.mounts]]
+    source = "content"
+    target = "assets/notes"
+  [[module.mounts]]
+    source = "assets"
+    target = "assets"
+  [[module.mounts]]
+    source = "static"
+    target = "static"
+  [[module.mounts]]
+    source = "layouts"
+    target = "layouts"
+  [[module.mounts]]
+    source = "data"
+    target = "data"
+  [[module.mounts]]
+    source = "i18n"
+    target = "i18n"
+
 [mediaTypes]
   [mediaTypes."text/plain"]
     suffixes = ["md"]

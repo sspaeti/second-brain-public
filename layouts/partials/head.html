@@ -22,6 +22,11 @@
     {{ $cleanDescription = strings.TrimSpace $summary }}
   {{ end }}
 {{ end }}
+{{- /* taxonomy / term / section pages have no summary: fall back to the site
+       description so every page ships a meta description (SEO audit) */ -}}
+{{ if eq $cleanDescription "" }}
+  {{ $cleanDescription = $data.description | default hugo.Data.config.description }}
+{{ end }}
 <!-- find correct hero image path, either a manual created _img/feature (1. prio) or otherwise part of content with name of image (2.), or auto-generated (3.) -->
 {{ $ogImagePath := "" }}
 {{ if .Params.Ogimage }}
