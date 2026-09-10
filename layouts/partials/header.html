@@ -1,11 +1,11 @@
 <header>
     <a class="ssp-brand-logo" href="https://www.ssp.sh" title="Back to ssp.sh">
-      <img src="/brain/logo_ssp_main.png" alt="ssp.sh" width="38" height="38" decoding="async" fetchpriority="high">
+      <img src="/brain/logo_ssp_main.webp" alt="ssp.sh" width="38" height="38" decoding="async" fetchpriority="high">
     </a>
     {{ $config := cond (eq $.Site.Language.Lang "en") "config" (printf "config.%s" $.Site.Language.Lang) }}
     <!-- <h1 id="page-title"><a href="{{ "" | absLangURL }}">{{ ( index hugo.Data $config ).page_title | default hugo.Data.config.page_title }}</a></h1> -->
     <!-- hard cod website here as CORS will not work as CORS correctly when www. is provided. But www. needed for Google Canonical link to be correctly -->
-    <div id="page-title" class="header-title"><a href="/brain">
+    <div id="page-title" class="header-title"><a href="/brain" aria-label="Second Brain home">
     {{ $dataEngIcon := resources.Get (printf "svg/%s" (( index hugo.Data $config ).data_engineering_icon | default hugo.Data.config.data_engineering_icon)) }}
     {{ $brainIcon := resources.Get (printf "svg/%s" (( index hugo.Data $config ).brain_icon | default hugo.Data.config.brain_icon)) }}
     <svg class="header-icon header-icon--brain" style="vertical-align: middle; width: 1.1em; height: 1.1em; margin-right: 0.2em; transform: translateX(-0.1em);">{{ $brainIcon.Content | safeHTML }}</svg><svg class="header-icon header-icon--vault" style="vertical-align: middle; width: 1.1em; height: 1.1em; margin-right: 0.2em; transform: translateX(-0.1em);">{{ $dataEngIcon.Content | safeHTML }}</svg><span class="title-text">{{ ( index hugo.Data $config ).page_title | default hugo.Data.config.page_title | safeHTML }}</span>

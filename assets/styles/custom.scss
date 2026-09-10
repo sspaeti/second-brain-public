@@ -11,6 +11,21 @@
   --lightgray: #f0f0f0;
   --outlinegray: #dadada;
   --million-progress-bar-color: var(--secondary);
+  // --secondary for large headings/titles on the light card: #FF5D62 is only
+  // 2.8:1 there, this deeper peach of the same hue is 4.0:1 (3.3:1 on the
+  // #ecdfe3 topic cards). WCAG AA needs 3:1 for large bold text. In dark mode
+  // it is simply --secondary again (see the [saved-theme="dark"] block).
+  --secondary-aa: #E0404A;
+}
+
+// Header title (base.scss colours every <a> with --secondary) and the dates in
+// note lists: AA contrast on the light card. Dark mode keeps the theme values.
+#page-title > a {
+  color: var(--secondary-aa);
+}
+.section-ul .section .meta {
+  opacity: 0.8; // base.scss 0.6 blends --gray to #939292 = 2.9:1; 0.8 = 4.7:1
+  [saved-theme="dark"] & { opacity: 0.6; }
 }
 
 // ========== Underline-based Article Links (prose only) ========== //
@@ -127,7 +142,11 @@ article {
 [saved-theme="dark"] {
   --light: #1F1F28 !important;   // inner "card" bg (header + content)
   --dark: #FF5D62 !important;
-  --secondary: #658594 !important;
+  // was #658594: 4.15:1 on the #1F1F28 card / 4.48:1 on the #181820 body,
+  // both under WCAG AA for the dark link colour. Same hue, ~12% lighter:
+  // 4.97:1 / 5.37:1.
+  --secondary: #7093A3 !important;
+  --secondary-aa: #7093A3 !important;
   --visited: #938AA9 !important;
   --tertiary: #E46876 !important;
   --primary: #D27E99 !important;
@@ -235,7 +254,7 @@ article {
 .principle-card h3 {
   font-size: 1.4rem;
   margin-bottom: 0.8rem;
-  color: var(--secondary);
+  color: var(--secondary-aa);
 }
 
 /* Navigation section */
@@ -293,7 +312,7 @@ $nav-icon-graph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/sv
 .nav-card h3 {
   font-size: 1.2rem;
   margin-bottom: 0.5rem;
-  color: var(--secondary);
+  color: var(--secondary-aa);
 }
 
 .nav-card p {
@@ -336,7 +355,7 @@ $nav-icon-graph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/sv
 }
 
 .topic-card h3 a {
-  color: var(--secondary);
+  color: var(--secondary-aa);
   font-weight: bold;
 }
 
@@ -703,18 +722,14 @@ $nav-icon-graph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/sv
   font-family: var(--font-body);
   position: relative;
   margin: 0 0 1.5rem;
-  color: #ff6600;
+  // #ff6600 at 0.8 opacity was 2.8:1 on the light card; #b54600 is the
+  // same hue at 5.2:1 (WCAG AA). Dark keeps #ff9966 (7.8:1).
+  color: #b54600;
   font-style: italic;
   text-align: right;
   background-color: transparent;
   border-top: 1px dashed #eee;
   border-bottom: 1px dashed #eee;
-  opacity: 0.8;
-  transition: opacity 0.3s ease;
-
-  &:hover {
-    opacity: 1;
-  }
 
   [saved-theme="dark"] & {
     color: #ff9966;
@@ -729,7 +744,10 @@ $nav-icon-graph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/sv
   a {
     font-weight: 400;
     color: var(--tertiary);
-    text-decoration: none;
+    // underlined: the link sits inside running text, so colour alone is not
+    // enough to tell it apart (axe link-in-text-block)
+    text-decoration: underline;
+    text-underline-offset: 3px;
     border-bottom: none;
     transition: color 0.3s ease;
 
@@ -739,7 +757,6 @@ $nav-icon-graph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/sv
 
     &:hover {
       color: var(--secondary);
-      text-decoration: underline;
 
       [saved-theme="dark"] & {
         color: var(--tertiary);
@@ -1596,8 +1613,9 @@ a.hn-badge {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--secondary);
-  // color: var(--dark);
+  // --secondary (#FF5D62) is only 2.8:1 on the light card; autumnRed (the
+  // --badge-del colour) is the same family at 4.8:1
+  color: #C34043;
   margin-bottom: 0.4rem;
 }
 
@@ -1644,7 +1662,8 @@ a.hn-badge {
   font-weight: 600;
   cursor: pointer;
   background: var(--secondary);
-  color: var(--global-background-secondary-color);
+  // dark text on the peach button: 5.9:1 (light card text was 2.9:1)
+  color: #181820;
   transition: opacity 0.15s ease;
   white-space: nowrap;
 
@@ -1664,8 +1683,12 @@ a.hn-badge {
     }
   }
 
+  .nl-footer-label {
+    color: var(--secondary); // 4.97:1 on the card
+  }
+
   .nl-footer-btn {
-    color: #181820;
+    color: #181820; // 5.4:1 on --secondary
   }
 }
 
@@ -2199,7 +2222,7 @@ article > .meta {
 }
 .show-more-btn .count {
   font-size: 0.8rem;
-  opacity: 0.75;
+  opacity: 0.85; // 0.75 blended to #797979 on the light card = 4.1:1; 0.85 = 5.1:1
 }
 .show-more-btn:hover {
   border-color: var(--secondary);

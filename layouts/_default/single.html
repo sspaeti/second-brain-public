@@ -8,7 +8,7 @@
 {{partial "header.html" .}}
 </div>
 {{- /* margin sidenotes (callouts + footnotes, TOC/backlinks in the left gutter) — see assets/styles/sidenotes.scss; opt out with `sidenotes: false` */ -}}
-<div class="singlePage{{ if ne .Params.sidenotes false }} sn-on{{ end }}">
+<main class="singlePage{{ if ne .Params.sidenotes false }} sn-on{{ end }}">
     <!-- Begin actual content -->
     <article class="h-entry">
 
@@ -91,7 +91,7 @@
     </div>
     {{end}}
     
-</div>
+</main>
 {{partial "contact.html" .}}
 </body>
 

@@ -21,8 +21,11 @@
   </div>
 </div>
 <script>window.SEARCH_V2_URL = "{{ $idx.Permalink }}"; window.SEARCH_DEFAULT_SOURCE = 'brain';</script>
-<script src="https://cdn.jsdelivr.net/npm/flexsearch@0.7.21/dist/flexsearch.bundle.js"
-  integrity="sha256-i3A0NZGkhsKjVMzFxv3ksk0DZh3aXqu0l49Bbh0MdjE=" crossorigin="anonymous" defer></script>
+{{/* self-hosted copy of flexsearch@0.7.21/dist/flexsearch.bundle.js (verified
+     against the former SRI hash sha256-i3A0NZGkhsKjVMzFxv3ksk0DZh3aXqu0l49Bbh0MdjE=);
+     saves a jsdelivr connection on every page load */}}
+{{ $flex := resources.Get "js/flexsearch.bundle.js" | resources.Fingerprint "md5" | resources.Minify }}
+<script src="{{ $flex.Permalink }}" defer></script>
 {{ $js := resources.Get "js/full-text-search-v2.js" | resources.Fingerprint "md5" | resources.Minify }}
 <script defer src="{{ $js.Permalink }}"></script>
 {{else if hugo.Data.config.enableSemanticSearch}}
@@ -45,8 +48,11 @@
     </div>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/flexsearch@0.7.21/dist/flexsearch.bundle.js"
-  integrity="sha256-i3A0NZGkhsKjVMzFxv3ksk0DZh3aXqu0l49Bbh0MdjE=" crossorigin="anonymous" defer></script>
+{{/* self-hosted copy of flexsearch@0.7.21/dist/flexsearch.bundle.js (verified
+     against the former SRI hash sha256-i3A0NZGkhsKjVMzFxv3ksk0DZh3aXqu0l49Bbh0MdjE=);
+     saves a jsdelivr connection on every page load */}}
+{{ $flex := resources.Get "js/flexsearch.bundle.js" | resources.Fingerprint "md5" | resources.Minify }}
+<script src="{{ $flex.Permalink }}" defer></script>
 {{ $js := resources.Get "js/full-text-search.js" | resources.Fingerprint "md5" | resources.Minify }}
 <script defer src="{{ $js.Permalink }}"></script>
 {{end}}

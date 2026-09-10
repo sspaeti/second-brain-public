@@ -1,5 +1,60 @@
 {{if hugo.Data.config.enableLatex}}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.css" integrity="sha384-R4558gYOUz8mP9YWpZJjofhk+zx0AS11p36HnD2ZKj/6JR5z27gSSULCNHIRReVs" crossorigin="anonymous">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.js" integrity="sha384-z1fJDqw8ZApjGO3/unPWUPsIymfsJmyrDVWC8Tv/a1HeOtGmkwNd/7xUS0Xcnvsx" crossorigin="anonymous"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"></script>
+<script>
+  // KaTeX on demand. It used to be three render-blocking jsdelivr requests on
+  // every page (the CSS alone cost ~0.8 s of FCP on mobile) although only a
+  // few dozen notes contain math. Now init()/render() call __renderMath(doc):
+  // if the page text has no "$" nothing is fetched; otherwise the same pinned
+  // version with the same SRI hashes is injected once and cached for the SPA
+  // session. Rendering options are unchanged.
+  (function () {
+    var base = "https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/";
+    var css = { href: base + "katex.min.css", integrity: "sha384-R4558gYOUz8mP9YWpZJjofhk+zx0AS11p36HnD2ZKj/6JR5z27gSSULCNHIRReVs" };
+    var js = [
+      { src: base + "katex.min.js", integrity: "sha384-z1fJDqw8ZApjGO3/unPWUPsIymfsJmyrDVWC8Tv/a1HeOtGmkwNd/7xUS0Xcnvsx" },
+      { src: base + "contrib/auto-render.min.js", integrity: "sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" },
+    ];
+    var loading = null;
+    function addCss() {
+      var l = document.createElement("link");
+      l.rel = "stylesheet"; l.href = css.href; l.integrity = css.integrity; l.crossOrigin = "anonymous";
+      document.head.appendChild(l);
+    }
+    function addJs(o) {
+      return new Promise(function (resolve, reject) {
+        var s = document.createElement("script");
+        s.src = o.src; s.integrity = o.integrity; s.crossOrigin = "anonymous";
+        s.onload = resolve; s.onerror = function () { reject(new Error("failed to load " + o.src)); };
+        document.head.appendChild(s);
+      });
+    }
+    function load() {
+      if (!loading) {
+        addCss();
+        loading = addJs(js[0]).then(function () { return addJs(js[1]); });
+      }
+      return loading;
+    }
+    function render(root) {
+      window.renderMathInElement(root, {
+        delimiters: [
+          { left: "$$", right: "$$", display: true },
+          { left: "$", right: "$", display: false },
+        ],
+        throwOnError: false,
+      });
+    }
+    window.__renderMath = function (doc) {
+      doc = doc || document;
+      var body = doc.body;
+      if (!body || body.textContent.indexOf("$") === -1) return;
+      if (window.renderMathInElement) return render(body);
+      load().then(function () {
+        render(body);
+        // Million may have morphed a parsed route document into the live DOM
+        // while KaTeX was still downloading; render the live page as well.
+        if (doc !== document) render(document.body);
+      }).catch(function (err) { console.error(err); });
+    };
+  })();
+</script>
 {{end}}

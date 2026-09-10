@@ -113,6 +113,93 @@ Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
 
+### 2026-09-10: Lighthouse 100 (desktop) / 95 (mobile) — loading order, lazy libraries, contrast
+
+PageSpeed read mobile 63 / desktop 83 performance and 85 accessibility. Local
+Lighthouse 13.4 on a gzip build now gives desktop 100/100/100/100 and mobile
+95/100/100/100 (performance, accessibility, best practices, SEO), in light and
+dark mode, with every feature exercised by a headless smoke test (popover,
+Ctrl+K search, lazy graph + lightbox, SPA navigation, sidenotes, KaTeX,
+mermaid, theme toggle, burger menu). No feature was removed; things load later.
+
+**Performance** (`layouts/partials/head.html` unless noted)
+- **One deferred bundle instead of ~12 synchronous scripts.** `util`,
+  `toc-scrollspy`, `show-more-notes`, `sidenotes`, floating-ui core/dom,
+  `popover-v2`, `code-title`, `clipboard`, `callouts`, `external-links` and
+  `lightbox` are joined with `;\n` (`resources.FromString`, not `Concat`, so
+  ASI can't bite) into `js/brain-bundle.<hash>.min.js`, loaded with `defer`.
+  `darkmode.js` is the one script that must run before first paint (theme
+  attribute + syntax stylesheet swap) and is now inlined. `popover-v2.css` and
+  `search-modal.css` ride inside the main stylesheet. Source files are
+  untouched, so the blog/book `sync-popover` copies still work.
+- **KaTeX on demand** (`partials/katex.html`): the CSS was a render-blocking
+  jsdelivr request on every page (~0.8 s of FCP on mobile). `window.__renderMath(doc)`
+  injects the same pinned version + SRI hashes only when the page text contains
+  `$`, then renders with the unchanged delimiters; `init()` calls it.
+- **d3 + graph.js + the link/content indices load when the graph scrolls into
+  view** (`__whenGraphVisible`, `__loadGraphLibs`, `__fetchGraphData`; 400px
+  root margin). `graph.js` still does `await fetchData` — the promise now
+  resolves once someone calls `__fetchGraphData()`. Saved ~1.2 MB and the d3
+  force simulation (~0.9 s main thread on mobile) from every page load.
+  `lightbox.js` awaits the loader before drawing the expanded graph. The v1
+  search / v1 popover config paths keep the eager fetch.
+- **ALTCHA captcha script is injected when the newsletter form scrolls near
+  the viewport** (`__lazyAltcha`, called from `render()` so SPA-swapped forms
+  get it too). `hidelogo` on the widget also removes the `aria-hidden` yet
+  focusable altcha.org link.
+- **Third-party origins removed from the load path**: Million router is
+  self-hosted (`static/js/million-1.11.5/router.js`, `router.mjs` + chunks
+  bundled with esbuild; unpkg had outages), flexsearch 0.7.21 is self-hosted
+  (`assets/js/flexsearch.bundle.js`, verified against the old SRI hash),
+  GoatCounter uses an explicit `https://`. Only analytics and the on-demand
+  libs are external now.
+- **Iosevka trimmed** (`make fonts-subset`, `static/fonts/woff2/iosevka-*.woff2`,
+  sources in `utils/fonts/iosevka-src/`, see `utils/fonts/README.md`): the
+  Iosevka 20.0.0 files shipped since 2026-07 minus the cvXX/ssXX
+  stylistic-variant glyphs that no stylesheet enables (keeps `calt`, `dlig`,
+  numeral features and, importantly, `NWID`/`WWID` — without those Chrome
+  renders ~200 arrow / box-drawing / block glyphs differently). Every one of
+  the 975 codepoints rasterises identically to the old file (verified per
+  glyph in Chrome), 146 KB -> 67 KB per face. Each face is additionally split
+  by `unicode-range` in `base.scss`: a ~46 KB `iosevka-*-latin.woff2` (Latin,
+  punctuation, currency, arrows — what a normal page needs; the regular one is
+  preloaded) and the 67 KB face for math / box drawing / PUA glyphs, fetched
+  only on pages that use them. Not regenerated from the `-full` builds: those
+  are a different Iosevka build whose arrows and box drawing differ. The blog
+  (`make sync-fonts` there) copies the eight files, so both sites are
+  byte-identical.
+- `webmention.js` moved to `assets/js/` (minified, hashed);
+  `logo_ssp_main.png` (19 KB, 150px) -> `logo_ssp_main.webp` (3.5 KB, 114px
+  for the 38px slot at 3x); `.htaccess` sets 1-year immutable caching for
+  hashed assets and 30 days for fonts (the Bunny pull zone may override).
+
+**Accessibility** (`assets/styles/custom.scss`, layouts)
+- `<main class="singlePage">` on every layout (the SPA router and all CSS
+  select by class, so nothing else changed); `aria-label` on the header brand
+  link (its text is `display:none` below 768px) and on the newsletter icon.
+- Contrast to WCAG AA in both themes: new `--secondary-aa` token (light
+  `#E0404A`, dark = `--secondary`) for large headings on the light card
+  (header title, nav/topic/principle cards); dark `--secondary` `#658594` ->
+  `#7093A3` (was 4.15:1 on the card, 4.48:1 on the body; now 4.97 / 5.37);
+  newsletter footer label `#C34043` (light) and dark text on the button;
+  Hacker News banner `#b54600` (light) with an underlined link; note-list
+  dates and the "Show more" count slightly less transparent in light mode.
+
+**Not done / limits**: mobile 95 is bound by the HTML -> stylesheet -> paint
+round trips on Lighthouse's simulated slow 4G (FCP 2.0 s, LCP 2.7 s); the
+next step would be inlining critical CSS, which is not worth the per-page
+weight here. The v2 search index (1.8 MB gz) is still prefetched in an idle
+slot after load so the first keystroke is instant; it does not affect the
+score.
+
+- **Files**: `layouts/partials/{head,katex,graph,search,header,newsletter,newsletter-footer,goat-counter}.html`,
+  `layouts/{index,404}.html`, `layouts/_default/{single,section,taxonomy}.html`,
+  `layouts/tags/term.html`, `layouts/shortcodes/newsletter-hero.html`,
+  `assets/js/{lightbox,router,webmention,flexsearch.bundle}.js`,
+  `static/js/million-1.11.5/router.js`, `assets/styles/custom.scss`,
+  `static/fonts/woff2/iosevka-*.woff2`, `static/logo_ssp_main.webp`,
+  `static/.htaccess`, `Makefile`
+
 ### 2026-09-09: Callouts and footnotes as margin sidenotes; TOC + backlinks in the left gutter
 
 On viewports ≥ 1420px every callout (`> [!note] …`) and footnote leaves the

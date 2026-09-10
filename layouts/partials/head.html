@@ -143,13 +143,14 @@
   {{ end }}
 
   <!-- Preload the two regular webfonts used above the fold: Atkinson (body /
-       LCP text, ~16 KB) and Iosevka (H1/H2 headings, weight 400, ~145 KB).
-       Metric-matched fallbacks in base.scss ('Atkinson Fallback' /
-       'Iosevka Fallback') already keep CLS ~0; preload additionally removes the
-       first-visit font flash on the prominent heading. Bold/italic left to
-       normal-priority loading. -->
+       LCP text, ~16 KB) and the Latin face of Iosevka (H1/H2 headings, ~41 KB;
+       the ~66 KB full face is declared behind unicode-range in base.scss and only
+       loads on pages with box drawing / math / … glyphs). Metric-matched
+       fallbacks in base.scss ('Atkinson Fallback' / 'Iosevka Fallback') already
+       keep CLS ~0; preload additionally removes the first-visit font flash on
+       the prominent heading. Bold/italic left to normal-priority loading. -->
   <link rel="preload" href="/brain/fonts/woff2/Atkinson-Hyperlegible-Regular-102a.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/brain/fonts/woff2/iosevka-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/brain/fonts/woff2/iosevka-regular-latin.woff2" as="font" type="font/woff2" crossorigin>
 
   <!-- CSS Stylesheets and Fonts -->
   {{$sass := resources.Match "styles/[!_]*.scss" }}
@@ -162,18 +163,42 @@
     {{$scss := resources.Get "styles/_callouts.scss" | css.Sass (dict "outputStyle" "compressed") }}
     {{$css = $css | append $scss}}
   {{end}}
+  {{/* popover + search-modal CSS ride along in the one stylesheet instead of two
+       extra render-blocking requests (the source files stay separate: the blog
+       and book copy popover-v2.css verbatim). */}}
+  {{$css = $css | append (resources.Get "css/popover-v2.css") (resources.Get "css/search-modal.css")}}
   {{$finalCss := $css | resources.Concat "styles.css" | resources.Fingerprint "md5" | resources.Minify  }}
   <link href="{{$finalCss.Permalink}}" rel="stylesheet" />
 
   {{$lightSyntax := resources.Get "styles/_light_syntax.scss" | css.Sass (dict "outputStyle" "compressed") | resources.Fingerprint "md5" | resources.Minify  }}
   <link href="{{$lightSyntax.Permalink}}" rel="stylesheet" id="theme-link">
-   <!-- Base scripts -->
-  {{$scripts := (slice "js/darkmode.js" "js/util.js" "js/toc-scrollspy.js" "js/show-more-notes.js" "js/sidenotes.js")}}
-  {{range $scripts}}
-  {{$scriptname := .}}
-  {{ $s := resources.Get $scriptname | resources.ExecuteAsTemplate $scriptname . | resources.Fingerprint "md5" | resources.Minify }}
-  <script src="{{$s.Permalink}}"></script>
-  {{end}}
+  <!-- Theme bootstrap: inlined and synchronous on purpose. It sets the
+       saved-theme attribute (and swaps the syntax stylesheet) before first
+       paint, so it must run before the body renders. Everything else below is
+       deferred. -->
+  {{ $darkmode := resources.Get "js/darkmode.js" | resources.ExecuteAsTemplate "js/darkmode.js" . | resources.Minify }}
+  <script>{{ $darkmode.Content | safeJS }}</script>
+
+  <!-- One deferred bundle for every non-critical script (was ~12 synchronous,
+       render-blocking <script> tags). Order matters: util before the search
+       script, floating-ui core -> dom -> popover. Files are joined with ";\n"
+       (resources.Concat would rely on ASI). `defer` keeps document order and
+       runs before DOMContentLoaded, so the init()/render() hooks below still
+       find every function. -->
+  {{ $bundleFiles := slice "js/util.js" "js/toc-scrollspy.js" "js/show-more-notes.js" "js/sidenotes.js" "js/floating-ui.core.umd.min.js" "js/floating-ui.dom.umd.min.js" }}
+  {{ if $data.enableLinkPreviewV2 | default hugo.Data.config.enableLinkPreviewV2 }}
+    {{ $bundleFiles = $bundleFiles | append "js/popover-v2.js" }}
+  {{ else }}
+    {{ $bundleFiles = $bundleFiles | append "js/popover.js" }}
+  {{ end }}
+  {{ if $data.enableCodeBlockTitle | default hugo.Data.config.enableCallouts }}{{ $bundleFiles = $bundleFiles | append "js/code-title.js" }}{{ end }}
+  {{ if $data.enableCodeBlockCopy | default hugo.Data.config.enableCodeBlockCopy }}{{ $bundleFiles = $bundleFiles | append "js/clipboard.js" }}{{ end }}
+  {{ if $data.enableCallouts | default hugo.Data.config.enableCallouts }}{{ $bundleFiles = $bundleFiles | append "js/callouts.js" }}{{ end }}
+  {{ $bundleFiles = $bundleFiles | append "js/external-links.js" "js/lightbox.js" }}
+  {{ $parts := slice }}
+  {{ range $bundleFiles }}{{ $parts = $parts | append (resources.Get .).Content }}{{ end }}
+  {{ $bundle := resources.FromString "js/brain-bundle.js" (delimit $parts ";\n") | resources.Fingerprint "md5" | resources.Minify }}
+  <script src="{{ $bundle.Permalink }}" defer></script>
   {{partial "katex.html" .}}
     
   <!-- unpg.com had outages -->
@@ -183,71 +208,106 @@
   <!-- <script src="https://cdn.jsdelivr.net/npm/@floating-ui/core@0.7.3"></script> -->
   <!-- <script src="https://cdn.jsdelivr.net/npm/@floating-ui/dom@0.5.4"></script> -->
   <!-- but I moved them locally now: -->
-  {{ $floatingUICore := resources.Get "js/floating-ui.core.umd.min.js" | resources.Fingerprint "md5" }}
-  {{ $floatingUIDOM := resources.Get "js/floating-ui.dom.umd.min.js" | resources.Fingerprint "md5" }}
-  <script src="{{ $floatingUICore.RelPermalink }}"></script>
-  <script src="{{ $floatingUIDOM.RelPermalink }}"></script>
-
-
-  {{ $popoverV2Css := resources.Get "css/popover-v2.css" | resources.Fingerprint "md5" | resources.Minify }}
-  <link rel="stylesheet" href="{{ $popoverV2Css.Permalink }}">
-  {{ $searchModalCss := resources.Get "css/search-modal.css" | resources.Fingerprint "md5" | resources.Minify }}
-  <link rel="stylesheet" href="{{ $searchModalCss.Permalink }}">
-
-  {{ if $data.enableLinkPreviewV2 | default hugo.Data.config.enableLinkPreviewV2 }}
-    {{ $popoverV2 := resources.Get "js/popover-v2.js" | resources.Fingerprint "md5" | resources.Minify }}
-    <script src="{{$popoverV2.Permalink}}"></script>
-  {{ else }}
-    {{ $popover := resources.Get "js/popover.js" | resources.Fingerprint "md5" | resources.Minify }}
-    <script src="{{$popover.Permalink}}"></script>
-  {{ end }}
-
-  <!-- Optional scripts -->
-
-  {{ if $data.enableCodeBlockTitle | default hugo.Data.config.enableCallouts }}
-  {{ $codeTitle := resources.Get "js/code-title.js" | resources.Fingerprint "md5" | resources.Minify }}
-  <script src="{{$codeTitle.Permalink}}"></script>
-  {{end}}
-
-  {{ if $data.enableCodeBlockCopy | default hugo.Data.config.enableCodeBlockCopy }}
-  {{ $clipboard := resources.Get "js/clipboard.js" | resources.Fingerprint "md5" | resources.Minify }}
-  <script src="{{$clipboard.Permalink}}"></script>
-  {{ end }}
-
-  {{ if $data.enableCallouts | default hugo.Data.config.enableCallouts }}
-  {{ $callouts := resources.Get "js/callouts.js" | resources.Fingerprint "md5" | resources.Minify }}
-  <script src="{{$callouts.Permalink}}"></script>
-  {{ end }}
+  <!-- floating-ui, popover-v2, code-title, clipboard, callouts, external-links
+       and lightbox now live in the deferred bundle above; popover-v2.css and
+       search-modal.css are part of the main stylesheet. -->
 
   <!--  Preload page vars  -->
   {{$linkIndex := resources.Get "indices/linkIndex.json" | resources.Fingerprint
   "md5" | resources.Minify | }} {{$contentIndex := resources.Get
   "indices/contentIndex.json" | resources.Fingerprint "md5" | resources.Minify
   }}
+  {{ $graphJs := resources.Get "js/graph.js" | resources.Fingerprint "md5" | resources.Minify }}
   <script>
     const BASE_URL = {{.Site.BaseURL}}
-    // Defer the 1.1 MB index fetch until the page is loaded and idle —
-    // avoids blocking FCP/LCP with heavy JSON parsing on initial load.
+    // The link/content indices (~1.2 MB gzipped) only feed the interactive
+    // graph, so they are fetched on demand: __fetchGraphData() starts the
+    // download the first time it is called and every caller awaits the same
+    // `fetchData` promise (graph.js does `await fetchData`, unchanged).
     let _fetchDataResolve
     const fetchData = new Promise(resolve => { _fetchDataResolve = resolve })
-    ;(function scheduleFetch() {
-      function doFetch() {
-        Promise.all([
-          fetch("{{ $linkIndex.Permalink }}")
-            .then(data => data.json())
-            .then(data => ({ index: data.index, links: data.links })),
-          fetch("{{ $contentIndex.Permalink }}")
-            .then(data => data.json()),
-        ]).then(([{index, links}, content]) => _fetchDataResolve({ index, links, content }))
+    let _fetchDataStarted = false
+    window.__fetchGraphData = function () {
+      if (_fetchDataStarted) return fetchData
+      _fetchDataStarted = true
+      Promise.all([
+        fetch("{{ $linkIndex.Permalink }}")
+          .then(data => data.json())
+          .then(data => ({ index: data.index, links: data.links })),
+        fetch("{{ $contentIndex.Permalink }}")
+          .then(data => data.json()),
+      ]).then(([{index, links}, content]) => _fetchDataResolve({ index, links, content }))
+      return fetchData
+    }
+    {{- /* The v1 search / v1 popover code paths read fetchData at load, so keep
+           the eager fetch for them (v2 is the default for both). */ -}}
+    {{ if or (ne (hugo.Data.config.searchVersion | default "v1") "v2") (not ($data.enableLinkPreviewV2 | default hugo.Data.config.enableLinkPreviewV2)) }}
+    window.addEventListener('load', function () {
+      ;(window.requestIdleCallback || (fn => setTimeout(fn, 200)))(window.__fetchGraphData, { timeout: 3000 })
+    }, { once: true })
+    {{ end }}
+
+    // d3 (88 KB) + graph.js are loaded only once a graph container scrolls
+    // near the viewport. On the home page the graph sits below 400+ notes, so
+    // at load nothing graph-related is downloaded or simulated. Also used by
+    // lightbox.js before it draws the expanded graph.
+    let _graphLibs = null
+    window.__loadGraphLibs = function () {
+      if (_graphLibs) return _graphLibs
+      const load = (src, attrs) => new Promise((resolve, reject) => {
+        const s = document.createElement('script')
+        s.src = src
+        if (attrs) Object.assign(s, attrs)
+        s.onload = resolve
+        s.onerror = () => reject(new Error('failed to load ' + src))
+        document.head.appendChild(s)
+      })
+      _graphLibs = load("https://cdn.jsdelivr.net/npm/d3@6.7.0/dist/d3.min.js", {
+        integrity: "sha256-+7jaYCp29O1JusNWHaYtgUn6EhuP0VaFuswhNV06MyI=",
+        crossOrigin: "anonymous",
+      }).then(() => load("{{ $graphJs.Permalink }}"))
+      return _graphLibs
+    }
+    // ALTCHA (newsletter captcha, list.ssp.sh): the widget script used to be
+    // an async module on every page, i.e. an extra third-party origin during
+    // page load although the form sits at the very bottom. It is now injected
+    // once, when an <altcha-widget> scrolls near the viewport. Re-run on every
+    // render() because the SPA router morphs in new widgets without executing
+    // their scripts; the custom element upgrades automatically once defined.
+    window.__lazyAltcha = function () {
+      var els = document.querySelectorAll('altcha-widget')
+      if (!els.length) return
+      var load = function () {
+        if (window.__altchaRequested || window.customElements && customElements.get('altcha-widget')) return
+        window.__altchaRequested = true
+        var s = document.createElement('script')
+        s.type = 'module'; s.async = true
+        s.src = 'https://list.ssp.sh/public/static/altcha.umd.js'
+        document.head.appendChild(s)
       }
-      if (document.readyState === 'complete') {
-        ;(window.requestIdleCallback || (fn => setTimeout(fn, 200)))(doFetch, { timeout: 3000 })
-      } else {
-        window.addEventListener('load', function() {
-          ;(window.requestIdleCallback || (fn => setTimeout(fn, 200)))(doFetch, { timeout: 3000 })
-        }, { once: true })
+      if (window.__altchaRequested) return
+      if (!('IntersectionObserver' in window)) return load()
+      var io = new IntersectionObserver(function (entries) {
+        if (entries.some(function (e) { return e.isIntersecting })) { io.disconnect(); load() }
+      }, { rootMargin: '600px 0px' })
+      els.forEach(function (el) { io.observe(el) })
+    }
+    window.__whenGraphVisible = function (el, draw) {
+      const go = () => {
+        if (el.__graphIO) { el.__graphIO.disconnect(); el.__graphIO = null }
+        window.__fetchGraphData()
+        window.__loadGraphLibs().then(draw).catch(err => console.error(err))
       }
-    })()
+      if (!('IntersectionObserver' in window)) return go()
+      // Million morphs the DOM in place, so the same container can survive a
+      // navigation: drop the previous observer before attaching a new one.
+      if (el.__graphIO) el.__graphIO.disconnect()
+      const io = new IntersectionObserver((entries) => {
+        if (entries.some(e => e.isIntersecting)) go()
+      }, { rootMargin: '400px 0px' })
+      el.__graphIO = io
+      io.observe(el)
+    }
 
       const render = () => {
       // NOTE: everything within this callback will be executed for every page navigation. This is a good place to put JavaScript that loads or modifies data on the page, adds event listeners, etc. If you are only dealing with basic DOM replacement, use the init function
@@ -287,6 +347,8 @@
       if (window.initTocScrollspy) {
         window.initTocScrollspy();
       }
+
+      if (window.__lazyAltcha) window.__lazyAltcha();
 
       // keep the brand-icon swap in sync after SPA navigation
       if (window.location.pathname.startsWith('/brain/data-engineering/')) {
@@ -361,12 +423,15 @@
         window.__graphBaseUrl = {{strings.TrimRight "/" .Site.BaseURL}};
         window.__graphPathColors = {{hugo.Data.graphConfig.paths}};
         window.__graphConfig = drawGlobal ? {{hugo.Data.graphConfig.globalGraph}} : {{hugo.Data.graphConfig.localGraph}};
-        drawGraph(
+        window.__whenGraphVisible(container, () => {
+          container.textContent = ""
+          return drawGraph(
             {{strings.TrimRight "/" .Site.BaseURL}},
             drawGlobal,
             window.__graphPathColors,
             window.__graphConfig
           );
+        });
 
         }
       {{end}}
@@ -382,13 +447,8 @@
       addTitleToCodeBlocks();
       {{- end -}}
       {{if $data.enableLatex | default hugo.Data.config.enableLatex}}
-      renderMathInElement(doc.body, {
-        delimiters: [
-          {left: '$$', right: '$$', display: true},
-          {left: '$', right: '$', display: false},
-        ],
-        throwOnError : false
-      });
+      // KaTeX is fetched on demand (partials/katex.html) for pages with "$".
+      if (window.__renderMath) window.__renderMath(doc);
       {{end}}
       
       // Initialize mermaid diagrams if they exist on the page
@@ -552,17 +612,15 @@
       {{- $bskyRkey = index . "rkey" | default "" -}}
     {{- end -}}
   {{- end -}}
-  <script src="/brain/webmention.js"
+  {{ $webmention := resources.Get "js/webmention.js" | resources.Fingerprint "md5" | resources.Minify }}
+  <script src="{{ $webmention.Permalink }}"
           data-discuss-url="{{ printf "https://bsky.app/search?%s" (querify "q" (printf "domain: https://www.ssp.sh%s" .RelPermalink)) | safeURL }}"
           {{ with $bskyRkey }}data-bsky-post="{{ . }}" data-bsky-did="{{ $bskyDid }}"{{ end }}
           async></script>
 
-  {{ $externalLinks := resources.Get "js/external-links.js" | resources.Fingerprint "md5" | resources.Minify }}
-  <script src="{{$externalLinks.Permalink}}"></script>
+  <!-- external-links.js: in the deferred bundle -->
 
   <!-- Replaced with GoatCounter -->
   <!-- <!-1- Google tag (gtag.js) -1-> -->
-  <!-- Lightbox expand component -->
-  {{ $lightbox := resources.Get "js/lightbox.js" | resources.Fingerprint "md5" }}
-  <script src="{{ $lightbox.Permalink }}" defer></script>
+  <!-- Lightbox expand component: in the deferred bundle -->
 </head>

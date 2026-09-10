@@ -11,8 +11,5 @@
     --g-link-active: #5a7282;
   }
 </style>
-{{ $js := resources.Get "js/graph.js" | resources.Fingerprint "md5" }}
-<script src="https://cdn.jsdelivr.net/npm/d3@6.7.0/dist/d3.min.js"
-  integrity="sha256-+7jaYCp29O1JusNWHaYtgUn6EhuP0VaFuswhNV06MyI="
-  crossorigin="anonymous" defer></script>
-<script src="{{ $js.Permalink }}" defer></script>
+{{/* d3 + graph.js are injected by window.__loadGraphLibs() (partials/head.html)
+     once this container scrolls near the viewport; nothing is loaded up front. */}}

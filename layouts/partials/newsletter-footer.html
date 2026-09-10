@@ -15,8 +15,8 @@
       <input type="hidden" name="l" value="4625c037-fda8-45f7-9a66-47d765c6562b" /> {{/* ssp.sh Newsletter */}}
       <input type="hidden" name="l" value="bd37ce78-18e0-4cb0-bdfe-bb1613ceecd1" /> {{/* Book Data Engineering */}}
       <div class="captcha nl-footer-captcha">
-        <altcha-widget challengeurl="https://list.ssp.sh/api/public/captcha/altcha"></altcha-widget>
-        <script type="module" src="https://list.ssp.sh/public/static/altcha.umd.js" async defer></script>
+        <altcha-widget challengeurl="https://list.ssp.sh/api/public/captcha/altcha" hidelogo></altcha-widget>
+        {{/* altcha.umd.js is injected by window.__lazyAltcha() (partials/head.html) once the widget scrolls near the viewport */}}
       </div>
       <input type="submit" value="Subscribe free" class="nl-footer-btn" />
     </form>

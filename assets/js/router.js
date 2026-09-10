@@ -3,7 +3,10 @@ import {
   navigate,
   prefetch,
   router,
-} from "https://unpkg.com/million@1.11.5/dist/router.mjs"
+} from "/brain/js/million-1.11.5/router.js"
+// ^ self-hosted: million@1.11.5/dist/router.mjs + its two chunks, bundled to
+// one ESM file with esbuild (static/js/million-1.11.5/router.js). Was loaded
+// from unpkg.com, which has had outages and cost an extra origin on every load.
 
 export const attachSPARouting = (init, rerender) => {
   // Intercept clicks BEFORE Million.js to handle cross-section navigation

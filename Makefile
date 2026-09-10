@@ -136,6 +136,35 @@ upload: ## upload to server (preserves old hashed /js/, /styles/, /indices/ and 
 upload-clean: ## upload with full delete (removes orphaned hashed assets — pair with `make purge-cdn` or stale HTML will 404)
 	rsync -avz --delete public/ sspaeti@sspaeti.com:~/www/ssp/brain
 
+# Iosevka webfonts. Source: utils/fonts/iosevka-src/ (the Iosevka 20.0.0 files
+# shipped since 2026-07, see utils/fonts/README.md). Two deployed faces per
+# weight/style, split by unicode-range in assets/styles/base.scss:
+#   iosevka-<face>.woff2        every codepoint of the source (~67 KB)
+#   iosevka-<face>-latin.woff2  Latin/punctuation/currency/arrows (~46 KB, preloaded)
+# Both drop the stylistic-set / character-variant glyphs (cvXX/ssXX/language
+# ligation sets) that no stylesheet enables; rendering is pixel-identical.
+# NOT generated from static/fonts/woff2/iosevka-*-full.woff2: that is a different
+# Iosevka build whose arrows, box drawing and block glyphs differ.
+# The blog copies the result (`make sync-fonts` there), so the files are
+# byte-identical on both sites. Needs fonttools (`pyftsubset`).
+IOSEVKA_LATIN_UNICODES := U+0000-017F,U+2000-206F,U+20A0-20CF,U+2190-21FF,U+FB00-FB4F
+# NWID/WWID (Iosevka's narrow/wide width features) must stay: without them Chrome
+# renders ~200 arrow, box-drawing and block glyphs differently (verified per glyph).
+IOSEVKA_FEATURES       := calt,ccmp,kern,liga,dlig,frac,dnom,numr,lnum,onum,locl,mark,mkmk,NWID,WWID
+fonts-subset: ## Regenerate static/fonts/woff2/iosevka-{regular,bold,italic,bolditalic}{,-latin}.woff2 from utils/fonts/iosevka-src/
+	for face in regular bold italic bolditalic; do \
+	  pyftsubset utils/fonts/iosevka-src/iosevka-$$face.woff2 \
+	    --unicodes='*' --layout-features='$(IOSEVKA_FEATURES)' \
+	    --flavor=woff2 --output-file=static/fonts/woff2/iosevka-$$face.woff2; \
+	  pyftsubset utils/fonts/iosevka-src/iosevka-$$face.woff2 \
+	    --unicodes='$(IOSEVKA_LATIN_UNICODES)' --layout-features='$(IOSEVKA_FEATURES)' \
+	    --flavor=woff2 --output-file=static/fonts/woff2/iosevka-$$face-latin.woff2; \
+	done
+	ls -la static/fonts/woff2/iosevka-*.woff2 | grep -v full
+
+lighthouse: ## Lighthouse mobile+desktop against a local gzip build (hugo server has no compression, so it under-reports; pass P=<slug>/ for a note)
+	utils/lighthouse.sh $(P)
+
 compress-gallery: ## Compress gallery images in-place (run once; only downsizes, never upscales)
 	find content/_img/todays-office -type f \( -iname "*.jpg" -o -iname "*.jpeg" \) \
 	  -exec magick {} -resize 1920x1920\> -quality 78 -strip {} \;

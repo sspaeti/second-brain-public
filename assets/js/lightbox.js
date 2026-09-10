@@ -48,8 +48,10 @@
     const body = overlay.querySelector('.lightbox-body');
     body.innerHTML = '';
 
-    if (isGraph && typeof drawGraph === 'function') {
-      // Live interactive graph
+    if (isGraph) {
+      // Live interactive graph. d3/graph.js are lazy (head.html); by the time
+      // the expand button is visible they are normally loaded already, but
+      // wait on the loader so a fast click still works.
       const graphDiv = document.createElement('div');
       graphDiv.style.width = '100%';
       graphDiv.style.minHeight = '85vh';
@@ -57,6 +59,8 @@
       overlay.classList.add('lightbox-visible');
 
       requestAnimationFrame(async () => {
+        if (window.__loadGraphLibs) await window.__loadGraphLibs();
+        if (typeof drawGraph !== 'function') return;
         activeSimulation = await drawGraph(
           window.__graphBaseUrl,
           false,
