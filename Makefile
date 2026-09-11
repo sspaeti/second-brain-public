@@ -88,6 +88,10 @@ serve-only: run
 hugo-generate: ## generate hugo from clean but don't run
 	rm -rf resources/_gen/assets #helps prevent localhost:1313 in deployed website if accidentally an old hugo process running or from my book (keeps resources/_gen/images: the resized note images are content-hashed and slow to regenerate)
 	hugo --gc && hugo
+	@bash utils/check-trailing-slash.sh public
+
+check-trailing-slash: ## list internal links without trailing slash in public/ (each is a 301; wikilinks get the slash in textprocessing.html)
+	@bash utils/check-trailing-slash.sh public
 
 purge-cdn: ## Purge Bunny CDN cache for ssp.sh/brain only (all brain pages)
 	@if [ -z "$$BUNNY_API_KEY" ] || [ -z "$$BUNNY_ZONE_SSP" ]; then \

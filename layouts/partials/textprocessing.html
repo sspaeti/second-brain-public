@@ -212,13 +212,24 @@
         {{$link := printf "<a class=\"internal-link broken\">%s</a>" $display}}
         {{$content = replace $content . $link}}
       {{else}}
-        {{$fullhref := printf "%s%s" $href $block }}
+        {{/* trailing slash back on the href (data-src stays slash-less for the popover
+             index): /brain/obsidian/ and /brain/obsidian/#block instead of the 301 */}}
+        {{$fullhref := printf "%s/%s" $href $block }}
         {{$link := printf "<a href=\"%s\" rel=\"noopener\" class=\"internal-link\" data-src=\"%s\">%s</a>" $fullhref $href $display}}
         {{$content = replace $content . $link}}
       {{end}}
     {{end}}
   {{end}}
 {{end}}
+
+{{/* Trailing slash on internal links written as raw HTML in the vault
+     (<a href="https://ssp.sh/brain/tmux">, <a href="/brain/x">): every such link is a
+     301 to the /-terminated URL. Markdown links get this in render-link.html and
+     wikilinks above; this catches the rest. Only dot-free path segments are touched,
+     so files (.png/.pdf) and query strings are left alone; #fragments are kept. */}}
+{{ $content = $content | replaceRE `href="https?://ssp\.sh/` `href="https://www.ssp.sh/` }}
+{{ $content = $content | replaceRE `href="(https?://(?:www\.)?ssp\.sh(?:/[A-Za-z0-9_-]+)+)(#[^"]*)?"` `href="${1}/${2}"` }}
+{{ $content = $content | replaceRE `href="(/(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+)(#[^"]*)?"` `href="${1}/${2}"` }}
 
 {{/* Add jumpable anchors */}}
 {{ $content = $content | replaceRE "(<h[1-9] id=\"([^\"]+)\">)(.+)(</h[1-9]>)" `<a href="#${2}">${1}<span class="hanchor" ariaLabel="Anchor"># </span>${3}${4}</a>` }}

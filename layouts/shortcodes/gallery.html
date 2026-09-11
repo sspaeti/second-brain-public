@@ -1,13 +1,26 @@
+{{- /* gallery.html — {{< gallery folder="_img/xyz" exclude="a.jpg,b.jpg" >}}
+
+     Grid of photos from a content folder with a lightbox. The originals are phone
+     JPGs (4096px, 5–10 MB each); serving them as 180-px grid thumbs made the four
+     gallery notes the heaviest pages on the site (Ahrefs "image file size too large",
+     PSI "improve image delivery"). Now:
+       grid thumb : 480×360 WebP q80 (+ 960×720 for 2× screens), ~25–40 KB
+       lightbox   : 2000-px-wide WebP q85, ~300–500 KB, still crisp full-screen
+     The original file stays in place, untouched, just no longer linked. Files Hugo
+     cannot process (gif, svg, anything not reachable as a resource) fall back to
+     the plain original as before. jQuery + lightbox2 are deferred so they no longer
+     block parsing on these pages. */ -}}
 {{- $folder := .Get "folder" -}}
 {{- $excludeStr := default "" (.Get "exclude") -}}
 {{- $exclude := split $excludeStr "," -}}
 {{- $imageExts := slice ".jpg" ".jpeg" ".png" ".gif" ".webp" -}}
+{{- $resizable := slice ".jpg" ".jpeg" ".png" ".webp" -}}
 
 {{- if not (.Page.Scratch.Get "lightbox2_loaded") -}}
 {{- .Page.Scratch.Set "lightbox2_loaded" true -}}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.1/css/lightbox.min.css" integrity="sha256-tBxlolRHP9uMsEFKVk+hk//ekOlXOixLKvye5W2WR5c=" crossorigin="anonymous" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.1/js/lightbox.min.js" integrity="sha256-CtKylYan+AJuoH8jrMht1+1PMhMqrKnB8K5g012WN5I=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.1/js/lightbox.min.js" integrity="sha256-CtKylYan+AJuoH8jrMht1+1PMhMqrKnB8K5g012WN5I=" crossorigin="anonymous" defer></script>
 {{- end -}}
 
 <div class="gallery-grid">
@@ -18,9 +31,23 @@
   {{- if and (in $imageExts $ext) (not (in $exclude $name)) -}}
     {{- $imgPath := printf "%s/%s" $folder $name -}}
     {{- $imgURL := $imgPath | relURL -}}
-    <a href="{{ $imgURL }}" data-lightbox="{{ $folder | urlize }}" data-title="{{ $name | strings.TrimSuffix $ext }}">
-      <img src="{{ $imgURL }}" alt="{{ $name | strings.TrimSuffix $ext }}" loading="lazy" />
+    {{- $title := $name | strings.TrimSuffix $ext -}}
+    {{- $res := "" -}}
+    {{- if in $resizable $ext -}}{{- $res = resources.Get (printf "notes/%s" $imgPath) -}}{{- end -}}
+    {{- if and $res (gt $res.Width 0) -}}
+      {{- $thumb := $res.Fill "480x360 webp q80 Lanczos" -}}
+      {{- $thumb2x := $res.Fill "960x720 webp q80 Lanczos" -}}
+      {{- /* if/else, not cond: cond evaluates both branches, which would upscale small images */ -}}
+      {{- $full := $res -}}
+      {{- if gt $res.Width 2000 -}}{{- $full = $res.Resize "2000x webp q85 Lanczos" -}}{{- end -}}
+    <a href="{{ $full.RelPermalink }}" data-lightbox="{{ $folder | urlize }}" data-title="{{ $title }}">
+      <img src="{{ $thumb.RelPermalink }}" srcset="{{ $thumb.RelPermalink }} 1x, {{ $thumb2x.RelPermalink }} 2x" width="480" height="360" alt="{{ $title }}" loading="lazy" decoding="async" />
     </a>
+    {{- else -}}
+    <a href="{{ $imgURL }}" data-lightbox="{{ $folder | urlize }}" data-title="{{ $title }}">
+      <img src="{{ $imgURL }}" alt="{{ $title }}" loading="lazy" decoding="async" />
+    </a>
+    {{- end -}}
   {{- end -}}
 {{- end -}}
 </div>

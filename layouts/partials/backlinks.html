@@ -15,7 +15,9 @@
     {{range $k, $v := $inbound}}
       {{$cleanedInbound := replace $v.source " " "-"}}
       {{$ctx := $v.text}}
-      {{if hasPrefix $cleanedInbound "/blog/"}}
+      {{/* /blog/ and /memories/ live on www.ssp.sh, not under /brain/ — a hostless
+           link would render as /brain/memories/… (404). */}}
+      {{if or (hasPrefix $cleanedInbound "/blog/") (hasPrefix $cleanedInbound "/memories/")}}
         {{$blogLinks = merge $blogLinks (dict $cleanedInbound $ctx)}}
       {{else if hasPrefix $cleanedInbound "/book/"}}
         {{$bookLinks = merge $bookLinks (dict $cleanedInbound $ctx)}}
@@ -38,7 +40,7 @@
       {{$title := index (index . "title")}}
       {{$l := printf "https://www.ssp.sh%s/" $lnk}}
       <li>
-        <a href="{{$l}}" data-ctx="{{$ctx}}" data-src="{{$lnk}}" target="_blank" rel="noopener">Blog: {{$title}}</a>
+        <a href="{{$l}}" data-ctx="{{$ctx}}" data-src="{{$lnk}}" target="_blank" rel="noopener">{{ cond (hasPrefix $lnk "/memories/") "Memories" "Blog" }}: {{$title}}</a>
       </li>
       {{end}}
     {{- end -}}

@@ -2,6 +2,20 @@
 {{$dashedurl := replace $trimmed "%20" "-" }}
 {{$external := strings.HasPrefix $dashedurl "http" }}
 {{- if $external -}}
+{{- /* Absolute links to our own site (https://www.ssp.sh/brain/yaml, https://ssp.sh/blog/x)
+     written in the vault: append the trailing slash so they don't 301, unless the last
+     segment has a file extension, or there is a query string. Fragment kept. */ -}}
+{{- if or (hasPrefix $dashedurl "https://www.ssp.sh/") (hasPrefix $dashedurl "https://ssp.sh/") -}}
+  {{- if not (in $dashedurl "?") -}}
+    {{- $parts := split $dashedurl "#" -}}
+    {{- $path := index $parts 0 -}}
+    {{- $fragment := cond (gt (len $parts) 1) (printf "#%s" (delimit (after 1 $parts) "#")) "" -}}
+    {{- $last := index (last 1 (split $path "/")) 0 -}}
+    {{- if and (not (hasSuffix $path "/")) (not (findRE `\.[A-Za-z0-9]{1,12}$` $last)) -}}
+      {{- $dashedurl = printf "%s/%s" $path $fragment -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
 <a href="{{ $dashedurl }}" rel="noopener">{{ .Text | safeHTML }}</a>
 {{- else -}}
 {{$spacedurl := replace $trimmed "%20" " " }}
