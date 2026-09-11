@@ -9,34 +9,42 @@ import {
 // from unpkg.com, which has had outages and cost an extra origin on every load.
 
 export const attachSPARouting = (init, rerender) => {
-  // Intercept clicks BEFORE Million.js to handle cross-section navigation
-  const interceptCrossSectionClicks = (event) => {
-    const link = event.target.closest("a")
-    if (!link) return
-
+  // Million treats every same-origin <a> as a route: it prefetches it on
+  // mouseover, fetches it on click, parses the response as HTML and runs
+  // init() on it. Two kinds of links must never reach it:
+  //  - cross-section links (brain <-> blog): a different page shell, needs a
+  //    full load.
+  //  - links to files (gallery lightbox .webp, PDFs, .gif …): the "page" is
+  //    binary, DOMParser turns it into garbage text and KaTeX then spends
+  //    seconds warning about every byte that looks like a $ formula.
+  const brainPath = '/brain/'
+  const isFileLink = (url) => /\.(?!html?$)[a-z0-9]{1,5}$/i.test(url.pathname)
+  const bypassRouter = (link) => {
     try {
       const targetUrl = new URL(link.href)
-      // Only handle same-origin links
-      if (targetUrl.origin !== window.location.origin) return
-
-      const brainPath = '/brain/'
+      if (targetUrl.origin !== window.location.origin) return false // Million ignores these anyway
       const currentInBrain = window.location.pathname.startsWith(brainPath)
       const targetInBrain = targetUrl.pathname.startsWith(brainPath)
-
-      // If navigating between brain and non-brain sections, allow default behavior
-      // and stop propagation so Million.js doesn't intercept it
-      if (currentInBrain !== targetInBrain) {
-        event.stopPropagation()
-        // Let browser handle the navigation normally
-        return
-      }
+      return currentInBrain !== targetInBrain || isFileLink(targetUrl)
     } catch (e) {
-      // Invalid URL, ignore
+      return false // Invalid URL, let the browser decide
     }
   }
 
-  // Add our click handler in capture phase (runs before Million's)
-  window.addEventListener("click", interceptCrossSectionClicks, true)
+  // Million registers its click/mouseover listeners on window (bubble phase)
+  // inside router() on DOMContentLoaded; this module runs earlier, so our
+  // bubble-phase listeners come first and stopImmediatePropagation() skips
+  // Million's. Bubble, not capture: every handler below window (lightbox2's
+  // delegated click on body, popover's click/mouseenter on the link) must
+  // still run — a capture-phase stopPropagation on window would swallow the
+  // event before it ever reached them and gallery clicks would open the
+  // raw image instead of the lightbox.
+  const interceptForMillion = (event) => {
+    const link = event.target.closest && event.target.closest("a")
+    if (link && bypassRouter(link)) event.stopImmediatePropagation()
+  }
+  window.addEventListener("click", interceptForMillion)
+  window.addEventListener("mouseover", interceptForMillion)
 
   // Intercept form submits BEFORE Million.js — let cross-origin forms submit natively
   const interceptCrossOriginSubmit = (event) => {
@@ -57,7 +65,6 @@ export const attachSPARouting = (init, rerender) => {
   // Custom navigate wrapper for programmatic navigation
   const customNavigate = (url, selector) => {
     const targetUrl = typeof url === 'string' ? new URL(url, window.location.origin) : url
-    const brainPath = '/brain/'
     const currentInBrain = window.location.pathname.startsWith(brainPath)
     const targetInBrain = targetUrl.pathname.startsWith(brainPath)
 
