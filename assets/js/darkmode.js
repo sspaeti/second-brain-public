@@ -1,26 +1,20 @@
 const userPref = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
 const currentTheme = localStorage.getItem('theme') ?? userPref
-const syntaxTheme = document.querySelector("#theme-link");
-
-
-{{ $darkSyntax := resources.Get "styles/_dark_syntax.scss" | css.Sass (dict "outputStyle" "compressed") | resources.Fingerprint "md5" | resources.Minify  }}
-{{ $lightSyntax := resources.Get "styles/_light_syntax.scss" | css.Sass (dict "outputStyle" "compressed") | resources.Fingerprint "md5" | resources.Minify  }}
+// Syntax-highlight colours for both themes live in styles.css, scoped by the
+// saved-theme attribute (see head.html), so no stylesheet swap is needed here.
 
 if (currentTheme) {
   document.documentElement.setAttribute('saved-theme', currentTheme);
-  syntaxTheme.href = currentTheme === 'dark' ?  '{{ $darkSyntax.Permalink }}' :  '{{ $lightSyntax.Permalink }}';
 }
 
 const switchTheme = (e) => {
   if (e.target.checked) {
     document.documentElement.setAttribute('saved-theme', 'dark');
     localStorage.setItem('theme', 'dark');
-    syntaxTheme.href = '{{ $darkSyntax.Permalink }}';
   }
   else {
     document.documentElement.setAttribute('saved-theme', 'light')
     localStorage.setItem('theme', 'light')
-    syntaxTheme.href = '{{ $lightSyntax.Permalink }}';
   }
 }
 

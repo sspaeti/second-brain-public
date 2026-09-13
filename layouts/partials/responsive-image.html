@@ -7,7 +7,7 @@
   The vault images are copied flat into content/ and published as-is; config.toml
   additionally mounts content/ under assets/notes so they are also reachable as
   Hugo resources. For raster images wider than 800px we emit resized WebP
-  variants (800w, 1200w, 1600w, Lanczos q92, each only if it is at least 15%
+  variants (640w, 800w, 960w, 1200w, 1600w, Lanczos q92, each only if it is at least 15%
   smaller than the original) plus the original, with width/height attributes so
   the browser reserves the space (no CLS). Anything that cannot be processed (svg,
   gif, missing file) falls back to the plain <img> as before.
@@ -33,7 +33,7 @@
   {{- $dispW := cond (gt $reqW 0) $reqW $w -}}
   {{- $dispH := int (math.Round (mul $h (div (float $dispW) (float $w)))) -}}
   {{- $cands := slice -}}
-  {{- range $bp := slice 800 1200 1600 -}}
+  {{- range $bp := slice 640 800 960 1200 1600 -}}
     {{- if lt $bp $w -}}
       {{- /* Lanczos keeps screenshot text crisp (Hugo's default Box filter blurs) */ -}}
       {{- $v := $res.Resize (printf "%dx webp q92 Lanczos" $bp) -}}

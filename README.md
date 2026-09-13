@@ -113,6 +113,28 @@ Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
 
+### 2026-09-13: Smaller image variants, syntax CSS folded into the bundle
+
+Last two Lighthouse leftovers on image-heavy notes ("Improve image delivery",
+mobile 88):
+
+- **640 / 960 px srcset variants** (`layouts/partials/responsive-image.html`).
+  With only 800/1200/1600 a phone (412 px x DPR 2.6 = ~950 px wanted) and the
+  ~960 px desktop slot both downloaded the 1200w file. The candidate list is now
+  640 / 800 / 960 / 1200 / 1600; the 15 % "only if smaller than the original"
+  filter and `Lanczos q92` are unchanged. First build adds two `Resize` calls per
+  image, cached in `resources/_gen` afterwards.
+- **Syntax-highlight themes in `styles.css`** (`layouts/partials/head.html`,
+  `assets/js/darkmode.js`). `_light_syntax.scss` was a second render-blocking
+  `<link id="theme-link">` (~130 ms on PSI mobile) that the toggle swapped for
+  `_dark_syntax`. Both now ride in the single bundle, the light rules scoped by
+  `:root:not([saved-theme="dark"])`, the dark ones by `[saved-theme="dark"]`.
+  The scopes are mutually exclusive on purpose: the light theme colours tokens
+  (`.n`, `.p`, `.l`, ...) that the dark theme leaves to inherit from `.chroma`,
+  so a plain light-then-dark cascade would have painted them `#111` on the dark
+  background. `darkmode.js` only sets the attribute now. The two source files
+  stay separate (chroma output); no attribute (JS off) = light, as before.
+
 ### 2026-09-10: Responsive note images, code-fence guard, per-note accessibility
 
 Follow-up to the Lighthouse pass below, triggered by an image-heavy note

@@ -172,15 +172,22 @@
        extra render-blocking requests (the source files stay separate: the blog
        and book copy popover-v2.css verbatim). */}}
   {{$css = $css | append (resources.Get "css/popover-v2.css") (resources.Get "css/search-modal.css")}}
+  {{/* Both chroma syntax themes ride in the bundle too, scoped by the saved-theme
+       attribute that darkmode.js sets before first paint (2026-09-13). Before,
+       _light_syntax was a second render-blocking <link id="theme-link"> that the
+       toggle swapped for _dark_syntax (~130 ms on PSI mobile). The two scopes are
+       mutually exclusive on purpose: the light theme colours tokens (.n, .p, .l …)
+       that the dark theme leaves to inherit from .chroma, so a plain
+       light-then-dark cascade would paint them #111 on the dark background.
+       No attribute (JS off) = light, as the old default link did. */}}
+  {{$syntaxScss := printf ":root:not([saved-theme=\"dark\"]) {\n%s\n}\n[saved-theme=\"dark\"] {\n%s\n}\n" (resources.Get "styles/_light_syntax.scss").Content (resources.Get "styles/_dark_syntax.scss").Content }}
+  {{$css = $css | append (resources.FromString "styles/syntax-themes.scss" $syntaxScss | css.Sass (dict "outputStyle" "compressed"))}}
   {{$finalCss := $css | resources.Concat "styles.css" | resources.Fingerprint "md5" | resources.Minify  }}
   <link href="{{$finalCss.Permalink}}" rel="stylesheet" />
 
-  {{$lightSyntax := resources.Get "styles/_light_syntax.scss" | css.Sass (dict "outputStyle" "compressed") | resources.Fingerprint "md5" | resources.Minify  }}
-  <link href="{{$lightSyntax.Permalink}}" rel="stylesheet" id="theme-link">
   <!-- Theme bootstrap: inlined and synchronous on purpose. It sets the
-       saved-theme attribute (and swaps the syntax stylesheet) before first
-       paint, so it must run before the body renders. Everything else below is
-       deferred. -->
+       saved-theme attribute before first paint, so it must run before the body
+       renders. Everything else below is deferred. -->
   {{ $darkmode := resources.Get "js/darkmode.js" | resources.ExecuteAsTemplate "js/darkmode.js" . | resources.Minify }}
   <script>{{ $darkmode.Content | safeJS }}</script>
 
