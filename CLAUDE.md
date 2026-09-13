@@ -13,7 +13,7 @@ This is a public second brain website built with Hugo and the Quartz theme (v3).
   - Python scripts (`utils/find-publish-notes.py`) - legacy approach
   - Rust utility (`utils/obsidian-quartz/`) - current preferred approach
 - **Link Generation**: Uses `hugo-obsidian` (forked version) to generate backlinks and graph connections
-- **Mermaid**: ```` ```mermaid ```` fences → `layouts/_default/_markup/render-codeblock-mermaid.html`; `layouts/partials/head.html` lazy-imports the mermaid ESM build from jsDelivr only when a page has a diagram (also after SPA navigation). Pinned to `mermaid@11.17.2` — the same version as the blog (`sspaeti-hugo-blog/layouts/partials/assets.html`); bump both together.
+- **Mermaid**: ```` ```mermaid ```` fences → `layouts/_default/_markup/render-codeblock-mermaid.html`; `layouts/partials/head.html` lazy-imports the mermaid ESM build from jsDelivr only when a page has a diagram (also after SPA navigation). URL uses the `mermaid@11` semver range (newest 11.x automatically, never a new major) — same range as the blog (`sspaeti-hugo-blog/layouts/partials/assets.html`); bump the major in both together.
 - **Margin sidenotes**: `assets/styles/sidenotes.scss` + `assets/js/sidenotes.js` move callouts and footnotes into the right gutter and the TOC/backlinks into the left gutter at ≥1420px (see README changelog 2026-09-09). The JS re-runs on `million:navigate`; opt out per note with `sidenotes: false`.
 - **Deployment**: Static files generated to `public/` and uploaded via rsync
 

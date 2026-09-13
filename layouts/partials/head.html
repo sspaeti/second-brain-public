@@ -499,9 +499,10 @@
 
     async function loadMermaid() {
       if (!mermaidLib) {
-        // Pinned to the same version the blog uses (sspaeti-hugo-blog: layouts/partials/assets.html);
-        // bump both together. Unpinned "npm/mermaid" would silently jump majors (12.x since 2026-09).
-        const module = await import('https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.esm.min.mjs');
+        // "@11" = jsDelivr resolves to the newest 11.x (patch/minor fixes arrive on their own),
+        // but never a major (12.x exists since 2026-09 — bump deliberately, and together with the
+        // blog: sspaeti-hugo-blog/layouts/partials/assets.html uses the same range).
+        const module = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
         mermaidLib = module.default;
       }
       return mermaidLib;
