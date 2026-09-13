@@ -8,8 +8,8 @@
        "sidenote-callout" plugin: vertical type label + 2px accent bar, small
        text, no box. A hairline stub stays in the text where the callout was;
        hovering stub, note or source paragraph highlights all three.
-   Below $sn-bp nothing here applies: sidebar inside the card, inline callouts,
-   footnotes at the bottom, exactly as before.
+   Below $sn-bp nothing here applies: sidebar inside the card, inline callouts
+   (_callouts.scss), footnotes at the bottom, exactly as before.
 
    Companion JS: assets/js/sidenotes.js (markers, footnote asides, vertical
    placement + overlap resolution, hover, re-init on the Million SPA router's
@@ -152,11 +152,13 @@ $sn-alias: (
 
       // title row
       > p:first-child {
+        display: block;
         padding: 0 0 .2rem !important;
         font-size: .78rem;
         font-weight: 700;
         color: var(--gray);
 
+        &::before { display: none; }            // inline type word (_callouts.scss); the vertical label replaces it
         &::after { display: none !important; }  // type icon
       }
 
