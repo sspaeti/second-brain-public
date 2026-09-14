@@ -15,7 +15,7 @@ This is a public second brain website built with Hugo and the Quartz theme (v3).
 - **Link Generation**: Uses `hugo-obsidian` (forked version) to generate backlinks and graph connections
 - **Mermaid**: ```` ```mermaid ```` fences → `layouts/_default/_markup/render-codeblock-mermaid.html`; `layouts/partials/head.html` lazy-imports the mermaid ESM build from jsDelivr only when a page has a diagram (also after SPA navigation). URL uses the `mermaid@11` semver range (newest 11.x automatically, never a new major) — same range as the blog (`sspaeti-hugo-blog/layouts/partials/assets.html`); bump the major in both together.
 - **Margin sidenotes**: `assets/styles/sidenotes.scss` + `assets/js/sidenotes.js` move callouts and footnotes into the right gutter and the TOC/backlinks into the left gutter at ≥1420px (see README changelog 2026-09-09). The JS re-runs on `million:navigate`; opt out per note with `sidenotes: false`. Below 1420px callouts are inline blocks styled by `assets/styles/_callouts.scss` (mirrors the blog: tinted block, uppercase type word as a `::before` on the title `<p>`, 1px hairline; appended after `sidenotes.scss` in the bundle, so no `!important` there on properties the margin rules override).
-- **Deployment**: Static files generated to `public/` and uploaded via rsync
+- **Deployment**: Static files generated to `public/`, checksum-synced into the gitignored mirror `public.last/` (keeps mtimes of unchanged files so rsync skips them), and uploaded via rsync from the mirror; `_img/` goes straight from `public/` with `--size-only`
 
 ## Core Commands
 
@@ -74,7 +74,7 @@ The content processing requires these environment variables:
    - Copy referenced images
    - Convert filenames to lowercase
 3. Hugo generates static site with backlinks and graph visualization
-4. Site is deployed via rsync to `sspaeti@sspaeti.com:~/www/ssp/brain`
+4. Site is deployed via rsync to `sspaeti@ssp.sh:~/www/ssp/brain`
 
 ## Important Notes
 

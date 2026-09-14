@@ -87,7 +87,7 @@ serve-only: run
 
 hugo-generate: ## generate hugo from clean but don't run
 	rm -rf resources/_gen/assets #helps prevent localhost:1313 in deployed website if accidentally an old hugo process running or from my book (keeps resources/_gen/images: the resized note images are content-hashed and slow to regenerate)
-	hugo --gc && hugo
+	hugo --gc #one build; a second plain `hugo` after it produced byte-identical output (verified 2026-09-14)
 	@bash utils/check-trailing-slash.sh public
 
 check-trailing-slash: ## list internal links without trailing slash in public/ (each is a 301; wikilinks get the slash in textprocessing.html)
@@ -125,21 +125,38 @@ purge-cdn-today: ## Purge all brain notes updated today (legacy, date-only granu
 		-H "AccessKey: $$BUNNY_API_KEY"; \
 	echo "Purged brain index + $$total notes updated $$today"
 
-upload: ## upload to server (preserves old hashed /js/, /styles/, /indices/, /notes/ image variants and root styles.*.min.css so stale CDN/browser HTML keeps working)
+SERVER  := sspaeti@ssp.sh:~/www/ssp/brain
+# Mirror of the last upload (gitignored, ~580 MB). Hugo rewrites every file on
+# each build, so straight from public/ rsync's size+mtime quick check fails on
+# all ~5,300 files and the server re-reads and rewrites ~570 MB per deploy.
+# `upload-mirror` syncs public/ into the mirror by checksum *without* -t:
+# unchanged files are left alone (old mtime kept), changed ones are copied
+# (new mtime). Uploading from the mirror lets the quick check skip everything
+# that did not change (0.2 s locally, no server hashing). Content is identical
+# to public/ (`rsync -rcn public/ public.last/` lists nothing). The first
+# upload after creating the mirror is a full one, like before.
+LAST    := public.last
+UPLOAD_PROTECT := --filter='P /js/***' --filter='P /styles/***' --filter='P /indices/***' --filter='P /styles.*.min.css' --filter='P /notes/***'
+IMG_SKIP_COMPRESS := --skip-compress=jpg,jpeg,png,gif,webp,avif,ico,woff,woff2
+
+upload-mirror: ## sync public/ into $(LAST) by checksum, keeping the mtime of unchanged files
+	@mkdir -p $(LAST)
+	rsync -rlpgoD --checksum --delete --exclude='/_img/' public/ $(LAST)/
+
+upload: upload-mirror ## upload to server (preserves old hashed /js/, /styles/, /indices/, /notes/ image variants and root styles.*.min.css so stale CDN/browser HTML keeps working)
 	rsync -avz --delete \
 		--exclude='/_img/' \
-		--filter='P /js/***' \
-		--filter='P /styles/***' \
-		--filter='P /indices/***' \
-		--filter='P /styles.*.min.css' \
-		--filter='P /notes/***' \
-		public/ sspaeti@sspaeti.com:~/www/ssp/brain
+		$(UPLOAD_PROTECT) \
+		$(LAST)/ $(SERVER)
 	rsync -av --delete --size-only \
-		--skip-compress=jpg,jpeg,png,gif,webp,avif,ico,woff,woff2 \
-		public/_img/ sspaeti@sspaeti.com:~/www/ssp/brain/_img
+		$(IMG_SKIP_COMPRESS) \
+		public/_img/ $(SERVER)/_img
 
-upload-clean: ## upload with full delete (removes orphaned hashed assets — pair with `make purge-cdn` or stale HTML will 404)
-	rsync -avz --delete public/ sspaeti@sspaeti.com:~/www/ssp/brain
+upload-clean: upload-mirror ## upload with full delete (removes orphaned hashed assets — pair with `make purge-cdn` or stale HTML will 404)
+	rsync -avz --delete --exclude='/_img/' $(LAST)/ $(SERVER)
+	rsync -av --delete --size-only \
+		$(IMG_SKIP_COMPRESS) \
+		public/_img/ $(SERVER)/_img
 
 # Iosevka webfonts. Source: utils/fonts/iosevka-src/ (the Iosevka 20.0.0 files
 # shipped since 2026-07, see utils/fonts/README.md). Two deployed faces per
@@ -179,6 +196,12 @@ serve-old: prepare-python run
 
 
 upload-only: hugo-generate upload ## quick redeploy; skips prepare, so it ships the bluesky map as last indexed
-# bsky-index must come before hugo-generate: hugo reads data/bsky_posts.json at build time
-deploy: stop-brain prepare bsky-index hugo-generate upload purge-cdn-changed
-deploy-clean: stop-brain prepare bsky-index hugo-generate upload-clean purge-cdn ## deploy and remove orphaned hashed assets (full purge required — may briefly break stale HTML until purge propagates)
+# prepare (vault + git, ~5 s) and bsky-index (network, ~14 s) are independent, so
+# they run concurrently; hugo-generate reads data/bsky_posts.json and must wait
+# for both, hence the second $(MAKE) line.
+deploy: stop-brain ## full deploy: prepare ∥ bsky-index, then build, upload, purge changed notes
+	$(MAKE) -j2 prepare bsky-index
+	$(MAKE) hugo-generate upload purge-cdn-changed
+deploy-clean: stop-brain ## deploy and remove orphaned hashed assets (full purge required — may briefly break stale HTML until purge propagates)
+	$(MAKE) -j2 prepare bsky-index
+	$(MAKE) hugo-generate upload-clean purge-cdn

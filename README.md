@@ -113,6 +113,28 @@ Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
 
+### 2026-09-14: Faster `make deploy` (same output, ~60 s → ~20 s)
+
+Pure pipeline optimisation, nothing on the site changes:
+
+- **Upload from a mtime-preserving mirror** (`public.last/`, gitignored).
+  Hugo rewrites every output file, so rsync's size+mtime quick check failed
+  on all ~5,300 files and the server re-read and rewrote ~570 MB per deploy —
+  the part that grew with every page and image. `make upload-mirror` now syncs
+  `public/` into the mirror by checksum without `-t`: unchanged files keep
+  their old mtime, changed ones get a new one, content stays byte-identical
+  (`rsync -rcn public/ public.last/` lists nothing). Uploading from the mirror
+  lets rsync skip everything unchanged with no server-side hashing (0.2 s
+  locally). Same file list, same `--delete`, same protect filters as before;
+  the first upload after creating the mirror is a full one.
+- **`prepare` and `bsky-index` run concurrently** (`make -j2`). They are
+  independent (vault + git vs. Bluesky API); Hugo reads `data/bsky_posts.json`
+  so only `hugo-generate` waits for both. Hides `prepare` (~5 s) inside the
+  ~14 s feed walk.
+- **Single Hugo build**: `hugo --gc && hugo` built twice; the second build was
+  byte-identical, dropped.
+- Server host in the rsync targets is `ssp.sh` (same machine as `sspaeti.com`).
+
 ### 2026-09-13: Smaller image variants, syntax CSS folded into the bundle
 
 Last two Lighthouse leftovers on image-heavy notes ("Improve image delivery",
