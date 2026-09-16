@@ -769,6 +769,10 @@ hr {
   display: inline-flex;
   align-items: center;
 
+  // never let the header flex row squeeze the mark's width below its 38px
+  // height — a shrunk replaced element distorts instead of just wrapping.
+  flex-shrink: 0;
+
   & img {
     // 40px height matches ssp.sh's header logo (.header-logo .logo) so the
     // mark lines up across ssp.sh, ssp.sh/brain and the navbar. width:auto +
@@ -777,6 +781,7 @@ hr {
     width: auto;
     margin: 0;
     border-radius: 4px;
+    flex-shrink: 0;
   }
 
   // Below 1200px the absolute far-left logo doesn't fit; bring it into the header
@@ -796,11 +801,14 @@ hr {
 :root[data-section="vault"] .header-icon--brain { display: none; }
 :root[data-section="vault"] .header-icon--vault { display: inline-block; }
 
-// Below 1200px show the ssp.sh logo (brought into the header flow above) instead
-// of the brain/vault brand icon, so branding is consistent with ssp.sh. The
-// "Second Brain" text stays and still links to /brain.
+// Below 1200px there isn't reliably enough room for the ssp.sh logo, the brand
+// icon and the "Second Brain" text together without the logo getting squeezed
+// by the flex row — so below that width, drop the icon+text title entirely and
+// keep only the logo (linking to ssp.sh); the "Brain" nav item still covers
+// /brain navigation. Both title and logo only appear together at >=1200px,
+// where there's enough space for the full lockup.
 @media all and (max-width: 1200px) {
-  .header-icon { display: none !important; }
+  #page-title { display: none; }
 }
 
 .header-divider {
