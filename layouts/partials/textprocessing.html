@@ -103,6 +103,12 @@
            stray Obsidian block ids (^abc123) */}}
       {{$md = $md | replaceRE "(?s)\\n-{3,}[ \\t]*\\n+[ \\t]*\\**(?:Origin|Source|Sources|Reference|References)\\**\\s*:.*$" ""}}
       {{$md = $md | replaceRE "(?m)([ \\t]|^)\\^[A-Za-z0-9-]{4,}[ \\t]*$" ""}}
+      {{/* Strip leading blockquote/callout markers - a callout belongs to the
+           source note, not the reference. Also avoids a nested <blockquote>
+           confusing the callout post-processing below (it matches tags with a
+           non-greedy regex that mishandles nesting). */}}
+      {{$md = $md | replaceRE "(?m)^\\s*>\\s?" ""}}
+      {{$md = $md | replaceRE "\\[![a-zA-Z]+\\][-+]?\\s?" ""}}
     {{else}}
       {{/* Whole-note embed: the full body (RawContent already excludes the
            frontmatter), minus the trailing "---" / Origin/Source/References
@@ -110,6 +116,10 @@
       {{$md = $tp.RawContent}}
       {{$md = $md | replaceRE "(?s)\\n-{3,}[ \\t]*\\n+[ \\t]*\\**(?:Origin|Source|Sources|Reference|References)\\**\\s*:.*$" ""}}
       {{$md = $md | replaceRE "(?m)([ \\t]|^)\\^[A-Za-z0-9-]{4,}[ \\t]*$" ""}}
+      {{/* Same callout-stripping as above: a callout inside the embedded note
+           belongs to that note, not to the reference. */}}
+      {{$md = $md | replaceRE "(?m)^\\s*>\\s?" ""}}
+      {{$md = $md | replaceRE "\\[![a-zA-Z]+\\][-+]?\\s?" ""}}
     {{end}}
     {{$md = trim $md "\n "}}
     {{if $md}}
