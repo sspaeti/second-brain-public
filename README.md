@@ -113,6 +113,40 @@ Find these in [.htaccess](static/.htaccess)
 
 ## ChangeLog
 
+### 2026-09-22: Wikilinks/embeds with apostrophes resolve again; Hugo render tests (`make test`)
+
+`![[AI Writing#If You Start Writing Today, There's no way …]]` rendered as a
+bare link instead of a transclusion, `[[Don't Go Dark]]`-style links were
+"broken", and heading anchors came out as `#…therersquos…`. Not the comma: the
+apostrophe. `textprocessing.html` finds `[[links]]`/`![[embeds]]` in the
+*rendered* `.Content`, where goldmark's typographer has already turned `'` into
+`&rsquo;` (likewise `"`, `--`, `...`, `&` → `&amp;`, `` `code` `` → `<code>`).
+That text never equalled the raw note title or heading it was matched against.
+
+- **`layouts/partials/wikitext-normalize.html`** (new): turns rendered link
+  text back into source text (decode entities, map typographic quotes/dashes
+  back, drop inline tags). Applied to the note key and anchor of every embed
+  and wikilink before `.GetPage`/the heading scan, and to both sides of the
+  heading comparison. Display text keeps the rendered form. File names that
+  themselves contain `–`/`…` (e.g. `Getting the Data – Scraping`) get a second
+  `.GetPage` with only the entities decoded.
+- **Heading anchors use `anchorize`** (the function Hugo builds `<h2 id>` from)
+  instead of `urlize`, so `#10.-knowledge…`, `#macos/linux`, `#a-vs.-b` and
+  `#data-warehousing-olap` now match the real ids (`#10-knowledge…`,
+  `#macoslinux`, `#a-vs-b`, `#data-warehousing--olap`). Block ids stay `#abc123`.
+- Bonus: titles with `&` (`[[Notebook & Desktops for Linux]]`) resolve too.
+- **Tests**: `make test` → `cargo test` in `utils/obsidian-quartz`, whose
+  `tests/hugo_render.rs` builds the fixture notes in `tests/hugo-render/content`
+  with the real layouts (`hugo --config config.toml,…/hugo-render/config.toml`,
+  which only swaps the content mount) and asserts on the HTML: heading / block /
+  whole-note embeds, embedded callouts flattened, apostrophe + en-dash +
+  `&` + inline-code titles and headings, block-id anchors, `[[…]]` inside
+  code left alone, image embeds, plain blockquote vs `[!note]` / `[!warning]-`
+  / `[!tip]+` callouts, balanced `<blockquote>` tags. Add a fixture line and an
+  assertion whenever an embed/callout/wikilink bug is fixed.
+- Verified with a full before/after diff of `public/`: only the links above
+  changed (plus whitespace).
+
 ### 2026-09-14: Faster `make deploy` (same output, ~60 s → ~20 s)
 
 Pure pipeline optimisation, nothing on the site changes:

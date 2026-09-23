@@ -1,0 +1,23 @@
+{{- /*
+  Turns wikilink text taken from RENDERED HTML back into the plain source text.
+
+  textprocessing.html finds [[links]] and ![[embeds]] in .Content, i.e. after
+  goldmark ran. Its typographer extension has already rewritten punctuation:
+  ' -> &rsquo;/&lsquo;, " -> &ldquo;/&rdquo;, -- -> &ndash;, --- -> &mdash;,
+  ... -> &hellip;, & -> &amp;, and `code` -> <code>. Those strings never equal the raw note
+  titles/headings they are matched against (.GetPage, the heading scan for
+  ![[Note#Heading]]), so "[[Don't Stop]]" was a broken link and
+  "![[AI Writing#There's no way ...]]" fell back to a bare link.
+
+  Usage: {{ $plain := partial "wikitext-normalize.html" $text }}
+  Applied to BOTH sides of a comparison so a real ’ in a heading also matches.
+*/ -}}
+{{- /* NB: `replace INPUT OLD NEW` - the input goes FIRST, so no piping here
+     (piped, the string would land in the NEW slot). */ -}}
+{{- /* inline markup rendered inside the link text (`code`, *em*): drop the
+     tags, Hugo's heading ids are built from the text content too */ -}}
+{{- $s := . | replaceRE "</?(?:code|em|strong)>" "" | htmlUnescape -}}
+{{- range $pair := slice (slice "’" "'") (slice "‘" "'") (slice "“" "\"") (slice "”" "\"") (slice "—" "---") (slice "–" "--") (slice "…" "...") (slice "«" "<<") (slice "»" ">>") -}}
+  {{- $s = replace $s (index $pair 0) (index $pair 1) -}}
+{{- end -}}
+{{- return $s -}}

@@ -137,6 +137,13 @@ This ensures:
 - Wikilinks resolve to published content in `/content/`
 - Clean separation between private vault and public repo
 
+## Tests
+
+`cargo test` runs the unit tests and `tests/hugo_render.rs`, which builds the
+fixture notes in `tests/hugo-render/content` with the site's real Hugo layouts
+and asserts on the HTML (embeds, wikilinks, callouts). From the repo root:
+`make test`.
+
 ## Installation
 
 ```bash

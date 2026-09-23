@@ -20,6 +20,21 @@ src/
   og_template.svg    — SVG template for OG images (uses {{TITLE_PLACEHOLDER}})
 ```
 
+## Tests
+
+```bash
+cargo test                      # unit tests + tests/hugo_render.rs
+cargo test --test hugo_render   # only the Hugo render test
+```
+
+`tests/hugo_render.rs` is an integration test for the *site's* Hugo template
+`layouts/partials/textprocessing.html` (embeds/transclusions, wikilinks,
+blockquotes/callouts): it runs `hugo` in the repo root with
+`tests/hugo-render/config.toml` layered on `config.toml` (swaps the content
+mount to `tests/hugo-render/content`) and asserts on the generated HTML.
+Needs `hugo` on PATH. Add a fixture note line + an assertion for every
+rendering bug fixed.
+
 ## Build & Run
 
 ```bash

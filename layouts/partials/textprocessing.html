@@ -23,13 +23,22 @@
 {{range $embeds}}
   {{- $inner := . | strings.TrimPrefix "![[" | strings.TrimSuffix "]]"}}
   {{- $target := index (split $inner "|") 0}}
-  {{- $ref := split $target "#"}}
-  {{- $noteTitle := index $ref 0}}
+  {{- /* $content is rendered HTML: undo goldmark's typographer/entities before
+       looking anything up (see partials/wikitext-normalize.html). $noteTitle keeps
+       the rendered form for display. */ -}}
+  {{- $ref := split (partial "wikitext-normalize.html" $target) "#" -}}
+  {{- $noteTitle := index (split $target "#") 0 -}}
+  {{- $noteKey := index $ref 0 -}}
   {{- $anchor := ""}}
   {{- if gt (len $ref) 1}}{{$anchor = index $ref 1}}{{end}}
-  {{- $isAsset := findRE "\\.[A-Za-z0-9]{1,6}$" $noteTitle}}
+  {{- $isAsset := findRE "\\.[A-Za-z0-9]{1,6}$" $noteKey}}
   {{- $tp := false}}
-  {{- if not $isAsset}}{{$tp = $page.GetPage $noteTitle}}{{end}}
+  {{- if not $isAsset}}
+    {{- $tp = $page.GetPage $noteKey}}
+    {{- /* a file name can itself contain – or … (typographer output); retry with
+         only the entities decoded */ -}}
+    {{- if not $tp}}{{$tp = $page.GetPage (htmlUnescape $noteTitle)}}{{end}}
+  {{- end}}
   {{- if $tp}}
     {{$md := ""}}
     {{$blockHeading := ""}}
@@ -91,7 +100,7 @@
           {{else}}
             {{$section = $section | append $line}}
           {{end}}
-        {{else if and (not $found) (hasPrefix (trim $line " ") "#") (eq (lower (trim ($line | replaceRE "^#+\\s*" "") " ")) (lower $anchor))}}
+        {{else if and (not $found) (hasPrefix (trim $line " ") "#") (eq (lower (partial "wikitext-normalize.html" (trim ($line | replaceRE "^#+\\s*" "") " "))) (lower $anchor))}}
           {{$capturing = true}}
           {{$found = true}}
           {{$level = len (index (findRE "^#+" $line) 0)}}
@@ -125,11 +134,12 @@
     {{if $md}}
       {{$rendered := $tp.RenderString (dict "display" "block") $md}}
       {{/* Link back to the source note, jumping to the exact spot: the heading
-           anchor for section refs, or the block's enclosing heading for block refs */}}
+           anchor for section refs, or the block's enclosing heading for block refs.
+           anchorize = the same function Hugo uses for the <h2 id="..."> targets. */}}
       {{$href := $tp.RelPermalink}}
       {{$jump := cond (hasPrefix $anchor "^") $blockHeading $anchor}}
       {{if $jump}}
-        {{$href = printf "%s#%s" (strings.TrimRight "/" $tp.RelPermalink) ($jump | urlize | lower)}}
+        {{$href = printf "%s#%s" (strings.TrimRight "/" $tp.RelPermalink) (anchorize $jump)}}
       {{end}}
       {{$icon := `<svg class="transclusion-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>`}}
       {{$srclink := printf "<a href=\"%s\" rel=\"noopener\" class=\"internal-link transclusion-link\" data-src=\"%s\" title=\"Reference to %s\">%s<span>%s</span></a>" $href $tp.RelPermalink $noteTitle $icon $noteTitle}}
@@ -205,13 +215,18 @@
     {{else}}
       {{$inner := . | strings.TrimPrefix "[[" | strings.TrimSuffix "]]" }}
       {{$split := split $inner "|"}}
-      {{$path := index $split 0}}
+      {{/* lookup/href from the plain source text, display from the rendered text */}}
+      {{$path := partial "wikitext-normalize.html" (index $split 0)}}
       {{$reference := split $path "#"}}
       {{$title := index $reference 0}}
       {{$block := default "" (index $reference 1)}}
-      {{$block = strings.TrimRight "/" (cond (eq $block "") $block (printf "#%s" $block)) | urlize | lower}}
-      {{$href := strings.TrimRight "/" ($page.GetPage $title).RelPermalink}}
-      {{$display := default $title (index $split 1)}}
+      {{$block = cond (eq $block "") "" (printf "#%s" (anchorize $block))}}
+      {{$renderedTitle := index (split (index $split 0) "#") 0}}
+      {{$target := $page.GetPage $title}}
+      {{/* file names containing – or … (typographer output): retry with only the entities decoded */}}
+      {{if not $target}}{{$target = $page.GetPage (htmlUnescape $renderedTitle)}}{{end}}
+      {{$href := strings.TrimRight "/" $target.RelPermalink}}
+      {{$display := default $renderedTitle (index $split 1)}}
       {{$lowerTitle := lower $title}}
       {{$isImage := or (hasSuffix $lowerTitle ".png") (hasSuffix $lowerTitle ".jpg") (hasSuffix $lowerTitle ".jpeg") (hasSuffix $lowerTitle ".gif") (hasSuffix $lowerTitle ".webp") (hasSuffix $lowerTitle ".svg") (hasSuffix $lowerTitle ".mp4") }}
       {{if and (not $href) $isImage}}

@@ -1,0 +1,31 @@
+# Test-only overrides, layered on top of config.toml:
+#   hugo --config config.toml,utils/obsidian-quartz/tests/hugo-render/config.toml
+# Replaces the [module] mounts so the build reads the fixture notes in
+# tests/hugo-render/content instead of the real vault export in content/. Everything else
+# (layouts, assets, data, markup settings) is the production config, so the
+# fixtures are rendered by the exact same textprocessing.html as the site.
+baseURL = "https://www.ssp.sh/brain/"
+enableGitInfo = false
+
+[module]
+  [[module.mounts]]
+    source = "utils/obsidian-quartz/tests/hugo-render/content"
+    target = "content"
+  [[module.mounts]]
+    source = "utils/obsidian-quartz/tests/hugo-render/content"
+    target = "assets/notes"
+  [[module.mounts]]
+    source = "assets"
+    target = "assets"
+  [[module.mounts]]
+    source = "static"
+    target = "static"
+  [[module.mounts]]
+    source = "layouts"
+    target = "layouts"
+  [[module.mounts]]
+    source = "data"
+    target = "data"
+  [[module.mounts]]
+    source = "i18n"
+    target = "i18n"
