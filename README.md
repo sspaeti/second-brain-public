@@ -26,6 +26,7 @@ This is a fork of the [Quartz](https://github.com/jackyzha0/quartz) repo ([v3](h
 
 The content/notes themselves are not published in this repo, only on [ssp.sh/brain](https://ssp.sh/brain).
 
+> [!NOTE]
 > **[Explore with RAG → explore.ssp.sh](https://explore.ssp.sh)**
 >
 > Semantic search, hidden connections, and graph traversal powered by [obsidian-note-taking-assistant](https://github.com/sspaeti/obsidian-note-taking-assistant).
