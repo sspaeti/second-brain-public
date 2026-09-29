@@ -349,7 +349,7 @@ $nav-icon-graph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/sv
 
 .topic-card h3 {
   font-size: 1.3rem;
-  margin-bottom: 1rem;
+  margin: 0 0 1rem; // global h3 adds 2rem on top, which left a hole above the title
   padding-bottom: 0.5rem;
   border-bottom: 2px solid var(--secondary);
   color: var(--secondary);
@@ -371,16 +371,8 @@ $nav-icon-graph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/sv
   text-decoration: underline;
 }
 
-/* Specific topic card styling */
-.topic-card.data-engineering { border-left: 4px solid #FF5D62; }
-.topic-card.pkm { border-left: 4px solid #d27e99; }
-.topic-card.deep-life { border-left: 4px solid #e8aeb7; }
-.topic-card.writing-reading { border-left: 4px solid #e88b8b; }
-.topic-card.productivity { border-left: 4px solid #a18bd7; }
-.topic-card.neovim { border-left: 4px solid #6fb26f; }
-.topic-card.digital-garden { border-left: 4px solid #d9c482; }
-.topic-card.programming { border-left: 4px solid #6b9ac4; }
-.topic-card.other { border-left: 4px solid #999; }
+/* No per-topic accent bar: the h3 underline already carries the theme colour;
+   nine hand-picked hues (half outside kanagawa) read as noise. */
 
 .closing {
   font-size: 1.2rem;
@@ -2071,9 +2063,11 @@ a.hn-badge {
 // A small dot + "recently updated" label after "min read" on a note page. Hover
 // (desktop) or tap/focus (mobile) reveals a popover listing recent editing
 // sessions with per-session added/removed word counts (data/recent_updates.json).
-// Reuses --badge-new (green) for the dot/additions and --badge-upd (blue) for
-// the label; adds one red token for deletions. ASCII-only at the top of this
-// chunk on purpose, see the sass-bom-drops-first-rule note.
+// Dot and label are monochrome (currentColor = the meta line's muted text), so
+// the meta line carries a single hue; colour is spent only inside the popover:
+// --badge-new (green) for additions, one red token (--badge-del) for deletions.
+// ASCII-only at the top of this chunk on purpose, see the
+// sass-bom-drops-first-rule note.
 :root {
   --badge-del: #C34043; // autumnRed (kanagawa), reads on light and dark
   --nc-bg: #ffffff;     // popover surface, fully opaque
@@ -2101,16 +2095,14 @@ article > .meta {
   outline: none;
 }
 .nc-dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: var(--badge-new);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--badge-new) 20%, transparent);
+  background: currentColor;
 }
 .nc-label {
-  color: var(--badge-upd);
   font-size: 0.92em;
-  border-bottom: 1px dotted var(--badge-upd);
+  border-bottom: 1px dotted currentColor;
 }
 .nc-popover {
   display: none;

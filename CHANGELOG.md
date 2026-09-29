@@ -1,6 +1,20 @@
 # Changelog
 
 
+### 2026-09-29: Quieter colour: monochrome "recently updated" marker, no per-topic card bars
+
+- **Note meta line**: the "recently updated" marker was a green dot with a
+  halo (`--badge-new`, inherited from the NEW pill in Recent Notes) plus a
+  blue label, three hues on one line of metadata. Now a 6px dot and the label
+  both use `currentColor` (the muted meta text). Green/red stay only inside the
+  popover for the `+added / −removed` word counts, where they carry meaning.
+- **Home page topic cards** (`_index.md`): dropped the nine hand-picked
+  `border-left` hues (`.topic-card.data-engineering` … `.other`, half of them
+  outside kanagawa). The `h3` underline in `--secondary` already gives every
+  card the theme accent. The topic classes stay in the markup, unused. Also
+  zeroed the global 2rem `h3` top margin inside the card, which left a hole
+  above the title.
+
 ### 2026-09-22: Wikilinks/embeds with apostrophes resolve again; Hugo render tests (`make test`)
 
 `![[AI Writing#If You Start Writing Today, There's no way …]]` rendered as a
