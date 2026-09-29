@@ -485,6 +485,12 @@ article {
   list-style: none;
   padding-left: 0;
 
+  &.tags-footer {
+    margin-top: 2em;
+    border-top: var(--outlinegray) 1px solid;
+    padding-top: 1em;
+  }
+
   & .meta {
     margin: 1.5em 0;
     & > h1, & > h2.tag-title {

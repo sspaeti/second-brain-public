@@ -237,12 +237,11 @@ article {
   background: var(--light);
   padding: 1.5rem;
   border-radius: 8px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: box-shadow 0.3s ease;
   border: 1px solid var(--outlinegray);
 }
 
 .principle-card:hover {
-  transform: translateY(-5px);
   box-shadow: 0 10px 20px rgba(0,0,0,0.1);
   border-color: var(--secondary);
 }
@@ -276,13 +275,14 @@ article {
   padding: 1rem;
   background: var(--light);
   border-radius: 8px;
-  transition: transform 0.3s ease;
+  border: 1px solid transparent; // reserved so the hover border adds no layout shift
+  transition: border-color 0.3s ease;
   display: flex;
   flex-direction: column;
 }
 
 .nav-card:hover {
-  transform: translateY(-5px);
+  border-color: var(--secondary);
 }
 
 // Navigation-card icons. Rendered as CSS masks (NOT inline <svg>) because the home
@@ -339,12 +339,13 @@ $nav-icon-graph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/sv
   padding: 1.5rem;
   border-radius: 8px;
   background: var(--lightgray);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid transparent; // reserved so the hover border adds no layout shift
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .topic-card:hover {
-  transform: translateY(-5px);
   box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  border-color: var(--secondary);
 }
 
 .topic-card h3 {
@@ -955,7 +956,7 @@ a.hn-badge {
   padding: 25px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
   border-left: 5px solid;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: box-shadow 0.3s ease;
   position: relative;
   overflow: hidden;
   
@@ -965,7 +966,6 @@ a.hn-badge {
   }
   
   &:hover {
-    transform: translateY(-5px);
     box-shadow: 0 15px 40px rgba(0,0,0,0.15);
   }
   

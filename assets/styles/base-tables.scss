@@ -85,11 +85,11 @@
   border: 1px solid var(--outlinegray);
   border-radius: 8px;
   padding: 1.25rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 
   &:hover {
-    transform: translateY(-4px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-color: var(--secondary);
   }
 }
 
