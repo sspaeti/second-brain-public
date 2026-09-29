@@ -54,6 +54,7 @@ enableGitInfo = true # produces RSS feed too at /index.xml; it uses `pubDate` fr
   recentUpdatesLookbackDays = 1825    # git word-diff scan window (~5y, tough first commit was ~4 years 022571b · 2022-09-28); history depth only, no viewer cost
   recentUpdatesSessionGapHours = 24   # commits closer than this fold into one editing session
   recentUpdatesMaxSessions = 200        # sessions shown in a note's change popover
+  recentUpdatesNewGraceDays = 14         # edits within this many days of publish keep the NEW badge (age at edit, not today)
 
 # ---------------------------------------------------------------------------
 # LOCAL ADDITION (not from upstream Quartz) — raw Markdown output per note.

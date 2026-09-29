@@ -55,6 +55,7 @@ _params = _config_params()
 LOOKBACK_DAYS = int(_params.get("recentUpdatesLookbackDays", 1825))
 SESSION_GAP_HOURS = int(_params.get("recentUpdatesSessionGapHours", 24))  # fold commits closer than this into one session
 MAX_SESSIONS = int(_params.get("recentUpdatesMaxSessions", 7))            # sessions shown in a note's change popover
+NEW_GRACE_DAYS = int(_params.get("recentUpdatesNewGraceDays", 7))         # edits this soon after publish keep the NEW badge
 
 
 def _parse_git_date(raw: str) -> datetime:
@@ -269,19 +270,28 @@ def first_commit_dates() -> dict[str, datetime]:
     return first
 
 
-def group_sessions(dated: list[tuple[datetime, int, int, bool]]) -> list[dict]:
+def group_sessions(
+    dated: list[tuple[datetime, int, int, bool]],
+    first_dt: datetime | None = None,
+) -> list[dict]:
     """Fold a note's commits into sessions, newest first. Each session:
     `{"start", "end", "added", "removed", "bumped"}` where `end` is the newest
     commit in the session, `start` the oldest, and `bumped` whether any commit
     in it bumped the note's `lastmod`. A gap larger than SESSION_GAP_HOURS
-    between consecutive commits opens a new session."""
+    between consecutive commits opens a new session.
+
+    The creation commit (`first_dt`, the note's first-ever commit) is always a
+    session of its own: a note published Sat 14:10 and rewritten Sun 10:20 is
+    within the gap, but folding them would date the `published` row Sun and
+    count the rewrite into the publish size. Split, the popover reads
+    `Sat · published` + `Sun · +N −M`, and the latter matches `lastmod`."""
     dated = sorted(dated, key=lambda t: t[0], reverse=True)
     gap = timedelta(hours=SESSION_GAP_HOURS)
     sessions: list[dict] = []
     cur: dict | None = None
     prev: datetime | None = None
     for dt, added, removed, bumped in dated:
-        if cur is None or prev - dt > gap:
+        if cur is None or prev - dt > gap or dt == first_dt:
             cur = {"start": dt, "end": dt, "added": added, "removed": removed, "bumped": bumped}
             sessions.append(cur)
         else:
@@ -293,6 +303,19 @@ def group_sessions(dated: list[tuple[datetime, int, int, bool]]) -> list[dict]:
     return sessions
 
 
+def badge_is_new(last_edit: datetime, first_dt: datetime | None, grace_days: int = NEW_GRACE_DAYS) -> bool:
+    """Homepage badge rule: a note is NEW while its latest content edit landed
+    within `grace_days` of its publish (first commit). Judged by the note's own
+    age at that edit -- not by today -- so a note published and tweaked on
+    Aug 21 stays NEW at its Aug 21 slot in the list forever, while the same
+    note rewritten a month later moves up the list as UPD. Viewers scan the
+    list for "what didn't exist before"; a next-day polish doesn't change
+    that, a later rewrite does."""
+    if first_dt is None:
+        return False
+    return last_edit - first_dt <= timedelta(days=grace_days)
+
+
 def _fmt_date(dt: datetime, now: datetime) -> str:
     """`Aug 4` for the current year, `Aug 4, 2025` otherwise."""
     if dt.year == now.year:
@@ -301,8 +324,10 @@ def _fmt_date(dt: datetime, now: datetime) -> str:
 
 
 def _relative(dt: datetime, now: datetime) -> str:
-    """Coarse humanized age: today / yesterday / N days / weeks / months / years."""
-    days = (now - dt).days
+    """Coarse humanized age: today / yesterday / N days / weeks / months / years.
+    Calendar days, not elapsed 24h blocks: yesterday 14:10 seen today 10:00 is
+    "yesterday", which `(now - dt).days` would truncate to 0 == "today"."""
+    days = (now.date() - dt.date()).days
     if days <= 0:
         return "today"
     if days == 1:
@@ -397,7 +422,7 @@ def build() -> dict[str, dict]:
         full = CONTENT / path
         if not full.exists():
             continue  # deleted/unpublished note: nothing on the site to badge
-        sessions = group_sessions(dated)
+        sessions = group_sessions(dated, first_dt)
         total_words = _word_count(full)
 
         # Ceiling the history at the note's `lastmod`: git can carry later
@@ -444,7 +469,7 @@ def build() -> dict[str, dict]:
             sessions[0],
         )
         gross = recent["added"] + recent["removed"]
-        is_new = _is_creation(recent)
+        is_new = _is_creation(recent) or badge_is_new(recent["end"], first_dt)
         if is_new:
             entry: dict = {"status": "new", "words": total_words if total_words is not None else gross}
         else:
