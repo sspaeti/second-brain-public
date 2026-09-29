@@ -2059,12 +2059,13 @@ a.hn-badge {
   background: color-mix(in srgb, var(--badge-upd) 14%, transparent);
 }
 
-// ========== Per-note change popover (dot next to the meta line) ========== //
-// A small dot + "recently updated" label after "min read" on a note page. Hover
+// ========== Per-note change popover ("recently updated" on the meta line) ========== //
+// A "recently updated" label after "min read" on a note page, separated by the
+// same " · " as the other meta items (single.html). Hover
 // (desktop) or tap/focus (mobile) reveals a popover listing recent editing
 // sessions with per-session added/removed word counts (data/recent_updates.json).
-// Dot and label are monochrome (currentColor = the meta line's muted text), so
-// the meta line carries a single hue; colour is spent only inside the popover:
+// The label is monochrome (currentColor = the meta line's muted text), so the
+// meta line carries a single hue; colour is spent only inside the popover:
 // --badge-new (green) for additions, one red token (--badge-del) for deletions.
 // ASCII-only at the top of this chunk on purpose, see the
 // sass-bom-drops-first-rule note.
@@ -2088,17 +2089,9 @@ article > .meta {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 0.4em;
-  margin-left: 0.5em;
   vertical-align: middle;
   cursor: pointer;
   outline: none;
-}
-.nc-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
 }
 .nc-label {
   font-size: 0.92em;

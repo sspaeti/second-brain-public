@@ -5,9 +5,10 @@
 
 - **Note meta line**: the "recently updated" marker was a green dot with a
   halo (`--badge-new`, inherited from the NEW pill in Recent Notes) plus a
-  blue label, three hues on one line of metadata. Now a 6px dot and the label
-  both use `currentColor` (the muted meta text). Green/red stay only inside the
-  popover for the `+added / −removed` word counts, where they carry meaning.
+  blue label, three hues on one line of metadata. Now the dot is gone: the
+  label sits after the same " · " separator as the other meta items, in the
+  muted meta text colour. Green/red stay only inside the popover for the
+  `+added / −removed` word counts, where they carry meaning.
 - **Home page topic cards** (`_index.md`): dropped the nine hand-picked
   `border-left` hues (`.topic-card.data-engineering` … `.other`, half of them
   outside kanagawa). The `h3` underline in `--secondary` already gives every
