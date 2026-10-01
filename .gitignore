@@ -15,7 +15,7 @@ node_modules
 .last_purge_time
 data/recent_updates.json
 data/note_status.json
-data/note_status_report.md
+note_status_report.md
 utils/hugo-obsidian/hugo-obsidian
 utils/hugo-obsidian/hugo-obsidian-dev
 

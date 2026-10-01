@@ -22,10 +22,23 @@
           {{- if .Params.createddate }} · <span class="meta-label-full">Created</span><span class="meta-label-short">Created:</span> <time datetime="{{ .Params.createddate }}">{{ (time .Params.createddate).Format "Jan 2, 2006" }}</time>
           {{- end -}}
           {{ if gt .ReadingTime 0 }} · <span class="meta-reading-time">{{ .ReadingTime }} min read</span>{{ end }}
-          {{ with (index hugo.Data.recent_updates .File.BaseFileName) }}{{ with .sessions }} ·
-          <span class="note-changes" tabindex="0" role="button" aria-label="Recently updated: show recent changes to this note">
-            <span class="nc-label">recently updated</span>
+          {{- /* Note status + recent changes, one popover. The level word
+                 (data/note_status.json, `obsidian-quartz note-status`) is the
+                 trigger; the sessions list (data/recent_updates.json) follows
+                 when there is one. Spec: docs/superpowers/specs/2026-10-01-note-status-design.md */ -}}
+          {{ $stem := .File.BaseFileName }}
+          {{ $ns := "" }}{{ with hugo.Data.note_status }}{{ $ns = index . $stem }}{{ end }}
+          {{ $ru := "" }}{{ with hugo.Data.recent_updates }}{{ $ru = index . $stem }}{{ end }}
+          {{ with $ns }} ·
+          <span class="note-changes" tabindex="0" role="button" aria-label="Note status: {{ .status }}. Show what that means and the recent changes">
+            <span class="nc-label">{{ .status }}</span>
             <span class="nc-popover" role="tooltip">
+              <span class="nc-title">Note status</span>
+              {{- /* one line on purpose: the render test asserts "</strong> Worked on…" with a single space */}}
+              <span class="nc-status"><strong>{{ .status | title }}.</strong> {{ if eq .status "started" }}Quick capture, barely worked on. May change or vanish.{{ else if eq .status "growing" }}Worked on, still rough. Expect bullets, gaps and views that move.{{ else }}Own words, tended over time. Still grows, never finished.{{ end }}</span>
+              <span class="nc-status-src">{{ .reason }} · <a href="{{ "taxonomy-of-note-types/" | relURL }}">How my notes grow</a></span>
+              {{ with $ru }}{{ with .sessions }}
+              <span class="nc-sep"></span>
               <span class="nc-title">Recent changes</span>
               {{ range . }}
               <span class="nc-row">
@@ -37,9 +50,10 @@
                 {{ end }}
               </span>
               {{ end }}
+              {{ end }}{{ end }}
             </span>
           </span>
-          {{ end }}{{ end }}
+          {{ end }}
           {{end}}
           {{- /* Hacker News badge: sits inline in the meta line (skipped when
                  hackernews_bottom is set, where the banner lives at the bottom). */ -}}

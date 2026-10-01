@@ -161,3 +161,46 @@ fn textprocessing_renders_embeds_wikilinks_and_callouts() {
 
     let _ = std::fs::remove_dir_all(&out);
 }
+
+/// The whole generated page for a slug (the meta line sits outside e-content).
+fn page(out: &Path, slug: &str) -> String {
+    std::fs::read_to_string(out.join(slug).join("index.html")).unwrap()
+}
+
+#[test]
+fn note_status_word_and_merged_popover() {
+    let out = build();
+
+    // git-classified note: level word at the END of the meta line, popover
+    // with the status section first and the sessions list under it.
+    let p = page(&out, "status-note");
+    let meta_start = p.find(r#"<p class="meta popover-hint">"#).expect("meta line");
+    let meta = &p[meta_start..p[meta_start..].find("</p>").unwrap() + meta_start];
+    assert!(meta.contains(r#"<span class="nc-label">growing</span>"#), "level word is the trigger label:\n{meta}");
+    assert!(!meta.contains("recently updated"), "the old label is gone");
+    let label = meta.find(r#"<span class="nc-label">growing</span>"#).unwrap();
+    assert!(label > meta.find("min read").expect("min read"), "level word comes after min read");
+    assert!(meta.contains(r#"<span class="nc-title">Note status</span>"#));
+    assert!(meta.contains("<strong>Growing.</strong> Worked on, still rough. Expect bullets, gaps and views that move."));
+    assert!(meta.contains("Estimated from edit history · 2 sessions over 3 days · 95 words"));
+    assert!(meta.contains(r#"href="/brain/taxonomy-of-note-types/""#), "link to the taxonomy note");
+    assert!(meta.contains("How my notes grow"));
+    let status_pos = meta.find("Note status").unwrap();
+    let changes_pos = meta.find(r#"<span class="nc-title">Recent changes</span>"#).expect("sessions section");
+    assert!(status_pos < changes_pos, "status section above recent changes");
+    assert!(meta.contains(r#"<span class="nc-add">+12</span>"#), "session rows still render");
+    assert!(meta.contains("published"), "creation row still renders");
+
+    // manual note without sessions: status section only
+    let p = page(&out, "manual-note");
+    assert!(p.contains(r#"<span class="nc-label">evergreen</span>"#));
+    assert!(p.contains("<strong>Evergreen.</strong> Own words, tended over time. Still grows, never finished."));
+    assert!(p.contains("Set by author"));
+    assert!(!p.contains("Recent changes"), "no sessions, no recent-changes section");
+
+    // note absent from note_status.json: no trigger at all
+    let p = page(&out, "embedder");
+    assert!(!p.contains(r#"class="note-changes""#), "no status entry, no trigger");
+
+    let _ = std::fs::remove_dir_all(&out);
+}

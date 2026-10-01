@@ -7,7 +7,8 @@
 //! Runs as `obsidian-quartz note-status` in `make prepare`, right after
 //! `utils/recent_updates.py` (whose data/recent_updates.json it consumes).
 //! Writes data/note_status.json (read by Hugo) and
-//! data/note_status_report.md (read by the author, gitignored).
+//! note_status_report.md at the repo root (read by the author, gitignored;
+//! not under data/ because Hugo tries to parse every file there).
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Level {
@@ -309,7 +310,7 @@ const CONTENT_DIR: &str = "content";
 const CONFIG_TOML: &str = "config.toml";
 const RECENT_UPDATES: &str = "data/recent_updates.json";
 const OUT_JSON: &str = "data/note_status.json";
-const OUT_REPORT: &str = "data/note_status_report.md";
+const OUT_REPORT: &str = "note_status_report.md"; // repo root: Hugo loads every file under data/ and fails on .md
 
 #[derive(Clone, Debug)]
 pub struct Entry {

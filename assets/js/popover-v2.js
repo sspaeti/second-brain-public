@@ -29,11 +29,11 @@
   }
 
   function buildHtmlPopover(html, targetUrl) {
-    // Strip the per-note "recently updated" edit-history widget. It's only
-    // useful on the note itself; in a hover preview the brain hides its
-    // sessions list via CSS (leaving just the dot), but sites without that
-    // CSS (e.g. the blog) render the whole history as stray grey text.
-    html.querySelectorAll(".note-changes").forEach((el) => el.remove());
+    // Strip the per-note status/edit-history popover body, keep its trigger
+    // word: in a hover card the level ("growing") is useful, the nested
+    // popover is not, and sites without the brain's CSS (e.g. the blog) would
+    // render the whole history as stray grey text.
+    html.querySelectorAll(".nc-popover").forEach((el) => el.remove());
     // Prefix every id with "popover-internal-" so duplicates do not collide
     // with the host page's IDs.
     html.querySelectorAll("[id]").forEach((el) => {

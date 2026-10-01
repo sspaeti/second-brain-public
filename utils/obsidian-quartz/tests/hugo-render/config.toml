@@ -24,6 +24,9 @@ enableGitInfo = false
     source = "layouts"
     target = "layouts"
   [[module.mounts]]
+    source = "utils/obsidian-quartz/tests/hugo-render/data"
+    target = "data"
+  [[module.mounts]]
     source = "data"
     target = "data"
   [[module.mounts]]
