@@ -313,10 +313,13 @@ pub fn thresholds_from_toml(text: &str) -> Thresholds {
 }
 
 /// Pull `garden/<level>` out of a note's tag list. Returns the remaining tags
-/// (so Hugo never gets a `garden/...` taxonomy term) and the level, if valid.
-pub fn split_garden_tag(tags: Vec<String>) -> (Vec<String>, Option<Level>) {
+/// (so Hugo never gets a `garden/...` taxonomy term), the level if one is
+/// valid, and every `garden/*` tag that is not a level (dropped; the caller
+/// warns with the note's name, which this function does not know).
+pub fn split_garden_tag(tags: Vec<String>) -> (Vec<String>, Option<Level>, Vec<String>) {
     let mut rest = Vec::with_capacity(tags.len());
     let mut level = None;
+    let mut rejected = Vec::new();
     for tag in tags {
         let lower = tag.to_ascii_lowercase();
         match lower.strip_prefix("garden/") {
@@ -326,15 +329,12 @@ pub fn split_garden_tag(tags: Vec<String>) -> (Vec<String>, Option<Level>) {
                         level = Some(l);
                     }
                 }
-                None => eprintln!(
-                    "note-status: unknown garden level \"{}\" (use started, growing or evergreen); tag dropped",
-                    tag
-                ),
+                None => rejected.push(tag),
             },
             None => rest.push(tag),
         }
     }
-    (rest, level)
+    (rest, level, rejected)
 }
 
 use std::error::Error;
@@ -837,22 +837,26 @@ mod tests {
     #[test]
     fn split_garden_tag_extracts_level_case_insensitively_and_drops_unknown() {
         let tags = vec!["cooking".to_string(), "garden/Growing".to_string(), "til".to_string()];
-        let (rest, level) = split_garden_tag(tags);
+        let (rest, level, rejected) = split_garden_tag(tags);
         assert_eq!(rest, vec!["cooking", "til"]);
         assert_eq!(level, Some(Level::Growing));
+        assert!(rejected.is_empty());
 
-        let (rest, level) = split_garden_tag(vec!["Garden/EVERGREEN".to_string()]);
+        let (rest, level, _) = split_garden_tag(vec!["Garden/EVERGREEN".to_string()]);
         assert!(rest.is_empty());
         assert_eq!(level, Some(Level::Evergreen));
 
-        // unknown level: dropped from tags, no level (a warning is printed)
-        let (rest, level) = split_garden_tag(vec!["garden/tree".to_string(), "x".to_string()]);
+        // unknown level: dropped from tags, no level, handed back so the caller
+        // can warn with the note's name
+        let (rest, level, rejected) = split_garden_tag(vec!["garden/tree".to_string(), "x".to_string()]);
         assert_eq!(rest, vec!["x"]);
         assert_eq!(level, None);
+        assert_eq!(rejected, vec!["garden/tree"]);
 
         // no garden tag at all
-        let (rest, level) = split_garden_tag(vec!["a".to_string()]);
+        let (rest, level, rejected) = split_garden_tag(vec!["a".to_string()]);
         assert_eq!(rest, vec!["a"]);
         assert_eq!(level, None);
+        assert!(rejected.is_empty());
     }
 }

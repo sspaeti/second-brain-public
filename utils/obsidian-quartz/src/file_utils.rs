@@ -340,7 +340,14 @@ pub fn process_file(
                 .filter(|s| !EXCLUDED_TAG_EMOJIS.iter().any(|emoji| s.contains(*emoji)))
                 .collect();
             // #garden/<level> -> status frontmatter, never a Hugo taxonomy term
-            let (rest, level) = split_garden_tag(tags);
+            let (rest, level, rejected) = split_garden_tag(tags);
+            for bad in rejected {
+                eprintln!(
+                    "note-status: unknown garden level \"#{}\" in {} (use started, growing or evergreen); tag dropped",
+                    bad,
+                    path.display()
+                );
+            }
             tags = rest;
             garden_level = level;
             lines.pop();

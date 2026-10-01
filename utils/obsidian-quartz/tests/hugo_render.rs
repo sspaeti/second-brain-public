@@ -181,7 +181,7 @@ fn note_status_word_and_merged_popover() {
     let label = meta.find(r#"<span class="nc-label">growing</span>"#).unwrap();
     assert!(label > meta.find("min read").expect("min read"), "level word comes after min read");
     assert!(meta.contains(r#"<span class="nc-title">Note status</span>"#));
-    assert!(meta.contains("<strong>Growing.</strong> Worked on, still rough. Expect bullets, gaps and views that move."));
+    assert!(meta.contains("<strong>Growing.</strong> Worked on quite a bit, still rough. Expect bullets, gaps and views that update."));
     assert!(meta.contains("Estimated from edit history · 2 sessions over 3 days · 95 words"));
     assert!(meta.contains(r#"href="/brain/taxonomy-of-note-types/""#), "link to the taxonomy note");
     assert!(meta.contains("How my notes grow"));
@@ -194,7 +194,7 @@ fn note_status_word_and_merged_popover() {
     // manual note without sessions: status section only
     let p = page(&out, "manual-note");
     assert!(p.contains(r#"<span class="nc-label">evergreen</span>"#));
-    assert!(p.contains("<strong>Evergreen.</strong> Own words, tended over time. Still grows, never finished."));
+    assert!(p.contains("<strong>Evergreen.</strong> Own words, refined over time. Still grows."));
     assert!(p.contains("Set by author"));
     assert!(!p.contains("Recent changes"), "no sessions, no recent-changes section");
 

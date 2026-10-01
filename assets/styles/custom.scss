@@ -2106,8 +2106,8 @@ article > .meta {
   left: auto;
   right: 0;  // the word ends the meta line; the box grows leftwards and stays inside the card
   z-index: 40;
-  min-width: 250px;
-  max-width: 360px;
+  min-width: 340px;        // wide enough that "Aug 31, 2024  2 years ago" and the reason line stay on one row
+  max-width: 460px;
   max-height: 60vh;        // tall histories scroll instead of running off-screen
   overflow-y: auto;
   overscroll-behavior: contain;

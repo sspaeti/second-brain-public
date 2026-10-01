@@ -25,9 +25,9 @@ Three public levels. Lowercase single words, so they fit a pill and read as "a *
 
 | Level | Reader-facing sentence (popover) | Vault mapping |
 |---|---|---|
-| `started` | **Started.** Quick capture, barely worked on. May change or vanish. | `📬`, fresh short notes |
-| `growing` | **Growing.** Worked on, still rough. Expect bullets, gaps and views that move. | `🗃/🌻`, `🗃/📖` |
-| `evergreen` | **Evergreen.** Own words, tended over time. Still grows, never finished. | `🗃/🌳` |
+| `started` | **Started.** Quick capture, barely worked on, may change heavily. | `📬`, fresh short notes |
+| `growing` | **Growing.** Worked on quite a bit, still rough. Expect bullets, gaps and views that update. | `🗃/🌻`, `🗃/📖` |
+| `evergreen` | **Evergreen.** Own words, refined over time. Still grows. | `🗃/🌳` |
 
 "Finished" is not a level. Evergreen means alive and maintained, not done (the long, still-growing
 `will ai replace humans` note is evergreen). The literature-vs-own-words split (`📖` vs `🌳`)
