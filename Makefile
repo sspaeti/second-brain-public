@@ -52,7 +52,7 @@ bsky-index: ## refresh page -> announcing bluesky post map (~10s of API calls; d
 	python utils/bsky_index.py #-> data/bsky_posts.json; leaves the existing file alone if the API is unreachable
 
 test: ## render the fixture notes in utils/obsidian-quartz/tests/hugo-render with the real layouts and assert on the HTML (embeds, wikilinks, callouts); plus the obsidian-quartz unit tests
-	python -m unittest utils/test_recent_updates.py
+	python -m unittest utils/test_recent_updates.py utils/test_revert_lastmod_only.py
 	cd utils/obsidian-quartz && cargo test
 
 word-count:
