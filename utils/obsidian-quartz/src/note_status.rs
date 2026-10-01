@@ -274,6 +274,163 @@ pub fn thresholds_from_toml(text: &str) -> Thresholds {
     t
 }
 
+use std::error::Error;
+use std::fs;
+use std::path::Path;
+
+use crate::enrich_with_blog::{load_json, save_json_pretty};
+
+const CONTENT_DIR: &str = "content";
+const CONFIG_TOML: &str = "config.toml";
+const RECENT_UPDATES: &str = "data/recent_updates.json";
+const OUT_JSON: &str = "data/note_status.json";
+const OUT_REPORT: &str = "data/note_status_report.md";
+
+#[derive(Clone, Debug)]
+pub struct Entry {
+    /// Filename stem, exactly Hugo's `.File.BaseFileName` ("don't stop").
+    pub stem: String,
+    pub level: Level,
+    pub source: Source,
+    pub facts: NoteFacts,
+    pub reason: String,
+}
+
+/// One Entry per `content/*.md` (top level only, `_index.md` skipped), sorted
+/// by stem. `recent` is the parsed data/recent_updates.json object.
+pub fn build_entries(content_dir: &Path, recent: &serde_json::Value, t: &Thresholds) -> Vec<Entry> {
+    let mut entries = Vec::new();
+    let Ok(dir) = fs::read_dir(content_dir) else { return entries };
+    for entry in dir.flatten() {
+        let path = entry.path();
+        if !path.is_file() || path.extension().and_then(|e| e.to_str()) != Some("md") {
+            continue;
+        }
+        let Some(stem) = path.file_stem().and_then(|s| s.to_str()).map(str::to_string) else { continue };
+        if stem == "_index" {
+            continue;
+        }
+        let Ok(text) = fs::read_to_string(&path) else { continue };
+        let fm = frontmatter_fields(&text);
+        let (sessions, mut span_days) = sessions_facts(recent.get(&stem));
+        if sessions == 0 {
+            if let (Some(c), Some(l)) = (fm.createddate, fm.lastmod) {
+                span_days = (l - c).num_days().max(0);
+            }
+        }
+        let facts = NoteFacts { words: word_count(&text), sessions, span_days, manual: fm.manual };
+        let (level, source) = classify(&facts, t);
+        let reason = reason(&facts, source);
+        entries.push(Entry { stem, level, source, facts, reason });
+    }
+    entries.sort_by(|a, b| a.stem.cmp(&b.stem));
+    entries
+}
+
+pub fn entries_to_json(entries: &[Entry]) -> serde_json::Value {
+    let mut map = serde_json::Map::new();
+    for e in entries {
+        map.insert(
+            e.stem.clone(),
+            serde_json::json!({
+                "status": e.level.as_str(),
+                "source": e.source.as_str(),
+                "words": e.facts.words,
+                "sessions": e.facts.sessions,
+                "span_days": e.facts.span_days,
+                "reason": e.reason,
+            }),
+        );
+    }
+    serde_json::Value::Object(map)
+}
+
+/// The author's Markdown report: summary, manual-vs-git disagreements (biggest
+/// first), then every note under its level, longest first.
+pub fn render_report(entries: &[Entry], t: &Thresholds, today: NaiveDate) -> String {
+    let levels = [Level::Evergreen, Level::Growing, Level::Started];
+    let mut out = format!("# Note status report · {}\n\n", today.format("%Y-%m-%d"));
+    out.push_str(&format!(
+        "Thresholds: evergreen = {} words, {} sessions, {} days · started = < {} words, <= 1 session\n\n",
+        t.evergreen_words, t.evergreen_sessions, t.evergreen_span_days, t.started_words
+    ));
+    out.push_str("| level | git | manual | total |\n|---|---|---|---|\n");
+    for level in levels {
+        let git = entries.iter().filter(|e| e.level == level && e.source == Source::Git).count();
+        let manual = entries.iter().filter(|e| e.level == level && e.source == Source::Manual).count();
+        out.push_str(&format!("| {} | {} | {} | {} |\n", level.as_str(), git, manual, git + manual));
+    }
+
+    // Disagreements: manual notes re-run through the git rules.
+    let mut dis: Vec<(&Entry, Level, u8)> = entries
+        .iter()
+        .filter(|e| e.source == Source::Manual)
+        .filter_map(|e| {
+            let git_facts = NoteFacts { manual: None, ..e.facts.clone() };
+            let (git_level, _) = classify(&git_facts, t);
+            (git_level != e.level).then(|| {
+                let gap = (git_level.rank() as i8 - e.level.rank() as i8).unsigned_abs();
+                (e, git_level, gap)
+            })
+        })
+        .collect();
+    dis.sort_by(|a, b| b.2.cmp(&a.2).then(a.0.stem.cmp(&b.0.stem)));
+    out.push_str(&format!("\n## Manual tag disagrees with heuristic ({})\n\n", dis.len()));
+    for (e, git_level, _) in &dis {
+        let git_facts = NoteFacts { manual: None, ..e.facts.clone() };
+        out.push_str(&format!(
+            "- **{}** — manual `{}`, heuristic `{}` — {}\n",
+            e.stem,
+            e.level.as_str(),
+            git_level.as_str(),
+            reason(&git_facts, Source::Git)
+        ));
+    }
+
+    for level in levels {
+        let mut rows: Vec<&Entry> = entries.iter().filter(|e| e.level == level).collect();
+        rows.sort_by(|a, b| b.facts.words.cmp(&a.facts.words).then(a.stem.cmp(&b.stem)));
+        out.push_str(&format!("\n## {} ({})\n\n", level.as_str(), rows.len()));
+        for e in rows {
+            out.push_str(&format!("- {} — {}\n", e.stem, e.reason));
+        }
+    }
+    out
+}
+
+pub fn run() -> Result<(), Box<dyn Error>> {
+    let thresholds = match fs::read_to_string(CONFIG_TOML) {
+        Ok(text) => thresholds_from_toml(&text),
+        Err(_) => Thresholds::default(),
+    };
+    let recent = match load_json(RECENT_UPDATES) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!(
+                "note-status: {} not readable ({}), classifying on word counts only",
+                RECENT_UPDATES, e
+            );
+            serde_json::json!({})
+        }
+    };
+    let entries = build_entries(Path::new(CONTENT_DIR), &recent, &thresholds);
+    save_json_pretty(OUT_JSON, &entries_to_json(&entries))?;
+    let today = chrono::Utc::now().naive_utc().date();
+    fs::write(OUT_REPORT, render_report(&entries, &thresholds, today))?;
+    let count = |l: Level| entries.iter().filter(|e| e.level == l).count();
+    println!(
+        "note-status: {} notes -> {} evergreen, {} growing, {} started ({} manual) -> {} + {}",
+        entries.len(),
+        count(Level::Evergreen),
+        count(Level::Growing),
+        count(Level::Started),
+        entries.iter().filter(|e| e.source == Source::Manual).count(),
+        OUT_JSON,
+        OUT_REPORT
+    );
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -430,5 +587,116 @@ mod tests {
         assert_eq!(thresholds_from_toml("[params]\nnoteStatusStartedWords = 50\n"),
             Thresholds { started_words: 50, ..Thresholds::default() });
         assert_eq!(thresholds_from_toml("not even = [toml"), Thresholds::default());
+    }
+
+    fn temp_content(files: &[(&str, &str)]) -> std::path::PathBuf {
+        let dir = std::env::temp_dir().join(format!("note-status-test-{}-{}", std::process::id(), files.len()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("_img")).unwrap();
+        for (name, body) in files {
+            std::fs::write(dir.join(name), body).unwrap();
+        }
+        dir
+    }
+
+    #[test]
+    fn build_entries_keys_by_stem_skips_index_and_joins_sessions() {
+        let dir = temp_content(&[
+            ("_index.md", "---\ntitle: x\n---\nhome"),
+            ("don't stop.md", "---\ncreateddate: 2026-10-01\n---\nshort note"),
+            ("big essay.md", &format!("---\ncreateddate: 2024-08-31\nlastmod: 2026-09-23 12:16:49\n---\n{}", "word ".repeat(700))),
+            ("tagged.md", "---\nstatus: started\nstatus_source: manual\n---\nmanual override"),
+            ("_img/pic.webp", "not a note"),
+        ]);
+        let recent = serde_json::json!({
+            "big essay": {"status": "updated", "words": 10, "sessions": [
+                {"iso": "2026-09-23", "date": "Sep 23", "rel": "", "added": 1, "removed": 0},
+                {"iso": "2026-06-01", "date": "Jun 1", "rel": "", "added": 1, "removed": 0},
+                {"iso": "2025-12-01", "date": "Dec 1", "rel": "", "added": 1, "removed": 0},
+                {"iso": "2025-03-01", "date": "Mar 1", "rel": "", "added": 1, "removed": 0},
+                {"iso": "2024-08-31", "date": "Aug 31", "rel": "", "kind": "published", "words": 10}
+            ]},
+            "don't stop": {"status": "new", "words": 2, "sessions": [
+                {"iso": "2026-10-01", "date": "Oct 1", "rel": "today", "kind": "published", "words": 2}
+            ]}
+        });
+        let entries = build_entries(&dir, &recent, &Thresholds::default());
+        let stems: Vec<&str> = entries.iter().map(|e| e.stem.as_str()).collect();
+        assert_eq!(stems, vec!["big essay", "don't stop", "tagged"]);
+
+        let big = &entries[0];
+        assert_eq!((big.level, big.source), (Level::Evergreen, Source::Git));
+        assert_eq!(big.facts.sessions, 5);
+        assert_eq!(big.facts.span_days, 753);
+        assert_eq!(big.reason, "Estimated from edit history · 5 sessions over 2 years · 700 words");
+
+        let short = &entries[1];
+        assert_eq!((short.level, short.source), (Level::Started, Source::Git));
+        assert_eq!(short.facts, NoteFacts { words: 2, sessions: 1, span_days: 0, manual: None });
+
+        let tagged = &entries[2];
+        assert_eq!((tagged.level, tagged.source), (Level::Started, Source::Manual));
+        assert_eq!(tagged.reason, "Set by author");
+        assert_eq!(tagged.facts.sessions, 0);
+
+        let json = entries_to_json(&entries);
+        assert_eq!(json["big essay"]["status"], "evergreen");
+        assert_eq!(json["big essay"]["source"], "git");
+        assert_eq!(json["big essay"]["words"], 700);
+        assert_eq!(json["big essay"]["sessions"], 5);
+        assert_eq!(json["big essay"]["span_days"], 753);
+        assert_eq!(json["don't stop"]["reason"], "Estimated from edit history · 1 session · 2 words");
+        assert!(json.get("_index").is_none());
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn build_entries_span_falls_back_to_frontmatter_dates_without_sessions() {
+        let dir = temp_content(&[
+            ("old.md", "---\ncreateddate: 2023-01-01\nlastmod: 2023-07-01 10:00:00\n---\nold untouched note body"),
+        ]);
+        let entries = build_entries(&dir, &serde_json::json!({}), &Thresholds::default());
+        assert_eq!(entries[0].facts, NoteFacts { words: 4, sessions: 0, span_days: 181, manual: None });
+        assert_eq!(entries[0].level, Level::Started); // 4 words, 0 sessions
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn render_report_lists_disagreements_first_then_each_level() {
+        let t = Thresholds::default();
+        let mk = |stem: &str, words, sessions, span, manual: Option<Level>| {
+            let facts = NoteFacts { words, sessions, span_days: span, manual };
+            let (level, source) = classify(&facts, &t);
+            let reason = reason(&facts, source);
+            Entry { stem: stem.to_string(), level, source, facts, reason }
+        };
+        let entries = vec![
+            mk("alpha", 3000, 20, 700, Some(Level::Started)), // manual started, git says evergreen
+            mk("beta", 50, 1, 0, Some(Level::Growing)),       // manual growing, git says started
+            mk("gamma", 3000, 20, 700, None),
+            mk("delta", 50, 1, 0, None),
+            mk("epsilon", 300, 2, 10, None),
+            mk("zeta", 50, 1, 0, Some(Level::Started)),        // manual agrees
+        ];
+        let report = render_report(&entries, &t, NaiveDate::from_ymd_opt(2026, 10, 1).unwrap());
+        assert!(report.starts_with("# Note status report · 2026-10-01\n"));
+        assert!(report.contains("| evergreen | 1 | 0 | 1 |"), "summary row for evergreen:\n{report}");
+        assert!(report.contains("| growing | 1 | 1 | 2 |"));
+        assert!(report.contains("| started | 1 | 2 | 3 |"));
+        assert!(report.contains("Thresholds: evergreen = 600 words, 5 sessions, 180 days · started = < 120 words, <= 1 session"));
+
+        let dis = report.find("## Manual tag disagrees with heuristic (2)").expect("disagreement section");
+        let alpha = report[dis..].find("- **alpha**").unwrap();
+        let beta = report[dis..].find("- **beta**").unwrap();
+        assert!(alpha < beta, "bigger disagreement first");
+        assert!(report.contains("- **alpha** — manual `started`, heuristic `evergreen` — Estimated from edit history · 20 sessions over 1 year · 3,000 words"));
+        assert!(!report[dis..].contains("- **zeta**"), "agreeing manual tags are not disagreements");
+
+        let ever = report.find("## evergreen (1)").unwrap();
+        let grow = report.find("## growing (2)").unwrap();
+        let start = report.find("## started (3)").unwrap();
+        assert!(dis < ever && ever < grow && grow < start);
+        assert!(report[start..].contains("- zeta — Set by author"));
+        assert!(report[ever..grow].contains("- gamma — Estimated from edit history · 20 sessions over 1 year · 3,000 words"));
     }
 }

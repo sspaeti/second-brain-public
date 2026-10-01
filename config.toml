@@ -55,6 +55,11 @@ enableGitInfo = true # produces RSS feed too at /index.xml; it uses `pubDate` fr
   recentUpdatesSessionGapHours = 24   # commits closer than this fold into one editing session
   recentUpdatesMaxSessions = 200        # sessions shown in a note's change popover
   recentUpdatesNewGraceDays = 14         # edits within this many days of publish keep the NEW badge (age at edit, not today)
+  # note status (read by `obsidian-quartz note-status`, build-time only; spec docs/superpowers/specs/2026-10-01-note-status-design.md)
+  noteStatusEvergreenWords    = 600   # evergreen needs all three: words, sessions, span
+  noteStatusEvergreenSessions = 5
+  noteStatusEvergreenSpanDays = 180
+  noteStatusStartedWords      = 120   # started when fewer words AND <= 1 editing session
 
 # ---------------------------------------------------------------------------
 # LOCAL ADDITION (not from upstream Quartz) — raw Markdown output per note.
