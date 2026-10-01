@@ -174,6 +174,106 @@ pub fn strip_frontmatter(text: &str) -> &str {
     text
 }
 
+use chrono::NaiveDate;
+
+/// The frontmatter keys note-status cares about, read with a line scan (the
+/// published frontmatter is flat `key: value`; no YAML parser needed and the
+/// `title: "\"x\""` quirk in file_utils.rs can't trip it).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct FrontmatterFields {
+    /// Some(level) only when `status_source: manual` AND `status:` is a level.
+    pub manual: Option<Level>,
+    pub createddate: Option<NaiveDate>,
+    pub lastmod: Option<NaiveDate>,
+}
+
+fn frontmatter_block(text: &str) -> Option<&str> {
+    let rest = text.strip_prefix("---")?;
+    let end = rest.find("\n---")?;
+    Some(&rest[..end])
+}
+
+fn unquote(s: &str) -> &str {
+    let s = s.trim();
+    s.strip_prefix('\'')
+        .and_then(|x| x.strip_suffix('\''))
+        .or_else(|| s.strip_prefix('"').and_then(|x| x.strip_suffix('"')))
+        .unwrap_or(s)
+}
+
+/// `2026-09-23 12:16:49`, `2026-09-23`, `'2026-09-23'` -> the date part.
+fn date_prefix(s: &str) -> Option<NaiveDate> {
+    let s = unquote(s);
+    if s.len() < 10 {
+        return None;
+    }
+    NaiveDate::parse_from_str(&s[..10], "%Y-%m-%d").ok()
+}
+
+pub fn frontmatter_fields(text: &str) -> FrontmatterFields {
+    let mut status: Option<String> = None;
+    let mut source: Option<String> = None;
+    let mut out = FrontmatterFields { manual: None, createddate: None, lastmod: None };
+    if let Some(block) = frontmatter_block(text) {
+        for line in block.lines() {
+            let Some((key, value)) = line.split_once(':') else { continue };
+            match key.trim() {
+                "status" => status = Some(unquote(value).to_string()),
+                "status_source" => source = Some(unquote(value).to_string()),
+                "createddate" => out.createddate = date_prefix(value),
+                "lastmod" => out.lastmod = date_prefix(value),
+                _ => {}
+            }
+        }
+    }
+    if source.as_deref() == Some("manual") {
+        out.manual = status.as_deref().and_then(Level::parse);
+    }
+    out
+}
+
+/// (session count, days between the newest and oldest session) for one
+/// data/recent_updates.json entry. Rows are newest-first; every row is a
+/// session, whether it carries `added`/`removed` or `kind: published`.
+pub fn sessions_facts(entry: Option<&serde_json::Value>) -> (usize, i64) {
+    let Some(rows) = entry.and_then(|e| e.get("sessions")).and_then(|s| s.as_array()) else {
+        return (0, 0);
+    };
+    let dates: Vec<NaiveDate> = rows
+        .iter()
+        .filter_map(|r| r.get("iso").and_then(|v| v.as_str()))
+        .filter_map(|s| NaiveDate::parse_from_str(s, "%Y-%m-%d").ok())
+        .collect();
+    let span = match (dates.iter().max(), dates.iter().min()) {
+        (Some(newest), Some(oldest)) => (*newest - *oldest).num_days(),
+        _ => 0,
+    };
+    (rows.len(), span.max(0))
+}
+
+/// Thresholds from the site's config.toml ([params] noteStatus*). Anything
+/// missing or unparsable keeps the default, so a typo never silently
+/// reclassifies the whole site to one level.
+pub fn thresholds_from_toml(text: &str) -> Thresholds {
+    let mut t = Thresholds::default();
+    let Ok(doc) = text.parse::<toml::Table>() else { return t };
+    let Some(params) = doc.get("params").and_then(|p| p.as_table()) else { return t };
+    let int = |key: &str| params.get(key).and_then(|v| v.as_integer()).filter(|n| *n >= 0);
+    if let Some(n) = int("noteStatusEvergreenWords") {
+        t.evergreen_words = n as usize;
+    }
+    if let Some(n) = int("noteStatusEvergreenSessions") {
+        t.evergreen_sessions = n as usize;
+    }
+    if let Some(n) = int("noteStatusEvergreenSpanDays") {
+        t.evergreen_span_days = n;
+    }
+    if let Some(n) = int("noteStatusStartedWords") {
+        t.started_words = n as usize;
+    }
+    t
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -272,5 +372,63 @@ mod tests {
         assert_eq!(word_count("no frontmatter here"), 3);
         assert_eq!(word_count("---\ntitle: x\n---\n"), 0);
         assert_eq!(word_count(""), 0);
+    }
+
+    #[test]
+    fn frontmatter_fields_reads_status_only_with_manual_source() {
+        let manual = "---\ncreateddate: 2024-08-31\nlastmod: 2026-09-23 12:16:49\nstatus: evergreen\nstatus_source: manual\ntitle: \"x\"\n---\nbody";
+        let f = frontmatter_fields(manual);
+        assert_eq!(f.manual, Some(Level::Evergreen));
+        assert_eq!(f.createddate, chrono::NaiveDate::from_ymd_opt(2024, 8, 31));
+        assert_eq!(f.lastmod, chrono::NaiveDate::from_ymd_opt(2026, 9, 23));
+
+        // a hand-typed `status:` without status_source is NOT an override
+        let typed = "---\nstatus: evergreen\n---\nbody";
+        assert_eq!(frontmatter_fields(typed).manual, None);
+
+        // quoted dates and a status_source other than manual
+        let quoted = "---\ncreateddate: '2026-10-01'\nstatus: growing\nstatus_source: git\n---\n";
+        let f = frontmatter_fields(quoted);
+        assert_eq!(f.manual, None);
+        assert_eq!(f.createddate, chrono::NaiveDate::from_ymd_opt(2026, 10, 1));
+        assert_eq!(f.lastmod, None);
+
+        // no frontmatter at all
+        let f = frontmatter_fields("just text");
+        assert_eq!(f, FrontmatterFields { manual: None, createddate: None, lastmod: None });
+    }
+
+    #[test]
+    fn sessions_facts_counts_rows_and_spans_newest_to_oldest() {
+        let entry: serde_json::Value = serde_json::json!({
+            "status": "updated", "words": 107,
+            "sessions": [
+                {"date": "Sep 23", "iso": "2026-09-23", "rel": "8 days ago", "added": 212, "removed": 40},
+                {"date": "Aug 28", "iso": "2026-08-28", "rel": "1 month ago", "added": 1004, "removed": 117},
+                {"date": "Aug 31, 2024", "iso": "2024-08-31", "rel": "2 years ago", "kind": "published", "words": 1420}
+            ]
+        });
+        assert_eq!(sessions_facts(Some(&entry)), (3, 753));
+
+        let one: serde_json::Value = serde_json::json!({"status": "new", "words": 95,
+            "sessions": [{"date": "Oct 1", "iso": "2026-10-01", "rel": "today", "kind": "published", "words": 95}]});
+        assert_eq!(sessions_facts(Some(&one)), (1, 0));
+
+        // entry without sessions (zero-word edits only), and no entry at all
+        let none: serde_json::Value = serde_json::json!({"status": "updated", "words": 0});
+        assert_eq!(sessions_facts(Some(&none)), (0, 0));
+        assert_eq!(sessions_facts(None), (0, 0));
+    }
+
+    #[test]
+    fn thresholds_from_toml_reads_params_and_falls_back() {
+        let cfg = "baseURL = \"x\"\n[params]\nauthor = \"S\"\nnoteStatusEvergreenWords = 700\nnoteStatusEvergreenSessions = 6\nnoteStatusEvergreenSpanDays = 200\nnoteStatusStartedWords = 100\n";
+        assert_eq!(
+            thresholds_from_toml(cfg),
+            Thresholds { evergreen_words: 700, evergreen_sessions: 6, evergreen_span_days: 200, started_words: 100 }
+        );
+        assert_eq!(thresholds_from_toml("[params]\nnoteStatusStartedWords = 50\n"),
+            Thresholds { started_words: 50, ..Thresholds::default() });
+        assert_eq!(thresholds_from_toml("not even = [toml"), Thresholds::default());
     }
 }
