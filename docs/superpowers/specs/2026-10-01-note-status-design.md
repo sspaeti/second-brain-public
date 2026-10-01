@@ -1,7 +1,7 @@
 # Note status: started → growing → evergreen
 
 **Date:** 2026-10-01
-**Status:** Draft, awaiting review
+**Status:** Implemented 2026-10-01 (branch `garden-status-added`)
 
 ## Problem
 
@@ -140,12 +140,16 @@ Rules, evaluated in order, thresholds from `config.toml`:
 noteStatusEvergreenWords    = 600   # all three must hold for evergreen
 noteStatusEvergreenSessions = 5
 noteStatusEvergreenSpanDays = 180
-noteStatusStartedWords      = 120   # started when words < this AND sessions <= 1
+noteStatusStartedWords      = 120   # started when words < this AND span_days < noteStatusStartedSpanDays
+noteStatusStartedSpanDays   = 30
+noteStatusTinyWords         = 50    # started whatever the history when words < this
 ```
 
 1. `manual` set → that level, `source = manual`.
 2. `words ≥ 600 && sessions ≥ 5 && span_days ≥ 180` → `evergreen`.
-3. `words < 120 && sessions ≤ 1` → `started`.
+3. `words < 50 || (words < 120 && span_days < 30)` → `started`. (Calibration ruling, 2026-10-01: the
+   original `sessions ≤ 1` test made 43 three-word notes `growing` because a same-week fix commit
+   counted as tending; and a 9-word note stays `started` however often it is touched.)
 4. otherwise → `growing`.
 
 `source = git` for 2–4. Thresholds are a first guess; the calibration run (step 4) tunes them before

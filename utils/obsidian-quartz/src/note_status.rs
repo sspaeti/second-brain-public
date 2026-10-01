@@ -67,7 +67,12 @@ pub struct Thresholds {
     pub evergreen_words: usize,
     pub evergreen_sessions: usize,
     pub evergreen_span_days: i64,
+    /// started when fewer words than this AND every edit fell within
+    /// `started_span_days` of the first (a same-week fix commit is not tending).
     pub started_words: usize,
+    pub started_span_days: i64,
+    /// started whatever the history when fewer words than this.
+    pub tiny_words: usize,
 }
 
 impl Default for Thresholds {
@@ -77,6 +82,8 @@ impl Default for Thresholds {
             evergreen_sessions: 5,
             evergreen_span_days: 180,
             started_words: 120,
+            started_span_days: 30,
+            tiny_words: 50,
         }
     }
 }
@@ -91,6 +98,8 @@ pub struct NoteFacts {
 }
 
 /// The rules, in spec order: manual tag, evergreen, started, else growing.
+/// (started: tiny, or short and never tended past its first month — see the
+/// 2026-10-01 calibration ruling in the plan ledger / CHANGELOG.)
 pub fn classify(f: &NoteFacts, t: &Thresholds) -> (Level, Source) {
     if let Some(level) = f.manual {
         return (level, Source::Manual);
@@ -101,7 +110,7 @@ pub fn classify(f: &NoteFacts, t: &Thresholds) -> (Level, Source) {
     {
         return (Level::Evergreen, Source::Git);
     }
-    if f.words < t.started_words && f.sessions <= 1 {
+    if f.words < t.tiny_words || (f.words < t.started_words && f.span_days < t.started_span_days) {
         return (Level::Started, Source::Git);
     }
     (Level::Growing, Source::Git)
@@ -272,6 +281,12 @@ pub fn thresholds_from_toml(text: &str) -> Thresholds {
     if let Some(n) = int("noteStatusStartedWords") {
         t.started_words = n as usize;
     }
+    if let Some(n) = int("noteStatusStartedSpanDays") {
+        t.started_span_days = n;
+    }
+    if let Some(n) = int("noteStatusTinyWords") {
+        t.tiny_words = n as usize;
+    }
     t
 }
 
@@ -377,8 +392,8 @@ pub fn render_report(entries: &[Entry], t: &Thresholds, today: NaiveDate) -> Str
     let levels = [Level::Evergreen, Level::Growing, Level::Started];
     let mut out = format!("# Note status report · {}\n\n", today.format("%Y-%m-%d"));
     out.push_str(&format!(
-        "Thresholds: evergreen = {} words, {} sessions, {} days · started = < {} words, <= 1 session\n\n",
-        t.evergreen_words, t.evergreen_sessions, t.evergreen_span_days, t.started_words
+        "Thresholds: evergreen = {} words, {} sessions, {} days · started = < {} words with all edits within {} days, or < {} words\n\n",
+        t.evergreen_words, t.evergreen_sessions, t.evergreen_span_days, t.started_words, t.started_span_days, t.tiny_words
     ));
     out.push_str("| level | git | manual | total |\n|---|---|---|---|\n");
     for level in levels {
@@ -492,19 +507,27 @@ mod tests {
     }
 
     #[test]
-    fn started_is_short_and_untouched() {
+    fn started_is_short_and_untended() {
         let t = Thresholds::default();
         assert_eq!(classify(&facts(95, 1, 0), &t), (Level::Started, Source::Git));
         assert_eq!(classify(&facts(95, 0, 0), &t), (Level::Started, Source::Git));
-        // a second session or enough words makes it growing
-        assert_eq!(classify(&facts(95, 2, 3), &t), (Level::Growing, Source::Git));
+        // a same-week fix commit does not make a 3-word note "growing"
+        assert_eq!(classify(&facts(3, 2, 1), &t), (Level::Started, Source::Git));
+        assert_eq!(classify(&facts(95, 2, 29), &t), (Level::Started, Source::Git));
+        // tended for a month, or enough words, makes it growing
+        assert_eq!(classify(&facts(95, 2, 30), &t), (Level::Growing, Source::Git));
         assert_eq!(classify(&facts(120, 1, 0), &t), (Level::Growing, Source::Git));
+        // a tiny note stays started however often it was touched
+        assert_eq!(classify(&facts(9, 5, 700), &t), (Level::Started, Source::Git));
+        assert_eq!(classify(&facts(49, 5, 700), &t), (Level::Started, Source::Git));
+        assert_eq!(classify(&facts(50, 5, 700), &t), (Level::Growing, Source::Git));
     }
 
     #[test]
     fn thresholds_are_not_hardcoded() {
-        let t = Thresholds { evergreen_words: 10, evergreen_sessions: 1, evergreen_span_days: 0, started_words: 1 };
+        let t = Thresholds { evergreen_words: 10, evergreen_sessions: 1, evergreen_span_days: 0, started_words: 1, started_span_days: 0, tiny_words: 0 };
         assert_eq!(classify(&facts(10, 1, 0), &t), (Level::Evergreen, Source::Git));
+        assert_eq!(classify(&facts(5, 1, 0), &t), (Level::Growing, Source::Git));
     }
 
     #[test]
@@ -605,10 +628,10 @@ mod tests {
 
     #[test]
     fn thresholds_from_toml_reads_params_and_falls_back() {
-        let cfg = "baseURL = \"x\"\n[params]\nauthor = \"S\"\nnoteStatusEvergreenWords = 700\nnoteStatusEvergreenSessions = 6\nnoteStatusEvergreenSpanDays = 200\nnoteStatusStartedWords = 100\n";
+        let cfg = "baseURL = \"x\"\n[params]\nauthor = \"S\"\nnoteStatusEvergreenWords = 700\nnoteStatusEvergreenSessions = 6\nnoteStatusEvergreenSpanDays = 200\nnoteStatusStartedWords = 100\nnoteStatusStartedSpanDays = 14\nnoteStatusTinyWords = 40\n";
         assert_eq!(
             thresholds_from_toml(cfg),
-            Thresholds { evergreen_words: 700, evergreen_sessions: 6, evergreen_span_days: 200, started_words: 100 }
+            Thresholds { evergreen_words: 700, evergreen_sessions: 6, evergreen_span_days: 200, started_words: 100, started_span_days: 14, tiny_words: 40 }
         );
         assert_eq!(thresholds_from_toml("[params]\nnoteStatusStartedWords = 50\n"),
             Thresholds { started_words: 50, ..Thresholds::default() });
@@ -709,7 +732,7 @@ mod tests {
         assert!(report.contains("| evergreen | 1 | 0 | 1 |"), "summary row for evergreen:\n{report}");
         assert!(report.contains("| growing | 1 | 1 | 2 |"));
         assert!(report.contains("| started | 1 | 2 | 3 |"));
-        assert!(report.contains("Thresholds: evergreen = 600 words, 5 sessions, 180 days · started = < 120 words, <= 1 session"));
+        assert!(report.contains("Thresholds: evergreen = 600 words, 5 sessions, 180 days · started = < 120 words with all edits within 30 days, or < 50 words"));
 
         let dis = report.find("## Manual tag disagrees with heuristic (2)").expect("disagreement section");
         let alpha = report[dis..].find("- **alpha**").unwrap();

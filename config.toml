@@ -59,7 +59,9 @@ enableGitInfo = true # produces RSS feed too at /index.xml; it uses `pubDate` fr
   noteStatusEvergreenWords    = 600   # evergreen needs all three: words, sessions, span
   noteStatusEvergreenSessions = 5
   noteStatusEvergreenSpanDays = 180
-  noteStatusStartedWords      = 120   # started when fewer words AND <= 1 editing session
+  noteStatusStartedWords      = 120   # started when fewer words AND every edit within noteStatusStartedSpanDays of the first
+  noteStatusStartedSpanDays   = 30
+  noteStatusTinyWords         = 50    # started whatever the history when fewer words than this
 
 # ---------------------------------------------------------------------------
 # LOCAL ADDITION (not from upstream Quartz) — raw Markdown output per note.
