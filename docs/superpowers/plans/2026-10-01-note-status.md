@@ -1265,7 +1265,7 @@ Replace lines 25–43 (from `{{ with (index hugo.Data.recent_updates .File.BaseF
               <span class="nc-title">Note status</span>
               {{- /* one line on purpose: the test asserts "</strong> Worked on…" with a single space */ -}}
               <span class="nc-status"><strong>{{ .status | title }}.</strong> {{ if eq .status "started" }}Quick capture, barely worked on. May change or vanish.{{ else if eq .status "growing" }}Worked on, still rough. Expect bullets, gaps and views that move.{{ else }}Own words, tended over time. Still grows, never finished.{{ end }}</span>
-              <span class="nc-status-src">{{ .reason }} · <a href="{{ "taxonomy-of-note-types/" | relURL }}">How my notes grow</a></span>
+              <span class="nc-status-src">{{ .reason }} · <a href="{{ "taxonomy-of-note-types/" | relURL }}">How notes grow</a></span>
               {{ with $ru }}{{ with .sessions }}
               <span class="nc-sep"></span>
               <span class="nc-title">Recent changes</span>
