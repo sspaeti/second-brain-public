@@ -213,11 +213,8 @@ fn unquote(s: &str) -> &str {
 
 /// `2026-09-23 12:16:49`, `2026-09-23`, `'2026-09-23'` -> the date part.
 fn date_prefix(s: &str) -> Option<NaiveDate> {
-    let s = unquote(s);
-    if s.len() < 10 {
-        return None;
-    }
-    NaiveDate::parse_from_str(&s[..10], "%Y-%m-%d").ok()
+    let s = unquote(s).get(..10)?; // None when shorter, or when byte 10 splits a multibyte char
+    NaiveDate::parse_from_str(s, "%Y-%m-%d").ok()
 }
 
 pub fn frontmatter_fields(text: &str) -> FrontmatterFields {
@@ -261,14 +258,34 @@ pub fn sessions_facts(entry: Option<&serde_json::Value>) -> (usize, i64) {
     (rows.len(), span.max(0))
 }
 
-/// Thresholds from the site's config.toml ([params] noteStatus*). Anything
-/// missing or unparsable keeps the default, so a typo never silently
-/// reclassifies the whole site to one level.
-pub fn thresholds_from_toml(text: &str) -> Thresholds {
+/// Thresholds from the site's config.toml ([params] noteStatus*). A missing
+/// key keeps its default. An unparsable file or a key that is not a
+/// non-negative integer also keeps the default, but is reported in the
+/// returned warnings so a tuning typo never silently does nothing.
+pub fn parse_thresholds(text: &str) -> (Thresholds, Vec<String>) {
     let mut t = Thresholds::default();
-    let Ok(doc) = text.parse::<toml::Table>() else { return t };
-    let Some(params) = doc.get("params").and_then(|p| p.as_table()) else { return t };
-    let int = |key: &str| params.get(key).and_then(|v| v.as_integer()).filter(|n| *n >= 0);
+    let mut warnings = Vec::new();
+    let doc = match text.parse::<toml::Table>() {
+        Ok(doc) => doc,
+        Err(e) => {
+            warnings.push(format!("config.toml did not parse ({}); using default thresholds", e.message()));
+            return (t, warnings);
+        }
+    };
+    let Some(params) = doc.get("params").and_then(|p| p.as_table()) else { return (t, warnings) };
+    let mut int = |key: &str| -> Option<i64> {
+        let v = params.get(key)?;
+        match v.as_integer() {
+            Some(n) if n >= 0 => Some(n),
+            _ => {
+                warnings.push(format!(
+                    "config.toml [params] {} = {} is not a non-negative integer; using the default",
+                    key, v
+                ));
+                None
+            }
+        }
+    };
     if let Some(n) = int("noteStatusEvergreenWords") {
         t.evergreen_words = n as usize;
     }
@@ -287,7 +304,12 @@ pub fn thresholds_from_toml(text: &str) -> Thresholds {
     if let Some(n) = int("noteStatusTinyWords") {
         t.tiny_words = n as usize;
     }
-    t
+    (t, warnings)
+}
+
+/// `parse_thresholds` without the warnings.
+pub fn thresholds_from_toml(text: &str) -> Thresholds {
+    parse_thresholds(text).0
 }
 
 /// Pull `garden/<level>` out of a note's tag list. Returns the remaining tags
@@ -338,20 +360,33 @@ pub struct Entry {
 }
 
 /// One Entry per `content/*.md` (top level only, `_index.md` skipped), sorted
-/// by stem. `recent` is the parsed data/recent_updates.json object.
-pub fn build_entries(content_dir: &Path, recent: &serde_json::Value, t: &Thresholds) -> Vec<Entry> {
+/// by stem. `recent` is the parsed data/recent_updates.json object. Errors
+/// when the directory is unreadable or holds no notes, so a broken checkout
+/// can never ship an empty data/note_status.json (= no level word anywhere);
+/// a single unreadable note is reported and skipped.
+pub fn build_entries(content_dir: &Path, recent: &serde_json::Value, t: &Thresholds) -> Result<Vec<Entry>, String> {
     let mut entries = Vec::new();
-    let Ok(dir) = fs::read_dir(content_dir) else { return entries };
+    let dir = fs::read_dir(content_dir)
+        .map_err(|e| format!("note-status: cannot read {} ({})", content_dir.display(), e))?;
     for entry in dir.flatten() {
         let path = entry.path();
         if !path.is_file() || path.extension().and_then(|e| e.to_str()) != Some("md") {
             continue;
         }
-        let Some(stem) = path.file_stem().and_then(|s| s.to_str()).map(str::to_string) else { continue };
+        let Some(stem) = path.file_stem().and_then(|s| s.to_str()).map(str::to_string) else {
+            eprintln!("note-status: skipping {} (file name is not UTF-8)", path.display());
+            continue;
+        };
         if stem == "_index" {
             continue;
         }
-        let Ok(text) = fs::read_to_string(&path) else { continue };
+        let text = match fs::read_to_string(&path) {
+            Ok(text) => text,
+            Err(e) => {
+                eprintln!("note-status: skipping {} ({})", path.display(), e);
+                continue;
+            }
+        };
         let fm = frontmatter_fields(&text);
         let (sessions, mut span_days) = sessions_facts(recent.get(&stem));
         if sessions == 0 {
@@ -364,8 +399,11 @@ pub fn build_entries(content_dir: &Path, recent: &serde_json::Value, t: &Thresho
         let reason = reason(&facts, source);
         entries.push(Entry { stem, level, source, facts, reason });
     }
+    if entries.is_empty() {
+        return Err(format!("note-status: no notes found under {}", content_dir.display()));
+    }
     entries.sort_by(|a, b| a.stem.cmp(&b.stem));
-    entries
+    Ok(entries)
 }
 
 pub fn entries_to_json(entries: &[Entry]) -> serde_json::Value {
@@ -441,8 +479,17 @@ pub fn render_report(entries: &[Entry], t: &Thresholds, today: NaiveDate) -> Str
 
 pub fn run() -> Result<(), Box<dyn Error>> {
     let thresholds = match fs::read_to_string(CONFIG_TOML) {
-        Ok(text) => thresholds_from_toml(&text),
-        Err(_) => Thresholds::default(),
+        Ok(text) => {
+            let (t, warnings) = parse_thresholds(&text);
+            for w in warnings {
+                eprintln!("note-status: {}", w);
+            }
+            t
+        }
+        Err(e) => {
+            eprintln!("note-status: cannot read {} ({}); using default thresholds", CONFIG_TOML, e);
+            Thresholds::default()
+        }
     };
     let recent = match load_json(RECENT_UPDATES) {
         Ok(v) => v,
@@ -454,7 +501,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             serde_json::json!({})
         }
     };
-    let entries = build_entries(Path::new(CONTENT_DIR), &recent, &thresholds);
+    let entries = build_entries(Path::new(CONTENT_DIR), &recent, &thresholds)?;
     save_json_pretty(OUT_JSON, &entries_to_json(&entries))?;
     let today = chrono::Utc::now().naive_utc().date();
     fs::write(OUT_REPORT, render_report(&entries, &thresholds, today))?;
@@ -669,7 +716,7 @@ mod tests {
                 {"iso": "2026-10-01", "date": "Oct 1", "rel": "today", "kind": "published", "words": 2}
             ]}
         });
-        let entries = build_entries(&dir, &recent, &Thresholds::default());
+        let entries = build_entries(&dir, &recent, &Thresholds::default()).unwrap();
         let stems: Vec<&str> = entries.iter().map(|e| e.stem.as_str()).collect();
         assert_eq!(stems, vec!["big essay", "don't stop", "tagged"]);
 
@@ -704,10 +751,48 @@ mod tests {
         let dir = temp_content(&[
             ("old.md", "---\ncreateddate: 2023-01-01\nlastmod: 2023-07-01 10:00:00\n---\nold untouched note body"),
         ]);
-        let entries = build_entries(&dir, &serde_json::json!({}), &Thresholds::default());
+        let entries = build_entries(&dir, &serde_json::json!({}), &Thresholds::default()).unwrap();
         assert_eq!(entries[0].facts, NoteFacts { words: 4, sessions: 0, span_days: 181, manual: None });
         assert_eq!(entries[0].level, Level::Started); // 4 words, 0 sessions
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn build_entries_fails_loudly_on_missing_dir_or_no_notes() {
+        let missing = std::env::temp_dir().join("note-status-test-does-not-exist");
+        let err = build_entries(&missing, &serde_json::json!({}), &Thresholds::default()).unwrap_err();
+        assert!(err.contains("note-status-test-does-not-exist"), "names the dir: {err}");
+
+        let empty = temp_content(&[("_index.md", "---\ntitle: x\n---\nhome"), ("_img/only.webp", "")]);
+        let err = build_entries(&empty, &serde_json::json!({}), &Thresholds::default()).unwrap_err();
+        assert!(err.contains("no notes"), "{err}");
+        let _ = std::fs::remove_dir_all(&empty);
+    }
+
+    #[test]
+    fn date_prefix_never_panics_on_multibyte_input() {
+        // a smart quote pasted into the vault lands verbatim in the frontmatter;
+        // byte 10 is inside the 3-byte quote here, so a byte slice would panic
+        let f = frontmatter_fields("---\ncreateddate: 2026-10-0\u{2019}1\nlastmod: \u{2019}2026-10-01\n---\n");
+        assert_eq!(f.createddate, None);
+        assert_eq!(f.lastmod, None);
+    }
+
+    #[test]
+    fn parse_thresholds_warns_on_bad_values_and_unparsable_config() {
+        let (t, warnings) = parse_thresholds("[params]\nnoteStatusStartedWords = \"100\"\nnoteStatusTinyWords = 100.0\nnoteStatusEvergreenSessions = -1\nnoteStatusEvergreenWords = 700\n");
+        assert_eq!(t, Thresholds { evergreen_words: 700, ..Thresholds::default() });
+        assert_eq!(warnings.len(), 3, "{warnings:?}");
+        assert!(warnings.iter().any(|w| w.contains("noteStatusStartedWords")));
+        assert!(warnings.iter().any(|w| w.contains("noteStatusTinyWords")));
+        assert!(warnings.iter().any(|w| w.contains("noteStatusEvergreenSessions")));
+
+        let (t, warnings) = parse_thresholds("not even = [toml");
+        assert_eq!(t, Thresholds::default());
+        assert_eq!(warnings.len(), 1);
+        assert!(warnings[0].contains("config.toml"), "{warnings:?}");
+
+        assert!(parse_thresholds("[params]\nnoteStatusTinyWords = 40\n").1.is_empty());
     }
 
     #[test]
