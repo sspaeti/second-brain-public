@@ -16,6 +16,7 @@ mod enrich_with_blog;
 mod enrich_with_book;
 mod enrich_with_memories;
 mod merge_search_index;
+mod note_status;
 
 mod svg_generator;
 use svg_generator::{ImageConfig, generate_og_image, extract_title_from_md};
