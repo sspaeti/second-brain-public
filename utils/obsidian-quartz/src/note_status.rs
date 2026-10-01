@@ -274,6 +274,31 @@ pub fn thresholds_from_toml(text: &str) -> Thresholds {
     t
 }
 
+/// Pull `garden/<level>` out of a note's tag list. Returns the remaining tags
+/// (so Hugo never gets a `garden/...` taxonomy term) and the level, if valid.
+pub fn split_garden_tag(tags: Vec<String>) -> (Vec<String>, Option<Level>) {
+    let mut rest = Vec::with_capacity(tags.len());
+    let mut level = None;
+    for tag in tags {
+        let lower = tag.to_ascii_lowercase();
+        match lower.strip_prefix("garden/") {
+            Some(value) => match Level::parse(value) {
+                Some(l) => {
+                    if level.is_none() {
+                        level = Some(l);
+                    }
+                }
+                None => eprintln!(
+                    "note-status: unknown garden level \"{}\" (use started, growing or evergreen); tag dropped",
+                    tag
+                ),
+            },
+            None => rest.push(tag),
+        }
+    }
+    (rest, level)
+}
+
 use std::error::Error;
 use std::fs;
 use std::path::Path;
@@ -698,5 +723,27 @@ mod tests {
         assert!(dis < ever && ever < grow && grow < start);
         assert!(report[start..].contains("- zeta — Set by author"));
         assert!(report[ever..grow].contains("- gamma — Estimated from edit history · 20 sessions over 1 year · 3,000 words"));
+    }
+
+    #[test]
+    fn split_garden_tag_extracts_level_case_insensitively_and_drops_unknown() {
+        let tags = vec!["cooking".to_string(), "garden/Growing".to_string(), "til".to_string()];
+        let (rest, level) = split_garden_tag(tags);
+        assert_eq!(rest, vec!["cooking", "til"]);
+        assert_eq!(level, Some(Level::Growing));
+
+        let (rest, level) = split_garden_tag(vec!["Garden/EVERGREEN".to_string()]);
+        assert!(rest.is_empty());
+        assert_eq!(level, Some(Level::Evergreen));
+
+        // unknown level: dropped from tags, no level (a warning is printed)
+        let (rest, level) = split_garden_tag(vec!["garden/tree".to_string(), "x".to_string()]);
+        assert_eq!(rest, vec!["x"]);
+        assert_eq!(level, None);
+
+        // no garden tag at all
+        let (rest, level) = split_garden_tag(vec!["a".to_string()]);
+        assert_eq!(rest, vec!["a"]);
+        assert_eq!(level, None);
     }
 }

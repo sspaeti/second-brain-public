@@ -10,6 +10,7 @@ use std::fs::copy;
 
 use serde_yaml::Value;
 
+use crate::note_status::{split_garden_tag, Level};
 use crate::slug::brain_slug;
 use crate::svg_generator::{
     extract_title_from_md, generate_mermaid_og_image, generate_og_image, ImageConfig,
@@ -220,6 +221,7 @@ pub fn process_file(
     let mut lines: Vec<String> = Vec::new();
     let mut title = String::new();
     let mut tags: Vec<String> = Vec::new();
+    let mut garden_level: Option<Level> = None;
 
     let mut found_title = false;
     let mut found_publish = false;
@@ -337,6 +339,10 @@ pub fn process_file(
                 .map(|s| s.replace("#", "").to_string())
                 .filter(|s| !EXCLUDED_TAG_EMOJIS.iter().any(|emoji| s.contains(*emoji)))
                 .collect();
+            // #garden/<level> -> status frontmatter, never a Hugo taxonomy term
+            let (rest, level) = split_garden_tag(tags);
+            tags = rest;
+            garden_level = level;
             lines.pop();
             continue;
         }
@@ -561,6 +567,10 @@ pub fn process_file(
             if let Some(ref date) = created_date {
                 frontmatter_parts.insert(0, format!("createddate: '{}'", date));
             }
+            if let Some(level) = garden_level {
+                frontmatter_parts.push(format!("status: {}", level.as_str()));
+                frontmatter_parts.push("status_source: manual".to_string());
+            }
             frontmatter = format!("---\n{}\n---\n", frontmatter_parts.join("\n"));
         } else {
             // Merge frontmatter
@@ -696,6 +706,23 @@ pub fn process_file(
                     serde_yaml::Value::Sequence(filtered_new_tags),
                 );
                 println!("Added {} non-empty tags", tag_count);
+            }
+
+            // #garden/<level> on the Tags line -> status frontmatter (spec:
+            // docs/superpowers/specs/2026-10-01-note-status-design.md). A vault
+            // `status:` key without the tag is dropped so a stale hand-typed
+            // value can't masquerade as an author override.
+            existing_frontmatter.remove("status");
+            existing_frontmatter.remove("status_source");
+            if let Some(level) = garden_level {
+                existing_frontmatter.insert(
+                    "status".to_string(),
+                    serde_yaml::Value::String(level.as_str().to_string()),
+                );
+                existing_frontmatter.insert(
+                    "status_source".to_string(),
+                    serde_yaml::Value::String("manual".to_string()),
+                );
             }
 
             // Redundant check removed - we now handle empty tags earlier
