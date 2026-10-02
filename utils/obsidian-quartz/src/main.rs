@@ -16,6 +16,7 @@ mod enrich_with_blog;
 mod enrich_with_book;
 mod enrich_with_memories;
 mod merge_search_index;
+mod note_status;
 
 mod svg_generator;
 use svg_generator::{ImageConfig, generate_og_image, extract_title_from_md};
@@ -42,6 +43,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         enrich_with_memories::run()?;
     } else if args.len() > 1 && args[1] == "merge-search-index" {
         merge_search_index::run()?;
+    } else if args.len() > 1 && args[1] == "note-status" {
+        note_status::run()?;
     } else {
         let second_brain_path = env::var("secondbrain")?;
         let public_folder_path_copy = env::var("public_secondbrain")?;

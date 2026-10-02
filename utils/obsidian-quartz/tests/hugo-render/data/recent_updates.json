@@ -1,0 +1,6 @@
+{
+  "status note": {"status": "updated", "words": 12, "sessions": [
+    {"date": "Oct 1", "iso": "2026-10-01", "rel": "today", "added": 12, "removed": 3},
+    {"date": "Sep 28", "iso": "2026-09-28", "rel": "3 days ago", "kind": "published", "words": 83}
+  ]}
+}

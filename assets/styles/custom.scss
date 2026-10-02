@@ -2059,11 +2059,13 @@ a.hn-badge {
   background: color-mix(in srgb, var(--badge-upd) 14%, transparent);
 }
 
-// ========== Per-note change popover ("recently updated" on the meta line) ========== //
-// A "recently updated" label after "min read" on a note page, separated by the
-// same " · " as the other meta items (single.html). Hover
-// (desktop) or tap/focus (mobile) reveals a popover listing recent editing
-// sessions with per-session added/removed word counts (data/recent_updates.json).
+// ========== Per-note status + change popover (level word on the meta line) ========== //
+// The note's level word ("started" / "growing" / "evergreen") after "min read"
+// on a note page, separated by the same " · " as the other meta items
+// (single.html). Hover (desktop) or tap/focus (mobile) reveals a popover with
+// the level's one-line meaning and reason (data/note_status.json), then the
+// recent editing sessions with per-session added/removed word counts
+// (data/recent_updates.json). Spec: docs/superpowers/specs/2026-10-01-note-status-design.md
 // The label is monochrome (currentColor = the meta line's muted text), so the
 // meta line carries a single hue; colour is spent only inside the popover:
 // --badge-new (green) for additions, one red token (--badge-del) for deletions.
@@ -2101,10 +2103,11 @@ article > .meta {
   display: none;
   position: absolute;
   top: calc(100% + 0.5em);
-  left: 0;
+  left: auto;
+  right: 0;  // the word ends the meta line; the box grows leftwards and stays inside the card
   z-index: 40;
-  min-width: 250px;
-  max-width: 360px;
+  min-width: 340px;        // wide enough that "Aug 31, 2024  2 years ago" and the reason line stay on one row
+  max-width: 460px;
   max-height: 60vh;        // tall histories scroll instead of running off-screen
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -2128,6 +2131,20 @@ article > .meta {
   right: 0;
   top: -0.6em;
   height: 0.6em;
+}
+// Narrow screens: the wrapped meta line can leave the word near the left edge,
+// where a right-anchored 250-360px box would overflow the card. The tapped
+// popover becomes a bottom sheet instead.
+@media (max-width: 640px) {
+  .nc-popover {
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
+    top: auto;
+    bottom: 1rem;
+    max-width: none;
+    max-height: 70vh;
+  }
 }
 .note-changes:hover .nc-popover,
 .note-changes:focus-within .nc-popover,
@@ -2171,6 +2188,28 @@ article > .meta {
 }
 .nc-add { color: var(--badge-new); }
 .nc-del { color: var(--badge-del); }
+// Status section above the sessions list.
+.nc-status {
+  display: block;
+  margin-bottom: 0.35em;
+  line-height: 1.4;
+}
+.nc-status-src {
+  display: block;
+  font-size: 0.86em;
+  color: var(--global-font-secondary-color);
+  a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+.nc-sep {
+  display: block;
+  height: 1px;
+  margin: 0.6em 0 0.55em;
+  background: color-mix(in srgb, var(--outlinegray) 55%, transparent);
+}
 
 // ---------------------------------------------------------------------------
 // "Show more" time buckets under Recent Notes (partials/recent.html,

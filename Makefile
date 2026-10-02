@@ -35,6 +35,7 @@ prepare: ## prepare commands
 	obsidian-quartz #copy all notes from my secondbrain with hashtag #publish to /content
 	bash utils/revert-lastmod-only.sh #undo lastmod bump when a note's content is unchanged (only lastmod line differs)
 	python utils/recent_updates.py #per-note change badges (new/updated + words) -> data/recent_updates.json
+	obsidian-quartz note-status #per-note level started/growing/evergreen -> data/note_status.json (+ note_status_report.md for the author)
 	cp static/second-brain.jpeg static/feature #the one in feature is used for _index note
 	rm -rf public
 	hugo-obsidian -input=content -output=/home/sspaeti/git/sspaeti.com/second-brain-public/assets/indices -index=true -root=.
@@ -51,7 +52,7 @@ bsky-index: ## refresh page -> announcing bluesky post map (~10s of API calls; d
 	python utils/bsky_index.py #-> data/bsky_posts.json; leaves the existing file alone if the API is unreachable
 
 test: ## render the fixture notes in utils/obsidian-quartz/tests/hugo-render with the real layouts and assert on the HTML (embeds, wikilinks, callouts); plus the obsidian-quartz unit tests
-	python -m unittest utils/test_recent_updates.py
+	python -m unittest utils/test_recent_updates.py utils/test_revert_lastmod_only.py
 	cd utils/obsidian-quartz && cargo test
 
 word-count:

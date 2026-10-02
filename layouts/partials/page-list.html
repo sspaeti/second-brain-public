@@ -2,8 +2,10 @@
     {{- range . -}}
     <li class="section-li">
         <div class="section">
+            {{- /* level word (data/note_status.json) after the date; inside `with` the dot is the map, so the stem is captured first */ -}}
+            {{- $stem := "" }}{{ if .File }}{{ $stem = .File.BaseFileName }}{{ end }}
             <p class="meta">
-                {{partial "date-fmt.html" .}}
+                {{partial "date-fmt.html" .}}{{ with hugo.Data.note_status }}{{ with index . $stem }} · {{ .status }}{{ end }}{{ end }}
             </p>
             <div class="desc">
               <h3><a href="{{ .Permalink }}" class="internal-link" data-src="{{ .RelPermalink }}">{{- .Title -}}</a>{{ if .File }}{{ with (index hugo.Data.recent_updates .File.BaseFileName) }}{{ if eq .status "new" }}<span class="update-badge badge-new">NEW &middot; {{ lang.FormatNumberCustom 0 .words }}w</span>{{ else if gt (int .words) 0 }}<span class="update-badge badge-upd">UPD &middot; ~{{ lang.FormatNumberCustom 0 .words }}w</span>{{ else }}<span class="update-badge badge-upd">UPD</span>{{ end }}{{ end }}{{ end }}</h3>

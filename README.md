@@ -41,6 +41,7 @@ Key features:
 - **Filter expressions**: Supports folder filters and exclusion patterns (`!file.path.contains`)
 - **Smart descriptions**: Auto-extracts clean descriptions from first paragraph
 - **OG image generation**: Creates social media preview images with SVG→WebP conversion
+- **Note status**: `obsidian-quartz note-status` derives each note's level (started / growing / evergreen) from git history, or a `#garden/<level>` tag; see CHANGELOG 2026-10-01
 - **Mermaid OG images**: Renders a note's Mermaid diagram as its OG image via `ogimage: mermaid` / `mermaid<N>` (uses `mmdc` + ImageMagick, dark theme matches the site's OG template)
 
 See **[utils/obsidian-quartz/README.md](./utils/obsidian-quartz/README.md)** for details.

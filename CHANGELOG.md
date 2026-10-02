@@ -1,6 +1,34 @@
 # Changelog
 
 
+### 2026-10-01: Note status on every note: started / growing / evergreen
+
+- **Meta line**: the "recently updated" label is now the note's level word
+  (`started`, `growing`, `evergreen`), same dotted underline, on every note.
+  Hover/tap opens one popover: what the level means, how it was decided
+  ("Estimated from edit history · 23 sessions over 2 years · 3,120 words" or
+  "Set by author"), a link to the taxonomy note, then the recent-changes list
+  that was already there. Recent Notes rows and link hover cards show the word.
+  Below 640px the tapped popover is a bottom sheet.
+- **Build**: new `obsidian-quartz note-status` (Rust, `utils/obsidian-quartz/src/note_status.rs`)
+  runs in `make prepare` after `recent_updates.py`, joins its sessions with
+  word counts, writes `data/note_status.json` for Hugo and a gitignored
+  `note_status_report.md` at the repo root for me (manual-vs-git
+  disagreements first; not under `data/`, Hugo tries to parse every file there).
+  Thresholds in `config.toml` (`noteStatus*`). Rules: evergreen = >= 600 words,
+  >= 5 edit sessions, >= 180 days between first and last; started = < 50 words,
+  or < 120 words with every edit inside the first 30 days; else growing. A
+  one-off Jev pass over all 699 notes (not part of the build) tuned the started
+  rule: the first draft (`<= 1 session`) called 43 three-word notes growing
+  because a same-week fix commit counted as tending.
+- **Vault override**: `#garden/started|growing|evergreen` on a note's `Tags:`
+  line becomes `status:` / `status_source: manual` in the published frontmatter
+  and wins over the heuristic. Old emoji status tags stay ignored.
+- **Performance**: no new request or asset; Lighthouse before/after on
+  `will-ai-replace-humans/` mobile 95 -> 95/96 (two runs), desktop 100 -> 100,
+  TBT 70 ms -> 30-100 ms (run-to-run noise); the note page grows by the ~400
+  byte status section.
+- Spec: `docs/superpowers/specs/2026-10-01-note-status-design.md`.
 ### 2026-09-29: Quieter colour: monochrome "recently updated" marker, no per-topic card bars
 
 - **Note meta line**: the "recently updated" marker was a green dot with a
