@@ -44,6 +44,7 @@ RewriteRule ^the-ordinary-life?/?$ https://www.ssp.sh/brain/the-ordinary-boring-
 RewriteRule ^on-writing?/?$ https://www.ssp.sh/brain/earn-attention-with-writing/ [R=301,L]
 RewriteRule ^quartz-publish-obsidian-vault?/?$ https://www.ssp.sh/brain/quartz/ [R=301,L]
 RewriteRule ^computer-desk-setup-monitor-workflow?/?$ https://www.ssp.sh/brain/computer-desk-setup-and-monitor-workflow/ [R=301,L]
+RewriteRule ^migrating-from-onenote-to-hugo?/?$ https://www.ssp.sh/brain/migrating-from-wordpress-to-hugo/ [R=301,L]
 
 # redirect old article URL to new
 RewriteCond %{HTTP_HOST} ^ssp\.sh$
