@@ -1,6 +1,17 @@
 # Changelog
 
 
+### 2026-10-04: Fresh notes start as `started`
+
+- **Note status**: a note created in the vault within the last 30 days
+  (`createddate`, not the publish date) with fewer than 300 words is `started`,
+  whatever its edit history. Before, a 173-word note written and published on
+  the same day was `growing` on day one: the rules only knew "short" and
+  "tended", not "new". The popover sentence names it (`created yesterday ·`);
+  the note ages into `growing` by itself. `config.toml`: `noteStatusFreshDays`,
+  `noteStatusFreshWords`; `data/note_status.json` gains `age_days`.
+  Flipped 4 existing notes from growing to started on the day of the change.
+
 ### 2026-10-01: Note status on every note: started / growing / evergreen
 
 - **Meta line**: the "recently updated" label is now the note's level word

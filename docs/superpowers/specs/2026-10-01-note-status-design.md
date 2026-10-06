@@ -143,13 +143,21 @@ noteStatusEvergreenSpanDays = 180
 noteStatusStartedWords      = 120   # started when words < this AND span_days < noteStatusStartedSpanDays
 noteStatusStartedSpanDays   = 30
 noteStatusTinyWords         = 50    # started whatever the history when words < this
+noteStatusFreshDays         = 30    # started while age_days (today - createddate) <= this AND words < noteStatusFreshWords
+noteStatusFreshWords        = 300
 ```
 
 1. `manual` set → that level, `source = manual`.
 2. `words ≥ 600 && sessions ≥ 5 && span_days ≥ 180` → `evergreen`.
-3. `words < 50 || (words < 120 && span_days < 30)` → `started`. (Calibration ruling, 2026-10-01: the
-   original `sessions ≤ 1` test made 43 three-word notes `growing` because a same-week fix commit
-   counted as tending; and a 9-word note stays `started` however often it is touched.)
+3. `words < 50 || (words < 120 && span_days < 30) || (age_days <= 30 && words < 300)` → `started`.
+   (Calibration ruling, 2026-10-01: the original `sessions ≤ 1` test made 43 three-word notes
+   `growing` because a same-week fix commit counted as tending; and a 9-word note stays `started`
+   however often it is touched. Fresh clause, 2026-10-04: a 173-word note written and published the
+   same day was `growing` on day one because nothing in the rules knew it was new. `age_days` is
+   today minus the vault `createddate`, not the publish date: a note that sat two years in the
+   vault before publishing is not fresh. No `createddate` → the clause never fires. The popover
+   sentence then reads `Estimated from edit history · created yesterday · 2 sessions over 1 day ·
+   173 words`; the note ages into `growing` by itself after 30 days.)
 4. otherwise → `growing`.
 
 `source = git` for 2–4. Thresholds are a first guess; the calibration run (step 4) tunes them before

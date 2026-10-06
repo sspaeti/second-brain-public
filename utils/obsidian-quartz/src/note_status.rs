@@ -73,6 +73,11 @@ pub struct Thresholds {
     pub started_span_days: i64,
     /// started whatever the history when fewer words than this.
     pub tiny_words: usize,
+    /// started while the vault note is younger than this (days since
+    /// `createddate`) AND has fewer than `fresh_words` words: a fresh note is
+    /// a quick capture however long it is, and ages into growing by itself.
+    pub fresh_days: i64,
+    pub fresh_words: usize,
 }
 
 impl Default for Thresholds {
@@ -84,6 +89,8 @@ impl Default for Thresholds {
             started_words: 120,
             started_span_days: 30,
             tiny_words: 50,
+            fresh_days: 30,
+            fresh_words: 300,
         }
     }
 }
@@ -94,12 +101,24 @@ pub struct NoteFacts {
     pub words: usize,
     pub sessions: usize,
     pub span_days: i64,
+    /// Days since the vault `createddate` (not the publish date: a note that
+    /// sat two years in the vault is not fresh). None when the frontmatter
+    /// has no date.
+    pub age_days: Option<i64>,
     pub manual: Option<Level>,
+}
+
+impl NoteFacts {
+    /// Created within `fresh_days` and still under `fresh_words` words.
+    pub fn is_fresh(&self, t: &Thresholds) -> bool {
+        matches!(self.age_days, Some(age) if age <= t.fresh_days) && self.words < t.fresh_words
+    }
 }
 
 /// The rules, in spec order: manual tag, evergreen, started, else growing.
 /// (started: tiny, or short and never tended past its first month — see the
-/// 2026-10-01 calibration ruling in the plan ledger / CHANGELOG.)
+/// 2026-10-01 calibration ruling in the plan ledger / CHANGELOG — or fresh:
+/// created in the vault within the last month and not yet long, 2026-10-04.)
 pub fn classify(f: &NoteFacts, t: &Thresholds) -> (Level, Source) {
     if let Some(level) = f.manual {
         return (level, Source::Manual);
@@ -110,7 +129,10 @@ pub fn classify(f: &NoteFacts, t: &Thresholds) -> (Level, Source) {
     {
         return (Level::Evergreen, Source::Git);
     }
-    if f.words < t.tiny_words || (f.words < t.started_words && f.span_days < t.started_span_days) {
+    if f.words < t.tiny_words
+        || (f.words < t.started_words && f.span_days < t.started_span_days)
+        || f.is_fresh(t)
+    {
         return (Level::Started, Source::Git);
     }
     (Level::Growing, Source::Git)
@@ -152,7 +174,7 @@ pub fn humanize_span(days: i64) -> String {
 
 /// The sentence shown under the level in the popover. Built here so the Hugo
 /// template only prints it.
-pub fn reason(f: &NoteFacts, source: Source) -> String {
+pub fn reason(f: &NoteFacts, source: Source, t: &Thresholds) -> String {
     if source == Source::Manual {
         return "Set by author".to_string();
     }
@@ -161,11 +183,25 @@ pub fn reason(f: &NoteFacts, source: Source) -> String {
         1 => "1 session".to_string(),
         n => format!("{} sessions over {}", n, humanize_span(f.span_days)),
     };
+    let fresh = match f.age_days {
+        Some(age) if f.is_fresh(t) => format!("created {} · ", humanize_age(age)),
+        _ => String::new(),
+    };
     format!(
-        "Estimated from edit history · {} · {} words",
+        "Estimated from edit history · {}{} · {} words",
+        fresh,
         history,
         with_commas(f.words)
     )
+}
+
+/// "today", "yesterday", "12 days ago" (only ever shown within `fresh_days`).
+pub fn humanize_age(days: i64) -> String {
+    match days {
+        d if d < 1 => "today".to_string(),
+        1 => "yesterday".to_string(),
+        d => format!("{} days ago", d),
+    }
 }
 
 /// Words in a note body: frontmatter stripped, split on whitespace.
@@ -304,6 +340,12 @@ pub fn parse_thresholds(text: &str) -> (Thresholds, Vec<String>) {
     if let Some(n) = int("noteStatusTinyWords") {
         t.tiny_words = n as usize;
     }
+    if let Some(n) = int("noteStatusFreshDays") {
+        t.fresh_days = n;
+    }
+    if let Some(n) = int("noteStatusFreshWords") {
+        t.fresh_words = n as usize;
+    }
     (t, warnings)
 }
 
@@ -364,7 +406,12 @@ pub struct Entry {
 /// when the directory is unreadable or holds no notes, so a broken checkout
 /// can never ship an empty data/note_status.json (= no level word anywhere);
 /// a single unreadable note is reported and skipped.
-pub fn build_entries(content_dir: &Path, recent: &serde_json::Value, t: &Thresholds) -> Result<Vec<Entry>, String> {
+pub fn build_entries(
+    content_dir: &Path,
+    recent: &serde_json::Value,
+    t: &Thresholds,
+    today: NaiveDate,
+) -> Result<Vec<Entry>, String> {
     let mut entries = Vec::new();
     let dir = fs::read_dir(content_dir)
         .map_err(|e| format!("note-status: cannot read {} ({})", content_dir.display(), e))?;
@@ -394,9 +441,10 @@ pub fn build_entries(content_dir: &Path, recent: &serde_json::Value, t: &Thresho
                 span_days = (l - c).num_days().max(0);
             }
         }
-        let facts = NoteFacts { words: word_count(&text), sessions, span_days, manual: fm.manual };
+        let age_days = fm.createddate.map(|c| (today - c).num_days().max(0));
+        let facts = NoteFacts { words: word_count(&text), sessions, span_days, age_days, manual: fm.manual };
         let (level, source) = classify(&facts, t);
-        let reason = reason(&facts, source);
+        let reason = reason(&facts, source, t);
         entries.push(Entry { stem, level, source, facts, reason });
     }
     if entries.is_empty() {
@@ -417,6 +465,7 @@ pub fn entries_to_json(entries: &[Entry]) -> serde_json::Value {
                 "words": e.facts.words,
                 "sessions": e.facts.sessions,
                 "span_days": e.facts.span_days,
+                "age_days": e.facts.age_days,
                 "reason": e.reason,
             }),
         );
@@ -430,8 +479,8 @@ pub fn render_report(entries: &[Entry], t: &Thresholds, today: NaiveDate) -> Str
     let levels = [Level::Evergreen, Level::Growing, Level::Started];
     let mut out = format!("# Note status report · {}\n\n", today.format("%Y-%m-%d"));
     out.push_str(&format!(
-        "Thresholds: evergreen = {} words, {} sessions, {} days · started = < {} words with all edits within {} days, or < {} words\n\n",
-        t.evergreen_words, t.evergreen_sessions, t.evergreen_span_days, t.started_words, t.started_span_days, t.tiny_words
+        "Thresholds: evergreen = {} words, {} sessions, {} days · started = < {} words with all edits within {} days, or < {} words, or created within {} days with < {} words\n\n",
+        t.evergreen_words, t.evergreen_sessions, t.evergreen_span_days, t.started_words, t.started_span_days, t.tiny_words, t.fresh_days, t.fresh_words
     ));
     out.push_str("| level | git | manual | total |\n|---|---|---|---|\n");
     for level in levels {
@@ -462,7 +511,7 @@ pub fn render_report(entries: &[Entry], t: &Thresholds, today: NaiveDate) -> Str
             e.stem,
             e.level.as_str(),
             git_level.as_str(),
-            reason(&git_facts, Source::Git)
+            reason(&git_facts, Source::Git, t)
         ));
     }
 
@@ -501,9 +550,9 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             serde_json::json!({})
         }
     };
-    let entries = build_entries(Path::new(CONTENT_DIR), &recent, &thresholds)?;
-    save_json_pretty(OUT_JSON, &entries_to_json(&entries))?;
     let today = chrono::Utc::now().naive_utc().date();
+    let entries = build_entries(Path::new(CONTENT_DIR), &recent, &thresholds, today)?;
+    save_json_pretty(OUT_JSON, &entries_to_json(&entries))?;
     fs::write(OUT_REPORT, render_report(&entries, &thresholds, today))?;
     let count = |l: Level| entries.iter().filter(|e| e.level == l).count();
     println!(
@@ -524,7 +573,15 @@ mod tests {
     use super::*;
 
     fn facts(words: usize, sessions: usize, span_days: i64) -> NoteFacts {
-        NoteFacts { words, sessions, span_days, manual: None }
+        NoteFacts { words, sessions, span_days, age_days: None, manual: None }
+    }
+
+    fn fresh(words: usize, sessions: usize, span_days: i64, age_days: i64) -> NoteFacts {
+        NoteFacts { age_days: Some(age_days), ..facts(words, sessions, span_days) }
+    }
+
+    fn day(y: i32, m: u32, d: u32) -> NaiveDate {
+        NaiveDate::from_ymd_opt(y, m, d).unwrap()
     }
 
     #[test]
@@ -571,30 +628,71 @@ mod tests {
     }
 
     #[test]
+    fn fresh_note_is_started_until_it_ages_or_grows() {
+        let t = Thresholds::default();
+        // 173 words, created yesterday: a quick capture, not growing (2026-10-04 ruling)
+        assert_eq!(classify(&fresh(173, 2, 1, 1), &t), (Level::Started, Source::Git));
+        assert_eq!(classify(&fresh(299, 1, 0, 30), &t), (Level::Started, Source::Git));
+        // the same note a month later, or once it is long, is growing
+        assert_eq!(classify(&fresh(173, 1, 0, 31), &t), (Level::Growing, Source::Git));
+        assert_eq!(classify(&fresh(300, 1, 0, 0), &t), (Level::Growing, Source::Git));
+        // no createddate: the fresh rule cannot apply
+        assert_eq!(classify(&facts(173, 1, 0), &t), (Level::Growing, Source::Git));
+        // a fresh note that is already evergreen-sized and tended stays evergreen
+        assert_eq!(classify(&fresh(600, 5, 180, 0), &t), (Level::Evergreen, Source::Git));
+    }
+
+    #[test]
+    fn humanize_age_reads_as_prose() {
+        assert_eq!(humanize_age(0), "today");
+        assert_eq!(humanize_age(1), "yesterday");
+        assert_eq!(humanize_age(12), "12 days ago");
+    }
+
+    #[test]
     fn thresholds_are_not_hardcoded() {
-        let t = Thresholds { evergreen_words: 10, evergreen_sessions: 1, evergreen_span_days: 0, started_words: 1, started_span_days: 0, tiny_words: 0 };
+        let t = Thresholds { evergreen_words: 10, evergreen_sessions: 1, evergreen_span_days: 0, started_words: 1, started_span_days: 0, tiny_words: 0, fresh_days: 0, fresh_words: 0 };
         assert_eq!(classify(&facts(10, 1, 0), &t), (Level::Evergreen, Source::Git));
         assert_eq!(classify(&facts(5, 1, 0), &t), (Level::Growing, Source::Git));
+        assert_eq!(classify(&fresh(5, 1, 0, 0), &t), (Level::Growing, Source::Git));
     }
 
     #[test]
     fn reason_strings_match_the_spec() {
-        assert_eq!(reason(&facts(95, 1, 0), Source::Manual), "Set by author");
+        let t = Thresholds::default();
+        assert_eq!(reason(&facts(95, 1, 0), Source::Manual, &t), "Set by author");
         assert_eq!(
-            reason(&facts(95, 1, 0), Source::Git),
+            reason(&facts(95, 1, 0), Source::Git, &t),
             "Estimated from edit history · 1 session · 95 words"
         );
         assert_eq!(
-            reason(&facts(3120, 23, 753), Source::Git),
+            reason(&facts(3120, 23, 753), Source::Git, &t),
             "Estimated from edit history · 23 sessions over 2 years · 3,120 words"
         );
         assert_eq!(
-            reason(&facts(40, 0, 0), Source::Git),
+            reason(&facts(40, 0, 0), Source::Git, &t),
             "Estimated from edit history · no edits recorded · 40 words"
         );
         assert_eq!(
-            reason(&facts(400, 2, 0), Source::Git),
+            reason(&facts(400, 2, 0), Source::Git, &t),
             "Estimated from edit history · 2 sessions over 1 day · 400 words"
+        );
+        // fresh notes say so; older or long ones do not
+        assert_eq!(
+            reason(&fresh(173, 2, 1, 1), Source::Git, &t),
+            "Estimated from edit history · created yesterday · 2 sessions over 1 day · 173 words"
+        );
+        assert_eq!(
+            reason(&fresh(173, 1, 0, 0), Source::Git, &t),
+            "Estimated from edit history · created today · 1 session · 173 words"
+        );
+        assert_eq!(
+            reason(&fresh(173, 1, 0, 31), Source::Git, &t),
+            "Estimated from edit history · 1 session · 173 words"
+        );
+        assert_eq!(
+            reason(&fresh(400, 1, 0, 2), Source::Git, &t),
+            "Estimated from edit history · 1 session · 400 words"
         );
     }
 
@@ -675,10 +773,10 @@ mod tests {
 
     #[test]
     fn thresholds_from_toml_reads_params_and_falls_back() {
-        let cfg = "baseURL = \"x\"\n[params]\nauthor = \"S\"\nnoteStatusEvergreenWords = 700\nnoteStatusEvergreenSessions = 6\nnoteStatusEvergreenSpanDays = 200\nnoteStatusStartedWords = 100\nnoteStatusStartedSpanDays = 14\nnoteStatusTinyWords = 40\n";
+        let cfg = "baseURL = \"x\"\n[params]\nauthor = \"S\"\nnoteStatusEvergreenWords = 700\nnoteStatusEvergreenSessions = 6\nnoteStatusEvergreenSpanDays = 200\nnoteStatusStartedWords = 100\nnoteStatusStartedSpanDays = 14\nnoteStatusTinyWords = 40\nnoteStatusFreshDays = 60\nnoteStatusFreshWords = 250\n";
         assert_eq!(
             thresholds_from_toml(cfg),
-            Thresholds { evergreen_words: 700, evergreen_sessions: 6, evergreen_span_days: 200, started_words: 100, started_span_days: 14, tiny_words: 40 }
+            Thresholds { evergreen_words: 700, evergreen_sessions: 6, evergreen_span_days: 200, started_words: 100, started_span_days: 14, tiny_words: 40, fresh_days: 60, fresh_words: 250 }
         );
         assert_eq!(thresholds_from_toml("[params]\nnoteStatusStartedWords = 50\n"),
             Thresholds { started_words: 50, ..Thresholds::default() });
@@ -716,7 +814,7 @@ mod tests {
                 {"iso": "2026-10-01", "date": "Oct 1", "rel": "today", "kind": "published", "words": 2}
             ]}
         });
-        let entries = build_entries(&dir, &recent, &Thresholds::default()).unwrap();
+        let entries = build_entries(&dir, &recent, &Thresholds::default(), day(2026, 10, 1)).unwrap();
         let stems: Vec<&str> = entries.iter().map(|e| e.stem.as_str()).collect();
         assert_eq!(stems, vec!["big essay", "don't stop", "tagged"]);
 
@@ -728,7 +826,7 @@ mod tests {
 
         let short = &entries[1];
         assert_eq!((short.level, short.source), (Level::Started, Source::Git));
-        assert_eq!(short.facts, NoteFacts { words: 2, sessions: 1, span_days: 0, manual: None });
+        assert_eq!(short.facts, NoteFacts { words: 2, sessions: 1, span_days: 0, age_days: Some(0), manual: None });
 
         let tagged = &entries[2];
         assert_eq!((tagged.level, tagged.source), (Level::Started, Source::Manual));
@@ -741,7 +839,9 @@ mod tests {
         assert_eq!(json["big essay"]["words"], 700);
         assert_eq!(json["big essay"]["sessions"], 5);
         assert_eq!(json["big essay"]["span_days"], 753);
-        assert_eq!(json["don't stop"]["reason"], "Estimated from edit history · 1 session · 2 words");
+        assert_eq!(json["big essay"]["age_days"], 761);
+        assert_eq!(json["tagged"]["age_days"], serde_json::Value::Null);
+        assert_eq!(json["don't stop"]["reason"], "Estimated from edit history · created today · 1 session · 2 words");
         assert!(json.get("_index").is_none());
         let _ = std::fs::remove_dir_all(&dir);
     }
@@ -751,8 +851,8 @@ mod tests {
         let dir = temp_content(&[
             ("old.md", "---\ncreateddate: 2023-01-01\nlastmod: 2023-07-01 10:00:00\n---\nold untouched note body"),
         ]);
-        let entries = build_entries(&dir, &serde_json::json!({}), &Thresholds::default()).unwrap();
-        assert_eq!(entries[0].facts, NoteFacts { words: 4, sessions: 0, span_days: 181, manual: None });
+        let entries = build_entries(&dir, &serde_json::json!({}), &Thresholds::default(), day(2026, 10, 1)).unwrap();
+        assert_eq!(entries[0].facts, NoteFacts { words: 4, sessions: 0, span_days: 181, age_days: Some(1369), manual: None });
         assert_eq!(entries[0].level, Level::Started); // 4 words, 0 sessions
         let _ = std::fs::remove_dir_all(&dir);
     }
@@ -760,11 +860,11 @@ mod tests {
     #[test]
     fn build_entries_fails_loudly_on_missing_dir_or_no_notes() {
         let missing = std::env::temp_dir().join("note-status-test-does-not-exist");
-        let err = build_entries(&missing, &serde_json::json!({}), &Thresholds::default()).unwrap_err();
+        let err = build_entries(&missing, &serde_json::json!({}), &Thresholds::default(), day(2026, 10, 1)).unwrap_err();
         assert!(err.contains("note-status-test-does-not-exist"), "names the dir: {err}");
 
         let empty = temp_content(&[("_index.md", "---\ntitle: x\n---\nhome"), ("_img/only.webp", "")]);
-        let err = build_entries(&empty, &serde_json::json!({}), &Thresholds::default()).unwrap_err();
+        let err = build_entries(&empty, &serde_json::json!({}), &Thresholds::default(), day(2026, 10, 1)).unwrap_err();
         assert!(err.contains("no notes"), "{err}");
         let _ = std::fs::remove_dir_all(&empty);
     }
@@ -799,9 +899,9 @@ mod tests {
     fn render_report_lists_disagreements_first_then_each_level() {
         let t = Thresholds::default();
         let mk = |stem: &str, words, sessions, span, manual: Option<Level>| {
-            let facts = NoteFacts { words, sessions, span_days: span, manual };
+            let facts = NoteFacts { words, sessions, span_days: span, age_days: None, manual };
             let (level, source) = classify(&facts, &t);
-            let reason = reason(&facts, source);
+            let reason = reason(&facts, source, &t);
             Entry { stem: stem.to_string(), level, source, facts, reason }
         };
         let entries = vec![
@@ -817,7 +917,7 @@ mod tests {
         assert!(report.contains("| evergreen | 1 | 0 | 1 |"), "summary row for evergreen:\n{report}");
         assert!(report.contains("| growing | 1 | 1 | 2 |"));
         assert!(report.contains("| started | 1 | 2 | 3 |"));
-        assert!(report.contains("Thresholds: evergreen = 600 words, 5 sessions, 180 days · started = < 120 words with all edits within 30 days, or < 50 words"));
+        assert!(report.contains("Thresholds: evergreen = 600 words, 5 sessions, 180 days · started = < 120 words with all edits within 30 days, or < 50 words, or created within 30 days with < 300 words"));
 
         let dis = report.find("## Manual tag disagrees with heuristic (2)").expect("disagreement section");
         let alpha = report[dis..].find("- **alpha**").unwrap();

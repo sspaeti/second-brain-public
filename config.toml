@@ -62,6 +62,8 @@ enableGitInfo = true # produces RSS feed too at /index.xml; it uses `pubDate` fr
   noteStatusStartedWords      = 120   # started when fewer words AND every edit within noteStatusStartedSpanDays of the first
   noteStatusStartedSpanDays   = 30
   noteStatusTinyWords         = 50    # started whatever the history when fewer words than this
+  noteStatusFreshDays         = 30    # started while created (vault createddate, not publish date) within this many days AND fewer than noteStatusFreshWords words
+  noteStatusFreshWords        = 300
 
 # ---------------------------------------------------------------------------
 # LOCAL ADDITION (not from upstream Quartz) — raw Markdown output per note.

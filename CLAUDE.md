@@ -68,6 +68,8 @@ The content processing requires these environment variables:
 - `secondbrain`: Path to private Obsidian vault
 - `public_secondbrain`: Path to public content folder
 
+**The private vault (`$secondbrain`, `~/Simon/SecondBrain/`) is off limits: never edit, write, or create files there.** Only `content/` in this repo may be changed. When a vault note needs an update, give the author the exact text to apply in the vault instead.
+
 ## Key Dependencies
 
 - **Hugo**: Static site generator (`/usr/bin/hugo`)
