@@ -22,6 +22,12 @@ Punctuated section body.
 ## Set commands in `vimrc`
 Inline code heading body.
 
+## Tags like #publish and [[Wikilink]] in a heading
+Hash and wikilink heading body.
+
+## What's "the" plan/goal?
+Question mark heading body.
+
 ## Last Heading
 Last section body.
 Block paragraph text with a block id. ^blk123

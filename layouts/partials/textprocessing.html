@@ -88,11 +88,16 @@
       {{$md = $md | replaceRE "(?m)^\\s*>\\s?" ""}}
       {{$md = $md | replaceRE "\\[![a-zA-Z]+\\][-+]?\\s?" ""}}
     {{else if $anchor}}
-      {{/* Heading reference: capture lines under the heading until a same-or-higher heading */}}
+      {{/* Heading reference: capture lines under the heading until a same-or-higher heading.
+           Headings are matched by their Hugo id (anchorize), not by text: Obsidian drops
+           :, #, |, ^, [ and ] when it writes a heading link ("Paste from Markdown: Google
+           Docs" becomes #Paste from Markdown Google Docs), and anchorize drops the same
+           punctuation on both sides. It is also the id the href below jumps to. */}}
       {{$section := slice}}
       {{$capturing := false}}
       {{$found := false}}
       {{$level := 0}}
+      {{- $anchorId := anchorize $anchor -}}
       {{range $line := (split $tp.RawContent "\n")}}
         {{if $capturing}}
           {{if and (hasPrefix (trim $line " ") "#") (findRE (printf "^#{1,%d}(\\s|$)" $level) $line)}}
@@ -100,7 +105,7 @@
           {{else}}
             {{$section = $section | append $line}}
           {{end}}
-        {{else if and (not $found) (hasPrefix (trim $line " ") "#") (eq (lower (partial "wikitext-normalize.html" (trim ($line | replaceRE "^#+\\s*" "") " "))) (lower $anchor))}}
+        {{else if and (not $found) (hasPrefix (trim $line " ") "#") (eq (anchorize (partial "wikitext-normalize.html" (trim ($line | replaceRE "^#+\\s*" "") " "))) $anchorId)}}
           {{$capturing = true}}
           {{$found = true}}
           {{$level = len (index (findRE "^#+" $line) 0)}}

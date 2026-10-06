@@ -103,6 +103,22 @@ fn textprocessing_renders_embeds_wikilinks_and_callouts() {
         anchor, source_ids
     );
 
+    // Obsidian drops :, #, |, ^, [ and ] when it writes a heading link, so the
+    // embed text never equals the heading text. Hugo's heading id (anchorize)
+    // drops that punctuation too, so the section is matched by id, not by text:
+    // ![[Convert Markdown ... #Paste from Markdown Google Docs]] used to collapse
+    // to a bare link because the heading reads "Paste from Markdown: Google Docs".
+    for (label, body, id, what) in [
+        ("Heading embed written the way Obsidian links it (colon dropped):", "Punctuated section body.", "punctuated-heading-with-parens--ampersand", "colon dropped"),
+        ("Heading embed with hash and wikilink stripped:", "Hash and wikilink heading body.", "tags-like-publish-and-wikilink-in-a-heading", "# and [[ ]] stripped"),
+        ("Heading embed with question mark, quotes and slash:", "Question mark heading body.", "whats-the-plangoal", "?, quotes and / kept"),
+    ] {
+        let t = transclusion_for(&page, label).unwrap_or_else(|| panic!("heading embed ({what}) renders the section, not a bare link"));
+        assert!(t.contains(body), "heading embed ({what}) body");
+        assert!(source_ids.contains(id), "fixture heading id {id} exists (ids: {:?})", source_ids);
+        assert!(t.contains(&format!(r#"href="/brain/source-note/#{id}""#)), "heading embed ({what}) links to the heading anchor:\n{t}");
+    }
+
     let t = transclusion_for(&page, "Heading embed whose section is a callout:").expect("callout section embed renders");
     assert!(t.contains("Callout body text inside the source note."), "callout section embed body");
     assert!(!t.contains("[!note]"), "embedded callout: no literal [!note]");
@@ -132,6 +148,9 @@ fn textprocessing_renders_embeds_wikilinks_and_callouts() {
         ("apostrophe heading", "apostrophe heading"),
         ("punctuated heading", "heading with colon/parens/&"),
         ("code heading", "heading with inline `code`"),
+        ("colonless heading", "heading linked without its colon"),
+        ("hash heading", "heading linked without its # and [[ ]]"),
+        ("question heading", "heading with ?, quotes and /"),
     ] {
         let a = anchor_of_link(&page, text);
         assert!(

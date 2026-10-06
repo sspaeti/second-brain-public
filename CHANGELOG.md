@@ -1,6 +1,20 @@
 # Changelog
 
 
+### 2026-10-06: Heading embeds match the way Obsidian writes them
+
+- **Embeds**: `![[Note#Heading]]` now finds its section by Hugo's heading id
+  (`anchorize`) instead of the exact heading text. Obsidian drops `:`, `#`,
+  `|`, `^`, `[` and `]` when it writes a heading link, so
+  `![[Convert Markdown to Rich Text (Google Docs)#Paste from Markdown Google Docs]]`
+  never equalled the heading `Paste from Markdown: Google Docs` and collapsed
+  to a bare link. Both sides lose the same punctuation under `anchorize`, and
+  it is the id the embed's link already jumped to. Apostrophes, commas, `?`,
+  quotes, `/`, `&`, parens and inline `code` in headings keep working
+  (`layouts/partials/textprocessing.html`; fixtures + assertions in
+  `utils/obsidian-quartz/tests/hugo_render.rs`). Full-site rebuild diffed
+  against the previous build: only the Google Docs note changed.
+
 ### 2026-10-04: Fresh notes start as `started`
 
 - **Note status**: a note created in the vault within the last 30 days
