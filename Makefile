@@ -16,11 +16,32 @@ update-force: ## Forcefully pull all changes and don't ask to patch
 	git fetch upstream
 	git checkout upstream/hugo -- layouts .github Makefile assets/js assets/styles/base.scss assets/styles/darkmode.scss config.toml data
 
+# `rm -rf public` fails with "Directory not empty" when a hugo build from an
+# interrupted make is still writing into public/ while rm deletes it (e.g. Ctrl-C
+# in the middle of `make deploy`, then `make deploy-preview` from the blog). Kill
+# any hugo whose cwd is this repo, retry the delete, and if it still won't go,
+# warn and continue: hugo-generate rebuilds public/ anyway.
+clean-public: ## remove public/ even if a stale hugo is still writing into it
+	@for p in $$(pgrep -x hugo 2>/dev/null); do \
+		if [ "$$(readlink /proc/$$p/cwd 2>/dev/null)" = "$(CURDIR)" ]; then \
+			echo "killing stale hugo (pid $$p) still writing into public/"; kill $$p; \
+		fi; \
+	done
+	@for i in 1 2 3 4 5; do \
+		rm -rf public 2>/dev/null && break; \
+		echo "public/ busy, retrying ($$i/5)..."; sleep 1; \
+	done; \
+	if [ -e public ]; then \
+		echo "WARNING: could not remove public/, continuing (hugo-generate overwrites it). Still held by:"; \
+		fuser -v public 2>&1 || true; \
+		rm -rf public 2>/dev/null || true; \
+	fi
+
 prepare-python: ## prepare commands
 	find /home/sspaeti/git/sspaeti.com/second-brain-public/content -type f -not -name ".git" -not -path "*/_img/*" -delete
 	python utils/find-publish-notes.py #copy all notes from my secondbrain with hashtag #publish to quartz
 	python utils/recent_updates.py #per-note change badges (new/updated + words) -> data/recent_updates.json
-	rm -rf public
+	$(MAKE) clean-public
 	hugo-obsidian -input=content -output=/home/sspaeti/git/sspaeti.com/second-brain-public/assets/indices -index=true -root=.
 	python utils/lower_case.py #change linkIndex to lowercase for proper linking
 	-$(MAKE) -C ../sspaeti-hugo-blog prepare #refresh blog indices so cross-edges are current
@@ -37,7 +58,7 @@ prepare: ## prepare commands
 	python utils/recent_updates.py #per-note change badges (new/updated + words) -> data/recent_updates.json
 	obsidian-quartz note-status #per-note level started/growing/evergreen -> data/note_status.json (+ note_status_report.md for the author)
 	cp static/second-brain.jpeg static/feature #the one in feature is used for _index note
-	rm -rf public
+	$(MAKE) clean-public
 	hugo-obsidian -input=content -output=/home/sspaeti/git/sspaeti.com/second-brain-public/assets/indices -index=true -root=.
 	# obsidian-quartz convert_to_lower_case #change linkIndex to lowercase for proper linking
 	python utils/lower_case.py #change linkIndex to lowercase for proper linking
