@@ -253,7 +253,8 @@ fn diagram_renderer_pele_by_config() {
         .captures(&page).expect("bundled stylesheet link")[1].to_string();
     let css = std::fs::read_to_string(out.join(css_file)).unwrap();
     assert!(css.contains("--pele-fg:"), "pele variables bundled");
-    assert!(is_match(&css, r#"\[saved-theme=dark\][^{]*\{[^}]*--pele-bg:#1f1f28"#), "dark Kanagawa surface for pele");
+    assert!(is_match(&css, r#":root[^{]*\{[^}]*--pele-bg:var\(--light\)"#), "pele background follows the site card token");
+    assert!(is_match(&css, r#"(?i)\[saved-theme=dark\][^{]*\{[^}]*--pele-surface:#2a2a37"#), "dark node surface for pele (blog table surface)");
     assert!(is_match(&css, r#":root[^{]*\{[^}]*--pele-font:var\(--font-body\)"#), "pele labels use the body font");
     let _ = std::fs::remove_dir_all(&out);
 }
