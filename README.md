@@ -21,7 +21,7 @@ This is a fork of the [Quartz](https://github.com/jackyzha0/quartz) repo ([v3](h
 * **Local video embeds** (`![[video.mp4]]`): Obsidian video wikilinks render as native HTML5 `<video controls>` players — the mp4 is copied from the vault alongside images and served from `/brain/`. Optional width via `![[video.mp4|400]]`
 * Callout blocks are normalized so compact and spaced forms render identically
 * **Obsidian transclusions / embeds** (`![[Note#^block-id]]` and `![[Note#Heading]]`): block and section references render inline as a quoted blockquote (instead of a broken image), with nested `[[wikilinks]]` and `![[images]]` inside the embed resolved, plus a floated top-right link back to the source note that jumps to the exact spot — the heading for section refs, or the block's enclosing heading for block refs (hover shows the popover preview)
-* **Mermaid → OG image**: set `ogimage: mermaid` (or `mermaid2`, `mermaid3`, …) in a note's frontmatter to render the Nth ` ```mermaid ` block as the social-media preview image (rendered via `mmdc` + ImageMagick to a 1200×630 WebP using a dark theme that matches the site's OG template)
+* **Mermaid → OG image**: set `ogimage: mermaid` (or `mermaid2`, `mermaid3`, …) in a note's frontmatter to render the Nth ` ```mermaid ` block as the social-media preview image (rendered via pele — the same renderer the pages use, vendored in `utils/pele-og/` — plus `rsvg-convert` + ImageMagick to a 1200×630 WebP in the site's dark palette)
 * **Raw Markdown output**: every note is also published as plain Markdown at `/brain/<slug>/index.md`, so LLMs and scrapers can read the Obsidian source without the site chrome (see [Raw Markdown output per note](#raw-markdown-output-per-note))
 
 The content/notes themselves are not published in this repo, only on [ssp.sh/brain](https://ssp.sh/brain).
@@ -42,7 +42,7 @@ Key features:
 - **Smart descriptions**: Auto-extracts clean descriptions from first paragraph
 - **OG image generation**: Creates social media preview images with SVG→WebP conversion
 - **Note status**: `obsidian-quartz note-status` derives each note's level (started / growing / evergreen) from git history, or a `#garden/<level>` tag; see CHANGELOG 2026-10-01
-- **Mermaid OG images**: Renders a note's Mermaid diagram as its OG image via `ogimage: mermaid` / `mermaid<N>` (uses `mmdc` + ImageMagick, dark theme matches the site's OG template)
+- **Mermaid OG images**: Renders a note's Mermaid diagram as its OG image via `ogimage: mermaid` / `mermaid<N>` (pele via `utils/pele-og/render.mjs` + `rsvg-convert` + ImageMagick, dark palette matches the pages; `make og-mermaid-regen` to redo existing ones)
 
 See **[utils/obsidian-quartz/README.md](./utils/obsidian-quartz/README.md)** for details.
 

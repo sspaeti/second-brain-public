@@ -76,6 +76,18 @@ test: ## render the fixture notes in utils/obsidian-quartz/tests/hugo-render wit
 	python -m unittest utils/test_recent_updates.py utils/test_revert_lastmod_only.py
 	cd utils/obsidian-quartz && cargo test
 
+og-mermaid-regen: ## redraw the mermaid OG images (ogimage: mermaid) with pele; `make prepare` afterwards regenerates them
+	rm -f content/_img/feature/mermaid/*.webp
+	@echo "removed; run 'make prepare' (or obsidian-quartz) to regenerate with pele"
+
+update-pele-og: ## refresh the vendored pele used for mermaid OG images (utils/pele-og/vendor) to the newest 1.x
+	@tmp=$$(mktemp -d) && cd $$tmp && npm init -y >/dev/null && npm i --silent pele@1 && \
+	cp node_modules/pele/dist/pele.js $(CURDIR)/utils/pele-og/vendor/pele.js && \
+	cp node_modules/pele/LICENSE $(CURDIR)/utils/pele-og/vendor/LICENSE && \
+	v=$$(node -p "require('./node_modules/pele/package.json').version") && \
+	printf 'pele %s — https://github.com/obsidianmd/pele (dist/pele.js, MIT). Update: make update-pele-og\n' "$$v" > $(CURDIR)/utils/pele-og/vendor/VERSION && \
+	echo "pele $$v vendored" && rm -rf $$tmp
+
 word-count:
 	find content -type f -not -path '*/\.*' -name '*.md' -exec cat {} \; | wc -w
 

@@ -1,0 +1,42 @@
+// Theme-aware colours for the classDef classes notes use in their mermaid diagrams.
+// The vault keeps its classDef lines (Obsidian and the mermaid.js fallback still get
+// them); under pele every node and subgraph carries its mermaid class (.pele-node.engBehavior,
+// .pele-cluster.platinum), so the
+// fixed light/dark fills are overridden here: one hue per class, mixed into the active
+// card background (--pele-bg, pele.scss) with the theme's text colour on top. Works for
+// light and dark alike. New class in a note: one line in the hue map.
+// Same mechanism as the book (dedp/assets/css/diagram-classes.css); technique documented
+// in dedp/assets/pele/README.md. Pure ASCII (sass-bom-drops-first-rule).
+
+// hue per class (former stroke/fill colours lifted to mid-tones that read on dark too)
+.pele-cluster.platinum    { --tint: #5f9ea0; }   // medallion: cadet teal (a subgraph, hence cluster)
+.pele-node.vectorTech     { --tint: #4a90e2; }   // lifecycle: blue
+.pele-node.engBehavior    { --tint: #4caf50; }   // lifecycle: green
+.pele-node.convergent     { --tint: #f59e0b; }   // lifecycle: orange
+.pele-node.useCase        { --tint: #d4b400; }   // duckdb: yellow
+.pele-node.folderStyle    { --tint: #7fb4ca; }   // neomd: wave blue
+.pele-node.interface      { --tint: #d946ef; }   // rag: #f9f
+.pele-node.storage        { --tint: #a855f7; }   // rag: #fcf
+.pele-node.process        { --tint: #8a8f98; }   // rag: #fff -> gray
+
+// one rule applies the tint (direct children only, so a tinted subgraph leaves its nodes alone);
+// !important wins over the inline classDef fill
+:is(.pele-cluster.platinum, .pele-node.vectorTech, .pele-node.engBehavior, .pele-node.convergent,
+    .pele-node.useCase, .pele-node.folderStyle, .pele-node.interface, .pele-node.storage,
+    .pele-node.process)
+  > :is(rect, path, polygon, circle, ellipse) {
+  fill: color-mix(in srgb, var(--tint) 30%, var(--pele-bg)) !important;
+  stroke: var(--tint) !important;
+}
+:is(.pele-cluster.platinum, .pele-node.vectorTech, .pele-node.engBehavior, .pele-node.convergent,
+    .pele-node.useCase, .pele-node.folderStyle, .pele-node.interface, .pele-node.storage,
+    .pele-node.process) > :is(.pele-label, .pele-cluster-label) {
+  fill: var(--pele-fg) !important;
+}
+
+// `classDef default fill:#f9f9f9` (medallion) paints every unclassed node near-white; no
+// class to hook, so match the authored hex and hand the node back to the theme.
+.pele-node :is(rect, path, polygon)[style*="fill:#f9f9f9"] {
+  fill: var(--pele-surface) !important;
+  stroke: var(--pele-border) !important;
+}
