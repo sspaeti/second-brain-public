@@ -244,7 +244,10 @@ fn diagram_renderer_pele_by_config() {
     let out = build(); // production config.toml selects pele
     let page = page(&out, "diagram");
     assert!(page.contains(r#"<pre class="mermaid">"#), "fence still renders the renderer-agnostic pre.mermaid");
-    assert!(page.contains("cdn.jsdelivr.net/npm/pele@1/dist/pele.js"), "pele ESM loader emitted");
+    // the fence text must be literal text: a real <br> element inside the <pre> is dropped
+    // by el.textContent and the label's line break never reaches the renderer
+    assert!(page.contains("Mermaid text&lt;br/&gt;second line"), "fence source is HTML-escaped (no live <br> element)");
+    assert!(!page.contains("Mermaid text<br/>second line"), "no raw <br/> element inside pre.mermaid");
     assert!(!page.contains("mermaid.esm.min.mjs"), "mermaid.js loader not emitted when pele is chosen");
     assert!(page.contains("window.initMermaid"), "SPA render() hook exists under pele");
     assert!(page.contains("window.__rerenderDiagrams"), "lightbox re-mount hook exists under pele");

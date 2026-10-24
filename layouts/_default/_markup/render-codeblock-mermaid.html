@@ -1,6 +1,10 @@
+{{- /* Renderer-agnostic fence markup; partials/head.html mounts pele or mermaid.js
+       into pre.mermaid (config.toml mermaidRenderer). The source is emitted HTML-
+       escaped (Hugo's default here, no safeHTML): a <br/> in a label would otherwise
+       become a live <br> element that el.textContent drops, losing the line break. */ -}}
 <div class="mermaid-container" data-expandable>
   <pre class="mermaid">
-    {{- .Inner | safeHTML }}
+    {{- .Inner }}
   </pre>
 </div>
 {{ .Page.Store.Set "hasMermaid" true }}

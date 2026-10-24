@@ -3,5 +3,5 @@ title: "Diagram"
 ---
 ```mermaid
 flowchart LR
-  A[Mermaid text] --> B[SVG]
+  A["Mermaid text<br/>second line"] --> B[SVG]
 ```
