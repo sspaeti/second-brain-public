@@ -1,0 +1,59 @@
+// Pele diagram theme (config.toml mermaidRenderer = "pele"; loader in partials/head.html).
+// Pele colours every SVG from these variables, so the dark/light toggle recolours the
+// diagram live, no re-render. Palette: Kanagawa (same family as the site's dark tokens
+// in custom.scss and the badges), lotus accents on the light card, wave on sumiInk.
+// Keep this file pure ASCII: a non-ASCII byte makes Dart Sass emit a BOM that drops
+// the first rule of the bundle.
+:root {
+  --pele-font: var(--font-body);
+  --pele-font-mono: var(--font-mono);
+  --pele-radius: 4px;
+  // light: site card background and text, lotus accents
+  --pele-bg: #faf8f8;
+  --pele-fg: #141021;
+  --pele-muted: #727070;
+  --pele-line: #545464;
+  --pele-surface: #f0f0f0;
+  --pele-surface-alt: #e6e3de;
+  --pele-border: #c9c6c0;
+  --pele-accent: #3150aa;
+  --pele-critical: #c84053;
+  --pele-series-1: #c84053; // lotusRed
+  --pele-series-2: #cc6d00; // lotusOrange
+  --pele-series-3: #77713f; // lotusYellow
+  --pele-series-4: #6f894e; // lotusGreen
+  --pele-series-5: #597b75; // lotusAqua
+  --pele-series-6: #4d699b; // lotusBlue4
+  --pele-series-7: #624c83; // lotusViolet3
+  --pele-series-8: #b35b79; // lotusPink
+}
+
+[saved-theme="dark"] {
+  // wave: sumiInk1 card, fujiWhite text, oldWhite lines
+  --pele-bg: #1f1f28;
+  --pele-fg: #dcd7ba;
+  --pele-muted: #c8c093;
+  --pele-line: #c8c093;
+  --pele-surface: #2a2a37;
+  --pele-surface-alt: #363646;
+  --pele-border: #54546d;
+  --pele-accent: #7e9cd8;
+  --pele-critical: #c34043;
+  --pele-series-1: #ff5d62; // peachRed
+  --pele-series-2: #ffa066; // surimiOrange
+  --pele-series-3: #e6c384; // carpYellow
+  --pele-series-4: #98bb6c; // springGreen
+  --pele-series-5: #7aa89f; // waveAqua2
+  --pele-series-6: #7e9cd8; // crystalBlue
+  --pele-series-7: #957fb8; // oniViolet
+  --pele-series-8: #d27e99; // sakuraPink
+}
+
+// The fence stays a <pre> (lightbox/tests are renderer-agnostic); once pele has
+// mounted its SVG the code-block styling must not leak into the diagram.
+pre.mermaid:has(svg.pele) {
+  white-space: normal;
+  font-family: var(--font-body);
+  background: transparent;
+  padding: 0;
+}

@@ -248,6 +248,13 @@ fn diagram_renderer_pele_by_config() {
     assert!(!page.contains("mermaid.esm.min.mjs"), "mermaid.js loader not emitted when pele is chosen");
     assert!(page.contains("window.initMermaid"), "SPA render() hook exists under pele");
     assert!(page.contains("window.__rerenderDiagrams"), "lightbox re-mount hook exists under pele");
+    // Kanagawa theme for pele (assets/styles/pele.scss, auto-bundled into styles.css)
+    let css_file = Regex::new(r#"href="[^"]*/(styles\.[a-f0-9]+\.min\.css)""#).unwrap()
+        .captures(&page).expect("bundled stylesheet link")[1].to_string();
+    let css = std::fs::read_to_string(out.join(css_file)).unwrap();
+    assert!(css.contains("--pele-fg:"), "pele variables bundled");
+    assert!(is_match(&css, r#"\[saved-theme=dark\][^{]*\{[^}]*--pele-bg:#1f1f28"#), "dark Kanagawa surface for pele");
+    assert!(is_match(&css, r#":root[^{]*\{[^}]*--pele-font:var\(--font-body\)"#), "pele labels use the body font");
     let _ = std::fs::remove_dir_all(&out);
 }
 
