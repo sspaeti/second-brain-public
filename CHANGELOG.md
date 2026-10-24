@@ -25,6 +25,10 @@
   and only shrinks them to the container, where mermaid.js stretched them to
   100 %. The loader passes a very large `useWidth`, so pele's cap to the
   container wins and gantts fill the card (992 px) and the overlay (1400 px).
+- **Centering**: a diagram narrower than the card is centered (`pele.scss`).
+  Neither engine stretches past natural size; mermaid.js only looked
+  full-width because its roomier layout usually exceeded the card and was
+  capped, pele packs tighter and would sit left-aligned otherwise.
 - **Fence hook**: `render-codeblock-mermaid.html` now emits the fence text
   HTML-escaped (Hugo's default; it used `safeHTML`). A `<br/>` inside a label had
   become a live `<br>` element in the `<pre>`, which `el.textContent` drops, so

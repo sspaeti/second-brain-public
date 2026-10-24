@@ -261,6 +261,7 @@ fn diagram_renderer_pele_by_config() {
     assert!(is_match(&css, r#":root[^{]*\{[^}]*--pele-bg:var\(--light\)"#), "pele background follows the site card token");
     assert!(is_match(&css, r#"(?i)\[saved-theme=dark\][^{]*\{[^}]*--pele-surface:#2a2a37"#), "dark node surface for pele (blog table surface)");
     assert!(is_match(&css, r#":root[^{]*\{[^}]*--pele-font:var\(--font-body\)"#), "pele labels use the body font");
+    assert!(is_match(&css, r#"svg\.pele[^{]*\{[^}]*margin-inline:auto"#), "diagrams narrower than the card are centered");
     let _ = std::fs::remove_dir_all(&out);
 }
 

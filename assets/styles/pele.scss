@@ -46,3 +46,9 @@ pre.mermaid:has(svg.pele) {
   background: transparent;
   padding: 0;
 }
+// Pele draws at natural size and only shrinks to fit (mermaid.js did the same, its roomier
+// layout just filled the card more often). A diagram narrower than the card sits centered.
+pre.mermaid > svg.pele {
+  display: block;
+  margin-inline: auto;
+}
