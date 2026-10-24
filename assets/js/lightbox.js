@@ -1,4 +1,5 @@
-// Lightweight expand/lightbox for the graph, mermaid diagrams and note images.
+// Lightweight expand/lightbox for the graph, diagrams (mermaid.js or pele, see
+// partials/head.html) and note images.
 // Markup: any [data-expandable] gets a top-right expand button. Images are
 // wrapped in <span class="img-expandable" data-expandable data-full="…">
 // (partials/responsive-image.html, _markup/render-image.html) and open the
@@ -100,6 +101,10 @@
       if (btn) btn.remove();
       body.appendChild(clone);
       overlay.classList.add('lightbox-visible');
+      // pele (head.html, config mermaidRenderer) lays a diagram out for its
+      // container width: re-mount the clone so the overlay gets a full-width
+      // layout instead of the inline one. Undefined under mermaid.js.
+      if (window.__rerenderDiagrams) window.__rerenderDiagrams(clone);
     }
   };
 

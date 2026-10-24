@@ -1,5 +1,47 @@
 # Changelog
 
+### 2026-10-24: Pele renders mermaid fences
+
+- **Diagrams**: ```` ```mermaid ```` fences are now drawn by
+  [pele](https://pele.run) (Obsidian's Mermaid renderer: 230 kB gzip instead of
+  1.6 MB, synchronous, no dependencies) instead of mermaid.js. Same fence, same
+  markup, same lazy loading (the library is only fetched on pages that have a
+  diagram, first load and SPA navigation alike), so Lighthouse on diagram-free
+  pages is untouched and diagram pages load less. The look is pele's own layout,
+  the same one the vault shows in Obsidian.
+- **Switch**: `config.toml` `mermaidRenderer = "pele"` | `"mermaid"` (absent =
+  mermaid). `head.html` emits only the chosen engine's loader; the mermaid.js
+  block is kept verbatim so flipping back is one line. The blog stays on
+  mermaid@11.
+- **Theme**: `assets/styles/pele.scss` maps pele's `--pele-*` variables to the
+  site tokens (`--light`, `--gray`, `--tertiary`, `--outlinegray`, badge
+  colours; blog table/hashtag values where the brain has no token), so diagrams
+  follow the light/dark toggle instantly without a re-render (mermaid.js had to
+  re-render with a flash).
+- **Expand**: the lightbox clones the diagram as before and, under pele, calls
+  `window.__rerenderDiagrams` on the clone so the overlay gets a layout for its
+  own width (992 px inline → 1400 px overlay on the pollmd note).
+- **Gantt width**: pele draws gantt charts at a fixed 800 px (`gantt.useWidth`)
+  and only shrinks them to the container, where mermaid.js stretched them to
+  100 %. The loader passes a very large `useWidth`, so pele's cap to the
+  container wins and gantts fill the card (992 px) and the overlay (1400 px).
+- **Centering**: a diagram narrower than the card is centered (`pele.scss`).
+  Neither engine stretches past natural size; mermaid.js only looked
+  full-width because its roomier layout usually exceeded the card and was
+  capped, pele packs tighter and would sit left-aligned otherwise.
+- **Fence hook**: `render-codeblock-mermaid.html` now emits the fence text
+  HTML-escaped (Hugo's default; it used `safeHTML`). A `<br/>` inside a label had
+  become a live `<br>` element in the `<pre>`, which `el.textContent` drops, so
+  labels ran together under both renderers. This changes the mermaid.js path too,
+  as a fix: multi-line labels now break there as well.
+- **Structure**: the two loaders live in `assets/js/diagrams-pele.js` and
+  `assets/js/diagrams-mermaid.js`; `head.html` only picks one and inlines it, so
+  the page still makes no extra request.
+- **Tests**: `hugo_render.rs` `diagram_renderer_pele_by_config` /
+  `diagram_renderer_mermaid_fallback` / `..._empty_value_falls_back_to_mermaid`
+  build the `diagram.md` fixture with each config value and assert the loader,
+  the hooks, the escaped `<br/>` and the bundled CSS.
+
 ### 2026-10-24: Expand button on note images
 
 - **Images**: every note image (`![[embed]]`, `![](md)`, external URLs) gets

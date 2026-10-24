@@ -1,0 +1,54 @@
+// Pele diagram theme (config.toml mermaidRenderer = "pele"; loader in partials/head.html).
+// Pele colours every SVG from these variables, so the dark/light toggle recolours the
+// diagram live, no re-render. Everything maps to the site's own tokens (custom.scss
+// :root / [saved-theme="dark"], same palette as the blog's assets/css/_site-variables.scss),
+// so the diagrams follow the page; the few values the brain has no token for are copied
+// from the blog with their origin noted.
+// Keep this file pure ASCII: a non-ASCII byte makes Dart Sass emit a BOM that drops
+// the first rule of the bundle.
+:root {
+  --pele-font: var(--font-body);
+  --pele-font-mono: var(--font-mono);
+  --pele-radius: 4px;
+  --pele-bg: var(--light);                           // card background (both themes)
+  --pele-fg: var(--gray);                            // body text
+  --pele-muted: var(--global-font-secondary-color);  // meta / secondary text
+  --pele-line: var(--gray);                          // edges and arrowheads = text colour
+  --pele-surface: var(--lightgray);                  // node fill
+  --pele-surface-alt: var(--header-background-color); // subgraph fill (#eaecef, the search chip)
+  --pele-border: var(--outlinegray);
+  --pele-accent: var(--tertiary);                    // link blue / dark pink
+  --pele-critical: var(--badge-del);                 // autumnRed, reads on both
+  --pele-error: var(--badge-del);
+  --pele-series-1: var(--tertiary);
+  --pele-series-2: var(--secondary-aa);
+  --pele-series-3: var(--badge-new);                 // autumnGreen
+  --pele-series-4: #8A6A1F;                          // blog $hashtag-color
+  --pele-series-5: var(--primary);
+  --pele-series-6: var(--visited);
+  --pele-series-7: #7E9CD8;                          // blog $changelog-rail-color (crystalBlue)
+  --pele-series-8: var(--badge-del);
+}
+
+[saved-theme="dark"] {
+  // --lightgray is the page body (#181820), darker than the card: nodes use the blog's
+  // dark table surfaces instead so they sit on top of the card.
+  --pele-surface: #2A2A37;      // blog $table-background-color-dark (sumiInk2)
+  --pele-surface-alt: #363646;  // blog $table-thead-color-dark (sumiInk3)
+  --pele-series-4: #E6C384;     // blog $hashtag-color-dark (carpYellow)
+}
+
+// The fence stays a <pre> (lightbox/tests are renderer-agnostic); once pele has
+// mounted its SVG the code-block styling must not leak into the diagram.
+pre.mermaid:has(svg.pele) {
+  white-space: normal;
+  font-family: var(--font-body);
+  background: transparent;
+  padding: 0;
+}
+// Pele draws at natural size and only shrinks to fit (mermaid.js did the same, its roomier
+// layout just filled the card more often). A diagram narrower than the card sits centered.
+pre.mermaid > svg.pele {
+  display: block;
+  margin-inline: auto;
+}

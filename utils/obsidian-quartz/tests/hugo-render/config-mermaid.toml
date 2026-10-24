@@ -1,0 +1,3 @@
+# Test-only: force the mermaid.js renderer (config.toml selects pele).
+[params]
+  mermaidRenderer = "mermaid"

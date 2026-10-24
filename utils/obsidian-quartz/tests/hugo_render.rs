@@ -21,6 +21,11 @@ fn repo_root() -> PathBuf {
 }
 
 fn build() -> PathBuf {
+    build_with(&[])
+}
+
+/// Build with extra config files layered after the fixture config (`--config a,b,c`).
+fn build_with(extra: &[&str]) -> PathBuf {
     let root = repo_root();
     // Hugo silently builds the real content/ if the fixture mount is missing.
     assert!(
@@ -29,9 +34,11 @@ fn build() -> PathBuf {
     );
     let out = std::env::temp_dir().join(format!("brain-hugo-render-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&out);
+    let mut configs = vec!["config.toml", "utils/obsidian-quartz/tests/hugo-render/config.toml"];
+    configs.extend_from_slice(extra);
     let status = Command::new("hugo")
         .current_dir(&root)
-        .args(["--quiet", "--config", "config.toml,utils/obsidian-quartz/tests/hugo-render/config.toml", "-d"])
+        .args(["--quiet", "--config", &configs.join(","), "-d"])
         .arg(&out)
         .status()
         .expect("hugo must be installed and on PATH");
@@ -229,5 +236,49 @@ fn note_status_word_and_merged_popover() {
     let p = page(&out, "embedder");
     assert!(!p.contains(r#"class="note-changes""#), "no status entry, no trigger");
 
+    let _ = std::fs::remove_dir_all(&out);
+}
+
+#[test]
+fn diagram_renderer_pele_by_config() {
+    let out = build(); // production config.toml selects pele
+    let page = page(&out, "diagram");
+    assert!(page.contains(r#"<pre class="mermaid">"#), "fence still renders the renderer-agnostic pre.mermaid");
+    // the fence text must be literal text: a real <br> element inside the <pre> is dropped
+    // by el.textContent and the label's line break never reaches the renderer
+    assert!(page.contains("Mermaid text&lt;br/&gt;second line"), "fence source is HTML-escaped (no live <br> element)");
+    assert!(!page.contains("Mermaid text<br/>second line"), "no raw <br/> element inside pre.mermaid");
+    assert!(page.contains("cdn.jsdelivr.net/npm/pele@1/dist/pele.js"), "pele ESM loader emitted");
+    assert!(!page.contains("mermaid.esm.min.mjs"), "mermaid.js loader not emitted when pele is chosen");
+    assert!(page.contains("window.initMermaid"), "SPA render() hook exists under pele");
+    assert!(page.contains("window.__rerenderDiagrams"), "lightbox re-mount hook exists under pele");
+    assert!(page.contains("useWidth"), "gantt charts are told to fill the container (pele draws them at a fixed 800px otherwise)");
+    // Kanagawa theme for pele (assets/styles/pele.scss, auto-bundled into styles.css)
+    let css_file = Regex::new(r#"href="[^"]*/(styles\.[a-f0-9]+\.min\.css)""#).unwrap()
+        .captures(&page).expect("bundled stylesheet link")[1].to_string();
+    let css = std::fs::read_to_string(out.join(css_file)).unwrap();
+    assert!(css.contains("--pele-fg:"), "pele variables bundled");
+    assert!(is_match(&css, r#":root[^{]*\{[^}]*--pele-bg:var\(--light\)"#), "pele background follows the site card token");
+    assert!(is_match(&css, r#"(?i)\[saved-theme=dark\][^{]*\{[^}]*--pele-surface:#2a2a37"#), "dark node surface for pele (blog table surface)");
+    assert!(is_match(&css, r#":root[^{]*\{[^}]*--pele-font:var\(--font-body\)"#), "pele labels use the body font");
+    assert!(is_match(&css, r#"svg\.pele[^{]*\{[^}]*margin-inline:auto"#), "diagrams narrower than the card are centered");
+    let _ = std::fs::remove_dir_all(&out);
+}
+
+#[test]
+fn diagram_renderer_mermaid_fallback() {
+    let out = build_with(&["utils/obsidian-quartz/tests/hugo-render/config-mermaid.toml"]);
+    let page = page(&out, "diagram");
+    assert!(page.contains("mermaid@11/dist/mermaid.esm.min.mjs"), "mermaid.js loader emitted when mermaidRenderer = mermaid");
+    assert!(!page.contains("npm/pele@1"), "pele not emitted when mermaidRenderer = mermaid");
+    let _ = std::fs::remove_dir_all(&out);
+}
+
+#[test]
+fn diagram_renderer_empty_value_falls_back_to_mermaid() {
+    let out = build_with(&["utils/obsidian-quartz/tests/hugo-render/config-mermaid-empty.toml"]);
+    let page = page(&out, "diagram");
+    assert!(page.contains("mermaid@11/dist/mermaid.esm.min.mjs"), "empty mermaidRenderer behaves like absent: mermaid.js");
+    assert!(!page.contains("npm/pele@1"), "pele not emitted for an empty mermaidRenderer");
     let _ = std::fs::remove_dir_all(&out);
 }
