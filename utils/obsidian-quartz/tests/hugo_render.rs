@@ -21,6 +21,11 @@ fn repo_root() -> PathBuf {
 }
 
 fn build() -> PathBuf {
+    build_with(&[])
+}
+
+/// Build with extra config files layered after the fixture config (`--config a,b,c`).
+fn build_with(extra: &[&str]) -> PathBuf {
     let root = repo_root();
     // Hugo silently builds the real content/ if the fixture mount is missing.
     assert!(
@@ -29,9 +34,11 @@ fn build() -> PathBuf {
     );
     let out = std::env::temp_dir().join(format!("brain-hugo-render-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&out);
+    let mut configs = vec!["config.toml", "utils/obsidian-quartz/tests/hugo-render/config.toml"];
+    configs.extend_from_slice(extra);
     let status = Command::new("hugo")
         .current_dir(&root)
-        .args(["--quiet", "--config", "config.toml,utils/obsidian-quartz/tests/hugo-render/config.toml", "-d"])
+        .args(["--quiet", "--config", &configs.join(","), "-d"])
         .arg(&out)
         .status()
         .expect("hugo must be installed and on PATH");
@@ -229,5 +236,26 @@ fn note_status_word_and_merged_popover() {
     let p = page(&out, "embedder");
     assert!(!p.contains(r#"class="note-changes""#), "no status entry, no trigger");
 
+    let _ = std::fs::remove_dir_all(&out);
+}
+
+#[test]
+fn diagram_renderer_pele_by_config() {
+    let out = build(); // production config.toml selects pele
+    let page = page(&out, "diagram");
+    assert!(page.contains(r#"<pre class="mermaid">"#), "fence still renders the renderer-agnostic pre.mermaid");
+    assert!(page.contains("cdn.jsdelivr.net/npm/pele@1/dist/pele.js"), "pele ESM loader emitted");
+    assert!(!page.contains("mermaid.esm.min.mjs"), "mermaid.js loader not emitted when pele is chosen");
+    assert!(page.contains("window.initMermaid"), "SPA render() hook exists under pele");
+    assert!(page.contains("window.__rerenderDiagrams"), "lightbox re-mount hook exists under pele");
+    let _ = std::fs::remove_dir_all(&out);
+}
+
+#[test]
+fn diagram_renderer_mermaid_fallback() {
+    let out = build_with(&["utils/obsidian-quartz/tests/hugo-render/config-mermaid.toml"]);
+    let page = page(&out, "diagram");
+    assert!(page.contains("mermaid@11/dist/mermaid.esm.min.mjs"), "mermaid.js loader emitted when mermaidRenderer = mermaid");
+    assert!(!page.contains("npm/pele@1"), "pele not emitted when mermaidRenderer = mermaid");
     let _ = std::fs::remove_dir_all(&out);
 }
