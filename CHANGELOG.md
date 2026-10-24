@@ -29,6 +29,13 @@
   Neither engine stretches past natural size; mermaid.js only looked
   full-width because its roomier layout usually exceeded the card and was
   capped, pele packs tighter and would sit left-aligned otherwise.
+- **Note colours**: `assets/styles/diagram-classes.scss` re-themes the classDef
+  classes notes use (medallion `platinum` subgraph, lifecycle, duckdb, neomd, rag,
+  and medallion's `classDef default fill:#f9f9f9` by hex): pele keeps the mermaid
+  class on each node/cluster, so one hue per class is mixed into the card
+  background with the theme text on top. The vault's classDef lines stay as
+  they are (Obsidian and mermaid.js keep their colours). Same mechanism as the
+  blog and the book (`dedp/assets/pele/README.md`).
 - **Fence hook**: `render-codeblock-mermaid.html` now emits the fence text
   HTML-escaped (Hugo's default; it used `safeHTML`). A `<br/>` inside a label had
   become a live `<br>` element in the `<pre>`, which `el.textContent` drops, so
