@@ -1,5 +1,30 @@
 # Changelog
 
+### 2026-10-24: Pele renders mermaid fences
+
+- **Diagrams**: ```` ```mermaid ```` fences are now drawn by
+  [pele](https://pele.run) (Obsidian's Mermaid renderer: 230 kB gzip instead of
+  1.6 MB, synchronous, no dependencies) instead of mermaid.js. Same fence, same
+  markup, same lazy loading (the library is only fetched on pages that have a
+  diagram, first load and SPA navigation alike), so Lighthouse on diagram-free
+  pages is untouched and diagram pages load less. The look is pele's own layout,
+  the same one the vault shows in Obsidian.
+- **Switch**: `config.toml` `mermaidRenderer = "pele"` | `"mermaid"` (absent =
+  mermaid). `head.html` emits only the chosen engine's loader; the mermaid.js
+  block is kept verbatim so flipping back is one line. The blog stays on
+  mermaid@11.
+- **Theme**: `assets/styles/pele.scss` maps pele's `--pele-*` variables to the
+  site tokens (`--light`, `--gray`, `--tertiary`, `--outlinegray`, badge
+  colours; blog table/hashtag values where the brain has no token), so diagrams
+  follow the light/dark toggle instantly without a re-render (mermaid.js had to
+  re-render with a flash).
+- **Expand**: the lightbox clones the diagram as before and, under pele, calls
+  `window.__rerenderDiagrams` on the clone so the overlay gets a layout for its
+  own width (992 px inline → 1400 px overlay on the pollmd note).
+- **Tests**: `hugo_render.rs` `diagram_renderer_pele_by_config` /
+  `diagram_renderer_mermaid_fallback` build the `diagram.md` fixture with both
+  config values and assert the loader, the hooks and the bundled CSS.
+
 ### 2026-10-24: Expand button on note images
 
 - **Images**: every note image (`![[embed]]`, `![](md)`, external URLs) gets
