@@ -21,9 +21,18 @@
 - **Expand**: the lightbox clones the diagram as before and, under pele, calls
   `window.__rerenderDiagrams` on the clone so the overlay gets a layout for its
   own width (992 px inline → 1400 px overlay on the pollmd note).
+- **Fence hook**: `render-codeblock-mermaid.html` now emits the fence text
+  HTML-escaped (Hugo's default; it used `safeHTML`). A `<br/>` inside a label had
+  become a live `<br>` element in the `<pre>`, which `el.textContent` drops, so
+  labels ran together under both renderers. This changes the mermaid.js path too,
+  as a fix: multi-line labels now break there as well.
+- **Structure**: the two loaders live in `assets/js/diagrams-pele.js` and
+  `assets/js/diagrams-mermaid.js`; `head.html` only picks one and inlines it, so
+  the page still makes no extra request.
 - **Tests**: `hugo_render.rs` `diagram_renderer_pele_by_config` /
-  `diagram_renderer_mermaid_fallback` build the `diagram.md` fixture with both
-  config values and assert the loader, the hooks and the bundled CSS.
+  `diagram_renderer_mermaid_fallback` / `..._empty_value_falls_back_to_mermaid`
+  build the `diagram.md` fixture with each config value and assert the loader,
+  the hooks, the escaped `<br/>` and the bundled CSS.
 
 ### 2026-10-24: Expand button on note images
 

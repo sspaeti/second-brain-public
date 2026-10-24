@@ -1,0 +1,3 @@
+# Test-only: an empty renderer value must behave like an absent one (mermaid.js).
+[params]
+  mermaidRenderer = ""

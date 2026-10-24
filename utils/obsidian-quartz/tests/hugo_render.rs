@@ -248,6 +248,7 @@ fn diagram_renderer_pele_by_config() {
     // by el.textContent and the label's line break never reaches the renderer
     assert!(page.contains("Mermaid text&lt;br/&gt;second line"), "fence source is HTML-escaped (no live <br> element)");
     assert!(!page.contains("Mermaid text<br/>second line"), "no raw <br/> element inside pre.mermaid");
+    assert!(page.contains("cdn.jsdelivr.net/npm/pele@1/dist/pele.js"), "pele ESM loader emitted");
     assert!(!page.contains("mermaid.esm.min.mjs"), "mermaid.js loader not emitted when pele is chosen");
     assert!(page.contains("window.initMermaid"), "SPA render() hook exists under pele");
     assert!(page.contains("window.__rerenderDiagrams"), "lightbox re-mount hook exists under pele");
@@ -268,5 +269,14 @@ fn diagram_renderer_mermaid_fallback() {
     let page = page(&out, "diagram");
     assert!(page.contains("mermaid@11/dist/mermaid.esm.min.mjs"), "mermaid.js loader emitted when mermaidRenderer = mermaid");
     assert!(!page.contains("npm/pele@1"), "pele not emitted when mermaidRenderer = mermaid");
+    let _ = std::fs::remove_dir_all(&out);
+}
+
+#[test]
+fn diagram_renderer_empty_value_falls_back_to_mermaid() {
+    let out = build_with(&["utils/obsidian-quartz/tests/hugo-render/config-mermaid-empty.toml"]);
+    let page = page(&out, "diagram");
+    assert!(page.contains("mermaid@11/dist/mermaid.esm.min.mjs"), "empty mermaidRenderer behaves like absent: mermaid.js");
+    assert!(!page.contains("npm/pele@1"), "pele not emitted for an empty mermaidRenderer");
     let _ = std::fs::remove_dir_all(&out);
 }
