@@ -29,6 +29,13 @@
   Neither engine stretches past natural size; mermaid.js only looked
   full-width because its roomier layout usually exceeded the card and was
   capped, pele packs tighter and would sit left-aligned otherwise.
+- **OG images from mermaid**: `ogimage: mermaid` previews are now drawn by pele
+  too (`utils/pele-og/render.mjs`, pele vendored in `utils/pele-og/vendor/`, no
+  install; `rsvg-convert` rasterises, ImageMagick composites as before), so the
+  social image shows the same diagram as the page, in the site's dark palette.
+  Replaces `mmdc` (mermaid-cli, headless Chromium). Existing images are kept
+  unless regenerated: `make og-mermaid-regen`. Vendored copy refresh:
+  `make update-pele-og`.
 - **Fence hook**: `render-codeblock-mermaid.html` now emits the fence text
   HTML-escaped (Hugo's default; it used `safeHTML`). A `<br/>` inside a label had
   become a live `<br>` element in the `<pre>`, which `el.textContent` drops, so

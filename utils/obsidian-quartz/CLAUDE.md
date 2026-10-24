@@ -15,7 +15,7 @@ Reads markdown files from a private Obsidian vault, filters for `#publish`-tagge
 src/
   main.rs            — CLI entry, directory walking, image map building
   file_utils.rs      — Core note processing: frontmatter parsing/merging, tag extraction, image copying, file writing
-  svg_generator.rs   — OG image generation (SVG templating + ImageMagick conversion)
+  svg_generator.rs   — OG image generation (SVG templating + ImageMagick conversion; mermaid OG via pele: render_pele_svg → rsvg-convert → composite)
   handle_link_index.rs — Lowercases linkIndex.json
   og_template.svg    — SVG template for OG images (uses {{TITLE_PLACEHOLDER}})
 ```
@@ -50,7 +50,7 @@ make run-debug    # cargo run (debug mode)
 ## Dependencies
 
 - `regex`, `glob`, `chrono`, `serde_yaml`, `serde`, `pandoc`
-- External: `magick` (ImageMagick) for SVG→WebP conversion
+- External: `magick` (ImageMagick) for SVG→WebP conversion; for `ogimage: mermaid` also `node` (runs `utils/pele-og/render.mjs`, pele vendored there, no install) and `rsvg-convert` (librsvg). Tests `svg_generator::pele_og_tests` exercise that pipeline.
 
 ## Key Behaviors
 

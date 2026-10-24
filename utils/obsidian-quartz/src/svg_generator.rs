@@ -19,8 +19,44 @@ pub struct MermaidConfig {
     pub height: u32,
 }
 
+/// Render a Mermaid diagram with pele (https://pele.run, the renderer the site uses in the
+/// browser) to a self-contained SVG: `node utils/pele-og/render.mjs` (vendored pele, no
+/// install) inlines the site's dark palette for every CSS variable so librsvg can draw it.
+/// Run from the repo root, like the rest of the tool.
+pub fn render_pele_svg(source: &str, width: u32) -> Result<String, Box<dyn Error>> {
+    // unique per call: parallel callers (cargo test) must not share or delete each other's dir
+    static CALLS: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    let n = CALLS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let dir = std::env::temp_dir().join(format!("pele-og-{}-{}", std::process::id(), n));
+    fs::create_dir_all(&dir)?;
+    let tmp_mmd = dir.join("in.mmd");
+    let tmp_svg = dir.join("out.svg");
+    fs::write(&tmp_mmd, source)?;
+    // repo-root relative when run as the tool (`make prepare`), crate-relative under `cargo test`
+    let script = if Path::new("utils/pele-og/render.mjs").exists() {
+        "utils/pele-og/render.mjs".to_string()
+    } else {
+        concat!(env!("CARGO_MANIFEST_DIR"), "/../../utils/pele-og/render.mjs").to_string()
+    };
+    let out = Command::new("node")
+        .arg(&script)
+        .arg(&tmp_mmd)
+        .arg(&tmp_svg)
+        .arg(width.to_string())
+        .output();
+    let result = match out {
+        Ok(o) if o.status.success() => fs::read_to_string(&tmp_svg).map_err(|e| e.into()),
+        Ok(o) => Err(format!("pele render failed: {}", String::from_utf8_lossy(&o.stderr)).into()),
+        Err(e) => Err(format!("Failed to run node utils/pele-og/render.mjs: {}", e).into()),
+    };
+    let _ = fs::remove_dir_all(&dir);
+    result
+}
+
 /// Render a Mermaid diagram source to a 1200x630 WebP suitable for OG images.
-/// Uses mmdc (mermaid-cli) to render PNG, then ImageMagick to composite onto a padded canvas.
+/// pele -> SVG (render_pele_svg), rsvg-convert -> PNG at 3x, then ImageMagick composites
+/// it centered onto a padded canvas in the site's dark card colour. (Was mmdc/mermaid-cli
+/// until 2026-10-24; pele matches what the page shows and needs no headless browser.)
 pub fn generate_mermaid_og_image(config: &MermaidConfig) -> Result<(), Box<dyn Error>> {
     if Path::new(&config.output_path).exists() {
         return Ok(());
@@ -33,37 +69,31 @@ pub fn generate_mermaid_og_image(config: &MermaidConfig) -> Result<(), Box<dyn E
     }
 
     let stem = config.output_path.trim_end_matches(".webp");
-    let tmp_mmd = format!("{}.tmp.mmd", stem);
+    let tmp_svg = format!("{}.tmp.svg", stem);
     let tmp_png = format!("{}.tmp.png", stem);
 
-    fs::write(&tmp_mmd, &config.source)?;
-
     let bg = "#1F1F28";
-    // Render mermaid at close to the target display width (so text stays at its
-    // natural, readable size) with a high puppeteer scale factor for retina-sharp
-    // anti-aliasing. Wider viewports spread the diagram out and shrink text on
-    // downscale; -s only changes pixel density, not CSS layout.
+    // Draw at close to the target display width so text keeps its natural size, then
+    // rasterize at 3x for retina-sharp anti-aliasing (the composite downsizes with Lanczos).
     let render_width = config.width.saturating_sub(100).max(800); // ~1100 for 1200 canvas
-    let render_w_str = render_width.to_string();
-    let mmdc_out = Command::new("mmdc")
-        .arg("-i").arg(&tmp_mmd)
-        .arg("-o").arg(&tmp_png)
-        .arg("-t").arg("dark")
-        .arg("-b").arg(bg)
-        .arg("-w").arg(&render_w_str)
-        .arg("-s").arg("3")
-        .arg("--quiet")
-        .output();
+    let svg = render_pele_svg(&config.source, render_width)?;
+    fs::write(&tmp_svg, svg)?;
 
-    match mmdc_out {
+    let rsvg_out = Command::new("rsvg-convert")
+        .arg("--zoom").arg("3")
+        .arg("--background-color").arg("none")
+        .arg("-o").arg(&tmp_png)
+        .arg(&tmp_svg)
+        .output();
+    match rsvg_out {
         Ok(out) if !out.status.success() => {
             let err = String::from_utf8_lossy(&out.stderr).to_string();
-            let _ = fs::remove_file(&tmp_mmd);
-            return Err(format!("mmdc failed: {}", err).into());
+            let _ = fs::remove_file(&tmp_svg);
+            return Err(format!("rsvg-convert failed: {}", err).into());
         }
         Err(e) => {
-            let _ = fs::remove_file(&tmp_mmd);
-            return Err(format!("Failed to run mmdc: {}", e).into());
+            let _ = fs::remove_file(&tmp_svg);
+            return Err(format!("Failed to run rsvg-convert: {}", e).into());
         }
         _ => {}
     }
@@ -91,7 +121,7 @@ pub fn generate_mermaid_og_image(config: &MermaidConfig) -> Result<(), Box<dyn E
         .arg(&config.output_path)
         .output();
 
-    let _ = fs::remove_file(&tmp_mmd);
+    let _ = fs::remove_file(&tmp_svg);
     let _ = fs::remove_file(&tmp_png);
 
     match magick_out {
@@ -367,4 +397,33 @@ pub fn extract_title_from_md(file_path: &Path) -> Result<String, Box<dyn Error>>
     }
     
     Err("No title found in frontmatter".into())
+}
+
+#[cfg(test)]
+mod pele_og_tests {
+    use super::*;
+
+    const GANTT: &str = "gantt\n    title Test\n    dateFormat YYYY\n    axisFormat %Y\n    section A\n    Cron :milestone, m1, 1987, 0d\n    Airflow :milestone, m2, 2014, 0d\n";
+
+    #[test]
+    fn pele_svg_has_no_css_variables_and_fills_the_width() {
+        let svg = render_pele_svg(GANTT, 1100).expect("node utils/pele-og/render.mjs must work");
+        assert!(svg.contains("class=\"pele pele-gantt\""), "rendered by pele");
+        assert!(!svg.contains("var("), "every CSS variable is inlined for librsvg: {}", &svg[..svg.len().min(400)]);
+        assert!(svg.contains("#DCD7BA") && svg.contains("#2A2A37"), "dark palette applied (text, surface; the canvas supplies the background)");
+        assert!(svg.contains("width=\"1100\""), "gantt uses the requested width");
+    }
+
+    #[test]
+    fn mermaid_og_image_is_written_as_webp() {
+        let dir = std::env::temp_dir().join(format!("pele-og-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        let out = dir.join("test.webp");
+        let cfg = MermaidConfig { source: GANTT.to_string(), output_path: out.to_string_lossy().to_string(), width: 1200, height: 630 };
+        generate_mermaid_og_image(&cfg).expect("pele + rsvg-convert + magick pipeline");
+        let bytes = fs::read(&out).unwrap();
+        assert!(bytes.len() > 2000 && &bytes[8..12] == b"WEBP", "a real WebP ({} bytes)", bytes.len());
+        assert!(!dir.join("test.tmp.svg").exists() && !dir.join("test.tmp.png").exists(), "temp files cleaned up");
+        let _ = fs::remove_dir_all(&dir);
+    }
 }
