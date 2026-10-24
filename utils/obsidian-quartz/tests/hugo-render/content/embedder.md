@@ -44,5 +44,7 @@ Wikilink inside code is left alone: `[[Not A Link]]`.
 
 An image embed: ![[pixel.png|300]]
 
+A tiny icon embed: ![[pixel.png|40]]
+
 ---
 Origin: [[Somewhere Else]]

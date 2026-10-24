@@ -1532,6 +1532,87 @@ a.hn-badge {
   opacity: 0.8;
 }
 
+/* Note images (partials/responsive-image.html, _markup/render-image.html):
+   inline-block shrink-wraps the picture so the expand button sits on the
+   image's own top-right corner, not the column's. The global `img` margin
+   (base.scss) moves onto the wrapper so the button is measured from the
+   picture, not from the gap above it. */
+.img-expandable {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  margin: 1em 0;
+  vertical-align: top;
+
+  > img {
+    display: block;
+    margin: 0;
+    cursor: zoom-in;
+  }
+}
+
+/* Image mode (lightbox.js sets .is-image on the overlay): no card, the
+   picture sits on the dark backdrop at native size up to the viewport width
+   (the mermaid card is capped at 1400px, which left a big-screen image
+   stranded in the middle). The overlay is the scroll container, so a tall
+   screenshot scrolls vertically and never sideways; the close button is
+   fixed so it stays put while scrolling. Same UX as the blog. */
+.lightbox-overlay.is-image {
+  display: block;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 2.5rem 0.75rem 0.75rem;
+  background: rgba(0, 0, 0, 0.85);
+
+  .lightbox-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: none;
+    max-height: none;
+    min-height: calc(100vh - 3.25rem);
+    min-height: calc(100dvh - 3.25rem);
+    padding: 0;
+    overflow: visible;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    cursor: zoom-out;
+  }
+
+  .lightbox-body {
+    max-width: 100%;
+  }
+
+  .lightbox-close {
+    position: fixed;
+    top: 0.5rem;
+    right: 0.75rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-size: 1.75rem;
+    z-index: 1;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+      color: #fff;
+    }
+  }
+}
+
+.lightbox-body .lightbox-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0;
+  border-radius: 4px;
+  cursor: default;
+}
+
 @media (max-width: 768px) {
   .expand-btn {
     opacity: 0.6;

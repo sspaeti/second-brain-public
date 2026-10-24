@@ -22,7 +22,8 @@
 <a href="{{ $src }}">{{ .Text }}</a>
   {{- end -}}
 {{- else if $external -}}
-<img src="{{ $src }}"{{ if ne $width "auto" }} width="{{ $width }}"{{ end }} alt="{{ index (split .Text "|") 0 | default .Title | default "" }}" {{ with .Title }} title="{{ . }}" {{ end }} loading="lazy" decoding="async" />
+{{- /* same expand wrapper as responsive-image.html (lightbox.js adds the button) */ -}}
+<span class="img-expandable" data-expandable data-full="{{ $src }}"><img src="{{ $src }}"{{ if ne $width "auto" }} width="{{ $width }}"{{ end }} alt="{{ index (split .Text "|") 0 | default .Title | default "" }}" {{ with .Title }} title="{{ . }}" {{ end }} loading="lazy" decoding="async" /></span>
 {{- else -}}
 {{- /* local image: same responsive rendering as the ![[wikilink]] embeds */ -}}
 {{- $n := .Page.Scratch.Get "imgCount" | default 0 -}}

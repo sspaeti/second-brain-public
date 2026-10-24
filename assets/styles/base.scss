@@ -387,7 +387,8 @@ img {
   margin: 1em 0;
 }
 
-p > img + em {
+p > img + em,
+p > .img-expandable + em {
   display: block;
   transform: translateY(-1em);
 }

@@ -165,6 +165,14 @@ fn textprocessing_renders_embeds_wikilinks_and_callouts() {
         page.contains(r#"<img src="/brain/pixel.png""#) && page.contains(r#"width="300""#),
         "image embed with width renders an <img>"
     );
+    // expand button: lightbox.js adds it to every [data-expandable]; the image
+    // wrapper carries the original file so the overlay shows it full size
+    assert!(
+        is_match(&page, r#"<span class="img-expandable" data-expandable data-full="/brain/pixel.png"><img src="/brain/pixel.png"[^>]*width="300"[^>]*></span>"#),
+        "image embed is wrapped in the expandable span with data-full"
+    );
+    assert_eq!(page.matches("img-expandable").count(), 1, "a |40 icon-sized embed gets no expand wrapper");
+    assert!(page.contains(r#"width="40""#), "icon-sized embed still renders");
 
     // --- blockquotes and callouts ------------------------------------------
     assert!(page.contains("<blockquote>\n<p>A plain blockquote, no callout.</p>"), "plain blockquote stays a plain <blockquote>");

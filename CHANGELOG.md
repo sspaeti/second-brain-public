@@ -1,5 +1,20 @@
 # Changelog
 
+### 2026-10-24: Expand button on note images
+
+- **Images**: every note image (`![[embed]]`, `![](md)`, external URLs) gets
+  the same hover-revealed top-right expand button as mermaid diagrams, and a
+  plain click on the picture opens it too. The overlay loads the original file
+  (`data-full`), not the srcset variant the page picked, and in image mode
+  (`.lightbox-overlay.is-image`) drops the padded card: the picture sits on the
+  dark backdrop at native size up to the viewport width and a tall screenshot
+  scrolls (the mermaid card stays, its text needs a background, and is capped
+  at 1400px, which had left a big-screen image stranded in the middle). Same
+  UX as the blog's `render-image.html` / `imgproc`. Embeds with an explicit width below 200px
+  (icons, badges) are left alone. `partials/responsive-image.html`,
+  `_markup/render-image.html`, `assets/js/lightbox.js`, `.img-expandable` in
+  `custom.scss`; fixture + assertions in `tests/hugo_render.rs`.
+
 
 ### 2026-10-06: Heading embeds match the way Obsidian writes them
 

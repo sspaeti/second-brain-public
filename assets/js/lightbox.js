@@ -1,4 +1,8 @@
-// Lightweight expand/lightbox for graph and mermaid diagrams
+// Lightweight expand/lightbox for the graph, mermaid diagrams and note images.
+// Markup: any [data-expandable] gets a top-right expand button. Images are
+// wrapped in <span class="img-expandable" data-expandable data-full="…">
+// (partials/responsive-image.html, _markup/render-image.html) and open the
+// original file; same UX as the blog (theme.js initImageExpand).
 (function () {
   let activeSimulation = null;
 
@@ -14,7 +18,11 @@
     document.body.appendChild(overlay);
 
     overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) closeLightbox();
+      if (e.target === overlay) return closeLightbox();
+      // image mode: the card fills the viewport, so a click beside the picture
+      // (on the content/body, not the <img>) closes too
+      if (overlay.classList.contains('is-image') &&
+          (e.target.classList.contains('lightbox-content') || e.target.classList.contains('lightbox-body'))) closeLightbox();
     });
     overlay.querySelector('.lightbox-close').addEventListener('click', closeLightbox);
     return overlay;
@@ -30,6 +38,8 @@
       overlay.classList.remove('lightbox-visible');
       setTimeout(() => {
         overlay.querySelector('.lightbox-body').innerHTML = '';
+        overlay.classList.remove('is-image');
+        overlay.scrollTop = 0;
       }, 200);
     }
   }
@@ -47,6 +57,7 @@
     const overlay = document.querySelector('.lightbox-overlay') || createOverlay();
     const body = overlay.querySelector('.lightbox-body');
     body.innerHTML = '';
+    overlay.classList.toggle('is-image', !!sourceElement.dataset.full);
 
     if (isGraph) {
       // Live interactive graph. d3/graph.js are lazy (head.html); by the time
@@ -69,6 +80,19 @@
           graphDiv
         );
       });
+    } else if (sourceElement.dataset.full) {
+      // Image: a fresh <img> of the original file (not the srcset variant the
+      // page picked). `.is-image` on the overlay drops the card: native size up
+      // to the viewport width on the dark backdrop, tall screenshots scroll
+      // (custom.scss; same as the blog's expand-lightbox).
+      const src = sourceElement.querySelector('img');
+      const full = document.createElement('img');
+      full.src = sourceElement.dataset.full;
+      full.alt = src ? src.alt : '';
+      full.className = 'lightbox-image';
+      full.decoding = 'async';
+      body.appendChild(full);
+      overlay.classList.add('lightbox-visible');
     } else {
       // Clone content (mermaid, etc.)
       const clone = sourceElement.cloneNode(true);
@@ -92,6 +116,16 @@
         window.openLightbox(container);
       });
       container.appendChild(btn);
+      // Images: a plain left-click on the picture opens it too (cursor: zoom-in
+      // in custom.scss); modifier clicks are left alone.
+      if (container.dataset.full) {
+        const img = container.querySelector('img');
+        if (img) img.addEventListener('click', (e) => {
+          if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+          e.preventDefault();
+          window.openLightbox(container);
+        });
+      }
     });
   }
 

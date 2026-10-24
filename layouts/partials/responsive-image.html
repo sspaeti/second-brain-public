@@ -11,6 +11,12 @@
   smaller than the original) plus the original, with width/height attributes so
   the browser reserves the space (no CLS). Anything that cannot be processed (svg,
   gif, missing file) falls back to the plain <img> as before.
+
+  Expand: the <img> is wrapped in <span class="img-expandable" data-expandable
+  data-full="<original>"> so lightbox.js adds the same top-right expand button
+  as mermaid diagrams and opens the original file in the overlay (same UX as
+  the blog's render-image.html / imgproc). Tiny images (an explicit |width
+  below 200px: icons, badges) are not wrapped - a 2em button would cover them.
 */ -}}
 {{- $path := .path -}}
 {{- $widthAttr := .width | default "" -}}
@@ -28,6 +34,8 @@
 {{- /* explicit width from `![[img|400]]` or `![[img|353x116]]` */ -}}
 {{- $reqW := 0 -}}
 {{- if findRE `^\d+(x\d+)?$` $widthAttr -}}{{- $reqW = int (index (split $widthAttr "x") 0) -}}{{- end -}}
+{{- $expandable := or (eq $reqW 0) (ge $reqW 200) -}}
+{{- if $expandable -}}<span class="img-expandable" data-expandable data-full="{{ $srcEnc | safeURL }}">{{- end -}}
 {{- if and $res (gt $res.Width 0) -}}
   {{- $w := $res.Width -}}{{- $h := $res.Height -}}
   {{- $dispW := cond (gt $reqW 0) $reqW $w -}}
@@ -58,3 +66,4 @@
 {{- else -}}
   <img src="{{ $srcEnc | safeURL }}"{{ if gt $reqW 0 }} width="{{ $reqW }}"{{ end }} alt="{{ $alt }}" loading="{{ $loading }}" decoding="async"{{ $prio | safeHTMLAttr }} />
 {{- end -}}
+{{- if $expandable -}}</span>{{- end -}}
