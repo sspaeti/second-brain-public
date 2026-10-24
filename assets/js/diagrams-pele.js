@@ -14,6 +14,12 @@ async function loadPele() {
   return peleLib;
 }
 
+// Pele draws gantt charts at a fixed width (config gantt.useWidth, default 800px) and only
+// caps it to the container, where mermaid.js stretched them to 100%. A huge useWidth makes
+// the cap win, so the chart fills whatever width the container (or the lightbox) has.
+// Row-based height, so nothing distorts. Diagram-level frontmatter/directives still override.
+const RENDER_CONFIG = { gantt: { useWidth: 20000 } };
+
 async function renderDiagrams(root = document) {
   const diagrams = root.querySelectorAll('pre.mermaid:not(.mermaid-processed)');
   if (diagrams.length === 0) return;
@@ -24,7 +30,7 @@ async function renderDiagrams(root = document) {
     el.setAttribute('data-original-content', source);
     el.classList.add('mermaid-processed');
     el.textContent = '';
-    mount(el, source, { zoom: false, onError: (err) => console.error('Pele render error:', err) });
+    mount(el, source, { zoom: false, config: RENDER_CONFIG, onError: (err) => console.error('Pele render error:', err) });
   }
 }
 

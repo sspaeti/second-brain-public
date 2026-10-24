@@ -21,6 +21,10 @@
 - **Expand**: the lightbox clones the diagram as before and, under pele, calls
   `window.__rerenderDiagrams` on the clone so the overlay gets a layout for its
   own width (992 px inline → 1400 px overlay on the pollmd note).
+- **Gantt width**: pele draws gantt charts at a fixed 800 px (`gantt.useWidth`)
+  and only shrinks them to the container, where mermaid.js stretched them to
+  100 %. The loader passes a very large `useWidth`, so pele's cap to the
+  container wins and gantts fill the card (992 px) and the overlay (1400 px).
 - **Fence hook**: `render-codeblock-mermaid.html` now emits the fence text
   HTML-escaped (Hugo's default; it used `safeHTML`). A `<br/>` inside a label had
   become a live `<br>` element in the `<pre>`, which `el.textContent` drops, so
