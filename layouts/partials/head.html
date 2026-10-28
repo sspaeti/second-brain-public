@@ -206,7 +206,7 @@
   {{ if $data.enableCodeBlockTitle | default hugo.Data.config.enableCallouts }}{{ $bundleFiles = $bundleFiles | append "js/code-title.js" }}{{ end }}
   {{ if $data.enableCodeBlockCopy | default hugo.Data.config.enableCodeBlockCopy }}{{ $bundleFiles = $bundleFiles | append "js/clipboard.js" }}{{ end }}
   {{ if $data.enableCallouts | default hugo.Data.config.enableCallouts }}{{ $bundleFiles = $bundleFiles | append "js/callouts.js" }}{{ end }}
-  {{ $bundleFiles = $bundleFiles | append "js/external-links.js" "js/lightbox.js" }}
+  {{ $bundleFiles = $bundleFiles | append "js/external-links.js" "js/logo-menu.js" "js/lightbox.js" }}
   {{ $parts := slice }}
   {{ range $bundleFiles }}{{ $parts = $parts | append (resources.Get .).Content }}{{ end }}
   {{ $bundle := resources.FromString "js/brain-bundle.js" (delimit $parts ";\n") | resources.Fingerprint "md5" | resources.Minify }}

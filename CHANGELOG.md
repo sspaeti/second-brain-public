@@ -1,5 +1,19 @@
 # Changelog
 
+### 2026-10-28: Brand menu on right-click of the logo
+
+- **Logo menu**: a right-click on the ssp.sh logo in the header opens a small
+  brand menu (media kit at ssp.sh/media/, download logo PNG, download portrait)
+  instead of the browser's context menu, like Vercel or Linear. Left click still
+  goes to ssp.sh; a second right-click on the open menu shows the native one;
+  Escape, click outside, scroll or choosing an item closes it. Survives SPA
+  navigation (the menu re-attaches to the body if the router replaced it).
+- **Shared with the blog**: `assets/js/logo-menu.js` (brain-bundle, after
+  external-links) and `assets/styles/logo-menu.scss` are canonical here; the
+  blog's `make sync-popover` copies them like the popover and search assets.
+  The stylesheet uses literal palette values and both dark selectors so it
+  needs no site tokens.
+
 ### 2026-10-24: Pele renders mermaid fences
 
 - **Diagrams**: ```` ```mermaid ```` fences are now drawn by

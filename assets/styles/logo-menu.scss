@@ -1,0 +1,75 @@
+/* Brand menu on right-click of the header logo (assets/js/logo-menu.js).
+   Canonical copy: second-brain-public/assets/styles/logo-menu.scss (picked up by
+   the styles glob). The blog's `make sync-popover` (run by `make prepare`) copies
+   it to sspaeti-hugo-blog/assets/css/_logo-menu.scss (imported from custom.scss),
+   so edit it here. It uses no Sass variables and no site tokens: colours are the
+   common Kanagawa palette, fonts the faces both sites load. Dark mode is the
+   blog's [theme=dark] or the brain's [saved-theme=dark]. Pure ASCII on purpose:
+   a non-ASCII byte makes Dart Sass emit a BOM in the brain bundle. */
+.logo-menu {
+  --lm-bg: #ffffff;
+  --lm-fg: #161209;
+  --lm-muted: #717C7C;
+  --lm-border: #dddddd;
+  --lm-hover: #f3f3f1;
+  --lm-shadow: 0 8px 28px rgba(0, 0, 0, 0.14);
+
+  position: fixed;
+  z-index: 1000;
+  width: 236px;
+  padding: 6px;
+  background: var(--lm-bg);
+  color: var(--lm-fg);
+  border: 1px solid var(--lm-border);
+  border-radius: 10px;
+  box-shadow: var(--lm-shadow);
+  font-family: 'Atkinson Hyperlegible', 'Atkinson Fallback', system-ui, sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.3;
+  text-align: left;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px 10px;
+    border-bottom: 1px solid var(--lm-border);
+    margin-bottom: 4px;
+    img { width: 36px; height: 36px; flex: none; }
+    span { display: flex; flex-direction: column; min-width: 0; }
+    b { font-family: 'Iosevka Web', 'Iosevka Fallback', monospace; font-weight: 500; color: var(--lm-fg); }
+    small { font-size: 0.72rem; color: var(--lm-muted); }
+  }
+
+  a[role=menuitem] {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    color: var(--lm-fg) !important;
+    text-decoration: none !important;
+    span { font-weight: 600; }
+    small { font-family: 'Iosevka Web', 'Iosevka Fallback', monospace; font-size: 0.7rem; color: var(--lm-muted); }
+    &:hover, &:focus-visible { background: var(--lm-hover); outline: none; }
+  }
+
+  &__foot {
+    margin-top: 4px;
+    padding: 6px 10px 4px;
+    border-top: 1px solid var(--lm-border);
+    font-family: 'Iosevka Web', 'Iosevka Fallback', monospace;
+    font-size: 0.66rem;
+    color: var(--lm-muted);
+  }
+}
+
+[theme=dark] .logo-menu,
+[saved-theme=dark] .logo-menu {
+  --lm-bg: #1F1F28;
+  --lm-fg: #DCD7BA;
+  --lm-muted: #a9a9b3;
+  --lm-border: rgba(169, 169, 179, 0.18);
+  --lm-hover: #2A2A37;
+  --lm-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+}
