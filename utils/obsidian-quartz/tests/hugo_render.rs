@@ -354,3 +354,18 @@ fn note_category_link_index_and_term_page() {
 
     let _ = std::fs::remove_dir_all(&out);
 }
+
+#[test]
+fn hackernews_visible_false_hides_the_badge_but_keeps_the_front_matter() {
+    let out = build();
+    let shown = page(&out, "hn-shown");
+    assert!(shown.contains(r#"class="hn-badge""#), "default: badge rendered");
+    assert!(shown.contains("article-hackernews-banner"), "default: the note's own banner div stays");
+    let hidden = page(&out, "hn-hidden");
+    assert!(!hidden.contains("hn-badge"), "hackernews_visible: false hides the badge:\n{hidden}");
+    // the fixture has no `description:`, so the <meta> summary still quotes the raw source; check the body
+    let body = &hidden[hidden.find("e-content").unwrap()..hidden.find("nl-footer").unwrap()];
+    assert!(!body.contains("article-hackernews-banner"), "...and strips the banner div from the body:\n{body}");
+    assert!(body.contains("Was on HN, badge hidden."), "body text itself untouched");
+    let _ = std::fs::remove_dir_all(&out);
+}
