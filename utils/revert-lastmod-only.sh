@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Revert published notes whose only change vs HEAD is the `lastmod:` line
-# (and, since the note-status feature, the `status:` / `status_source:` lines).
+# (and, since the note-status feature, the `status:` / `status_source:` lines;
+# since note categories, the `categories:` / `category_source:` lines too).
 #
 # Rationale: obsidian-quartz sets lastmod = max(existing lastmod, source file
 # mtime). Saving a note in Obsidian bumps its mtime even when the content was
@@ -15,42 +16,27 @@
 # lines (file_utils.rs). That is a real frontmatter change to keep, but not an
 # edit a reader should see as "updated today", so for that case only the
 # `lastmod:` line is restored from HEAD and the rest of the working tree stays.
+# The same holds for the `categories:` line `obsidian-quartz note-category`
+# injects; when only that line differs (no lastmod bump) nothing is touched.
 #
 # Restore is done by writing the HEAD blob straight to the working tree
 # (git show HEAD:path > path) instead of `git checkout`. This never touches the
 # submodule index, so it does not fight the index.lock held by concurrent
 # lazygit / gitstatusd watchers on the content submodule.
 #
+# One `git diff -U0` for all notes and one Python pass over it (instead of two
+# git calls plus a python start per dirty note): with every note dirty after a
+# category change the old loop took ~6 s, this takes ~0.1 s. Same rules.
+# `core.quotepath=false` keeps non-ASCII names (en dash, umlaut) unescaped.
+#
 # usage: utils/revert-lastmod-only.sh [content-dir]   (default: ../content)
-# tests: utils/test_revert_lastmod_only.py (make test)
+# logic: utils/revert_lastmod_only.py; tests: utils/test_revert_lastmod_only.py (make test)
 set -euo pipefail
 
-cd "${1:-$(dirname "$0")/../content}"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+cd "${1:-$HERE/../content}"
 
-git diff --name-only -- '*.md' | while IFS= read -r f; do
-  # Changed content lines only: drop diff hunk/file headers, then drop the
-  # lines a tag-only save may legitimately touch.
-  changed=$(git diff -U0 -- "$f" \
-    | grep -E '^[+-]' \
-    | grep -vE '^(\+\+\+|---)' || true)
-  real=$(printf '%s\n' "$changed" | grep -vE '^[+-](lastmod|status|status_source):' || true)
-  if [ -n "$real" ]; then
-    continue
-  fi
-  if printf '%s\n' "$changed" | grep -qE '^[+-](status|status_source):'; then
-    # status changed: keep the working tree, put HEAD's lastmod back
-    head_lastmod=$(git show "HEAD:$f" | grep -m1 -E '^lastmod:' || true)
-    if [ -n "$head_lastmod" ]; then
-      python3 - "$f" "$head_lastmod" <<'PY'
-import re, sys
-path, head_lastmod = sys.argv[1], sys.argv[2]
-text = open(path, encoding="utf-8").read()
-open(path, "w", encoding="utf-8").write(re.sub(r"^lastmod:.*$", lambda _: head_lastmod, text, count=1, flags=re.M))
-PY
-      echo "restored lastmod (status-only change): $f"
-    fi
-  else
-    git show "HEAD:$f" > "$f"
-    echo "reverted (lastmod-only): $f"
-  fi
-done
+# --src-prefix/--dst-prefix pin the a/..b/ headers the parser keys on (the
+# user's diff.mnemonicPrefix would emit i/..w/).
+git -c core.quotepath=false diff -U0 --no-color --src-prefix=a/ --dst-prefix=b/ -- '*.md' \
+  | python3 "$HERE/revert_lastmod_only.py"

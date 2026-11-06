@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="{{ .Lang }}">
+{{ partial "head.html" . }}
+{{- /* /brain/categories/ — the map of content. Curated order, descriptions and
+       "start with" hubs come from data/categories.yaml; counts from Hugo's
+       categories taxonomy (front matter injected by `obsidian-quartz note-category`).
+       Spec: docs/superpowers/specs/2026-11-06-note-categories-design.md */ -}}
+<body>
+{{partial "search.html" .}}
+<div class="header-fullwidth">
+{{partial "header.html" .}}
+</div>
+<main class="singlePage">
+    <article class="categories-index">
+        <h1>Categories</h1>
+        <p class="cat-intro">Every note has one category assigned, so if you are new here, you can explore by category. With 700+ notes and 1000+ interlinks, it can be hard to know where to start. With categories, next to <a href="{{ "map-of-content-moc/" | relURL }}" class="internal-link">Map of Content</a>, you can choose a starting point and go from there.
+        <br><br>Another option is also to browse through the topic cards on the <a href="{{ "" | relURL }}">Second Brain</a> or <a href="{{ "data-engineering/" | relURL }}">Data Engineering Vault</a>.</p>
+        {{ $tax := .Site.Taxonomies.categories }}
+        {{ $group := "" }}
+        {{ range hugo.Data.categories }}
+          {{ $cat := . }}
+          {{ with index $tax .slug }}
+            {{ $n := len . }}
+            {{ $g := default "" $cat.group }}
+            {{ if ne $g $group }}
+              {{ $group = $g }}
+              {{ with $g }}<h2 class="cat-group">{{ . }}</h2>{{ end }}
+            {{ end }}
+            <div class="cat-entry">
+              <h3><a href="{{ .Page.RelPermalink }}">{{ $cat.name }}</a> <span class="cat-count">{{ $n }} note{{ if ne $n 1 }}s{{ end }}</span></h3>
+              {{ with $cat.description }}<p class="cat-desc">{{ . }}</p>{{ end }}
+              {{ with $cat.hubs }}
+              <p class="cat-start">Start with
+                {{- $shown := 0 }}
+                {{- range $h := . }}{{ if lt $shown 3 }}{{ with $.Site.GetPage (printf "/%s" $h) }}{{ if $shown }},{{ end }} <a href="{{ .RelPermalink }}" class="internal-link">{{ .Title }}</a>{{ $shown = add $shown 1 }}{{ end }}{{ end }}{{ end }}
+                {{- if gt (len .) $shown }} and <a href="{{ $term := index $tax $cat.slug }}{{ $term.Page.RelPermalink }}">{{ sub (len .) $shown }} more</a>{{ end }}
+              </p>
+              {{ end }}
+            </div>
+          {{ end }}
+        {{ end }}
+        {{- /* categories that exist only through #category/<slug> vault tags (not in the YAML) */ -}}
+        {{ $curated := slice }}{{ range hugo.Data.categories }}{{ $curated = $curated | append .slug }}{{ end }}
+        {{ range $slug, $pages := $tax }}
+          {{ if and (ne $slug "other") (not (in $curated $slug)) }}
+            {{ $n := len $pages }}
+            <div class="cat-entry cat-implicit">
+              <h3><a href="{{ $pages.Page.RelPermalink }}">{{ $pages.Page.Title }}</a> <span class="cat-count">{{ $n }} note{{ if ne $n 1 }}s{{ end }}</span></h3>
+            </div>
+          {{ end }}
+        {{ end }}
+        {{ with index $tax "other" }}
+          {{ $n := len . }}
+          <div class="cat-entry cat-other">
+            <h3><a href="{{ .Page.RelPermalink }}">Other</a> <span class="cat-count">{{ $n }} note{{ if ne $n 1 }}s{{ end }}</span></h3>
+            <p class="cat-desc">Notes that do not link to any topic yet.</p>
+          </div>
+        {{ end }}
+    </article>
+</main>
+{{partial "contact.html" .}}
+</body>
+</html>

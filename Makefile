@@ -54,6 +54,7 @@ prepare-python: ## prepare commands
 prepare: ## prepare commands
 	find /home/sspaeti/git/sspaeti.com/second-brain-public/content -type f -not -name ".git" -not -path "*/_img/*" -delete
 	obsidian-quartz #copy all notes from my secondbrain with hashtag #publish to /content
+	obsidian-quartz note-category #one category per note from the link graph + data/categories.yaml -> data/note_category.json, categories: front matter (+ note_category_report.md for the author); before revert-lastmod-only so a category-only change is not an update
 	bash utils/revert-lastmod-only.sh #undo lastmod bump when a note's content is unchanged (only lastmod line differs)
 	python utils/recent_updates.py #per-note change badges (new/updated + words) -> data/recent_updates.json
 	obsidian-quartz note-status #per-note level started/growing/evergreen -> data/note_status.json (+ note_status_report.md for the author)

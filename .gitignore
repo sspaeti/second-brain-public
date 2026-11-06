@@ -16,6 +16,9 @@ node_modules
 data/recent_updates.json
 data/note_status.json
 note_status_report.md
+data/note_category.json
+note_category_report.md
+note_category_proposal.md
 utils/hugo-obsidian/hugo-obsidian
 utils/hugo-obsidian/hugo-obsidian-dev
 

@@ -15,6 +15,12 @@
       {{if not .Params.hideTitle}}
       {{if .Title}}<h1 class="p-name popover-hint">{{ .Title }}</h1>{{end}}
       {{end}}
+      {{- /* Note category (data/note_category.json, `obsidian-quartz note-category`):
+             rendered as a footer line after the body (see below), never in the meta line.
+             Spec: docs/superpowers/specs/2026-11-06-note-categories-design.md */ -}}
+      {{ $stem := .File.BaseFileName }}
+      {{ $nc := "" }}{{ with hugo.Data.note_category }}{{ $nc = index . $stem }}{{ end }}
+      {{ if .Params.hideCategory }}{{ $nc = "" }}{{ end }}
       <p class="meta popover-hint">
           {{if not .Params.hideLastUpdate}}
           <span class="meta-label-full">Last updated</span><span class="meta-label-short">Updated:</span> <time class="dt-published" datetime="{{ .Lastmod.Format "2006-01-02T15:04:05-07:00" }}">{{ partial "date-fmt.html" .}}</time>
@@ -26,7 +32,6 @@
                  (data/note_status.json, `obsidian-quartz note-status`) is the
                  trigger; the sessions list (data/recent_updates.json) follows
                  when there is one. Spec: docs/superpowers/specs/2026-10-01-note-status-design.md */ -}}
-          {{ $stem := .File.BaseFileName }}
           {{ $ns := "" }}{{ with hugo.Data.note_status }}{{ $ns = index . $stem }}{{ end }}
           {{ $ru := "" }}{{ with hugo.Data.recent_updates }}{{ $ru = index . $stem }}{{ end }}
           {{ with $ns }} ·
@@ -57,7 +62,8 @@
           {{end}}
           {{- /* Hacker News badge: sits inline in the meta line (skipped when
                  hackernews_bottom is set, where the banner lives at the bottom). */ -}}
-          {{- if not .Params.hackernews_bottom }}{{ with .Params.hackernews }}
+          {{- /* hackernews_visible: false keeps the front matter (stats) but hides the badge */ -}}
+          {{- if and (not .Params.hackernews_bottom) (ne .Params.hackernews_visible false) }}{{ with .Params.hackernews }}
           <a class="hn-badge" href="{{ . }}" target="_blank" rel="noopener" title="Featured on Hacker News - read the comments"><span class="hn-badge-mark" aria-hidden="true">Y</span><span class="hn-badge-text">Hacker News</span></a>
           {{ end }}{{ end }}
           <!-- {{ partial "github.html" . }} -->
@@ -85,7 +91,26 @@
         });
       })();
       </script>
-      {{partial "textprocessing.html" . }}
+      {{- /* Category line: "Category: <name>" as plain body text inside the note's own
+             Origin/References paragraph (between the two lines when both exist, after
+             Origin otherwise); a paragraph of its own after the body when the note has no
+             Origin line. Spec: docs/superpowers/specs/2026-11-06-note-categories-design.md */ -}}
+      {{ $body := partial "textprocessing.html" . }}
+      {{- /* hackernews_visible: false also strips the note's own HN banner div from the body */ -}}
+      {{ if eq .Params.hackernews_visible false }}{{ $body = replaceRE `(?s)<div class="article-hackernews-banner">.*?</div>` "" $body }}{{ end }}
+      {{ with $nc }}
+        {{ $line := printf `<span class="note-category-line">Category: <a href="%s" class="internal-link">%s</a></span>` (printf "categories/%s/" .category | relURL) .name }}
+        {{ $originRefs := `(?s)(<p>Origin:.*?<br>\s*)(References:)` }}
+        {{ $origin := `(?s)(<p>Origin:.*?)(</p>)` }}
+        {{ if findRE $originRefs $body 1 }}
+          {{ $body = replaceRE $originRefs (printf "${1}%s<br>\n${2}" $line) $body }}
+        {{ else if findRE $origin $body 1 }}
+          {{ $body = replaceRE $origin (printf "${1}<br>\n%s${2}" $line) $body }}
+        {{ else }}
+          {{ $body = printf `%s<p class="note-category-footer">%s</p>` $body $line }}
+        {{ end }}
+      {{ end }}
+      {{ $body | safeHTML }}
       {{ with (.GetTerms "tags") }}
       <ul class="tags tags-footer">
           {{ range . }}

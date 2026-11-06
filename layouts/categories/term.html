@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="{{ .Lang }}">
+{{ partial "head.html" . }}
+{{- /* /brain/categories/<slug>/ — one category: curated hubs first ("Start here"),
+       then every other note most-linked first (data/note_category.json `degree`).
+       Spec: docs/superpowers/specs/2026-11-06-note-categories-design.md */ -}}
+<body>
+{{partial "search.html" .}}
+<div class="header-fullwidth">
+{{partial "header.html" .}}
+</div>
+<main class="singlePage">
+    <article class="category-page">
+        {{ $slug := .Data.Term }}
+        {{- /* unknown slug (stale content/ after a rename): plain title, no description */ -}}
+        {{ $cat := dict "name" .Title "description" "" "hubs" slice }}
+        {{ if eq $slug "other" }}{{ $cat = dict "name" "Other" "description" "Notes that do not link to any topic yet." "hubs" slice }}{{ end }}
+        {{ range hugo.Data.categories }}{{ if eq .slug $slug }}{{ $cat = . }}{{ end }}{{ end }}
+        {{ $data := hugo.Data.note_category }}
+        <p class="cat-crumb"><a href="{{ "categories/" | relURL }}">Categories</a></p>
+        <h1>{{ $cat.name }}</h1>
+        {{ with $cat.description }}<p class="cat-desc">{{ . }}</p>{{ end }}
+        {{ $hubs := slice }}
+        {{ range $cat.hubs }}{{ with $.Site.GetPage (printf "/%s" .) }}{{ $hubs = $hubs | append . }}{{ end }}{{ end }}
+        {{ with $hubs }}
+        <h2 class="cat-section">Start here</h2>
+        {{ partial "page-list.html" . }}
+        {{ end }}
+        {{ $rest := slice }}
+        {{ range .Pages }}
+          {{ $p := . }}
+          {{ $isHub := false }}{{ range $hubs }}{{ if eq .RelPermalink $p.RelPermalink }}{{ $isHub = true }}{{ end }}{{ end }}
+          {{ if not $isHub }}
+            {{ $d := 0 }}{{ with .File }}{{ with index $data .BaseFileName }}{{ $d = int .degree }}{{ end }}{{ end }}
+            {{ $rest = $rest | append (dict "page" $p "degree" $d) }}
+          {{ end }}
+        {{ end }}
+        {{ with $rest }}
+        {{ $pages := slice }}
+        {{ range sort . "degree" "desc" }}{{ $pages = $pages | append .page }}{{ end }}
+        <h2 class="cat-section">{{ if $hubs }}All notes{{ else }}Notes{{ end }} <span class="cat-count">{{ len $pages }}</span></h2>
+        {{ partial "page-list.html" $pages }}
+        {{ end }}
+    </article>
+</main>
+{{partial "contact.html" .}}
+</body>
+</html>

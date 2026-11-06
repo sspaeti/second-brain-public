@@ -283,3 +283,89 @@ fn diagram_renderer_empty_value_falls_back_to_mermaid() {
     assert!(!page.contains("npm/pele@1"), "pele not emitted for an empty mermaidRenderer");
     let _ = std::fs::remove_dir_all(&out);
 }
+
+#[test]
+fn note_category_link_index_and_term_page() {
+    let out = build();
+
+    // note page: "Category: <name>" sits inside the note's own Origin/References
+    // paragraph (between the two lines), as plain body text; nothing in the meta line,
+    // no "More" list (backlinks, links and the graph already cover that)
+    let p = page(&out, "status-note");
+    let meta_start = p.find(r#"<p class="meta popover-hint">"#).expect("meta line");
+    let meta = &p[meta_start..p[meta_start..].find("</p>").unwrap() + meta_start];
+    assert!(!meta.contains("note-category"), "meta line stays compact:\n{meta}");
+    let origin = p.find("<p>Origin:").expect("origin paragraph");
+    let para = &p[origin..p[origin..].find("</p>").unwrap() + origin];
+    let cat = para.find(r#"<span class="note-category-line">Category: <a href="/brain/categories/data-lakes/" class="internal-link">Data lakes</a></span>"#).expect(&format!("category line inside the origin paragraph:\n{para}"));
+    let refs = para.find("References:").expect("references line");
+    assert!(cat < refs, "category between Origin and References:\n{para}");
+    assert!(!p.contains("more-in-category"), "no More list");
+    assert!(!p.contains("note-category-footer"), "no separate footer paragraph when Origin exists");
+
+    // Origin line without References: appended to the Origin line
+    let p = page(&out, "embedder");
+    let origin = p.find("<p>Origin:").expect("origin paragraph");
+    let para = &p[origin..p[origin..].find("</p>").unwrap() + origin];
+    assert!(para.ends_with(r#"<br>
+<span class="note-category-line">Category: <a href="/brain/categories/data-lakes/" class="internal-link">Data lakes</a></span>"#), "appended after Origin:\n{para}");
+
+    // note without an Origin/References footer: own paragraph after the body
+    let p = page(&out, "dont-stop");
+    let fs = p.find(r#"<p class="note-category-footer"><span class="note-category-line">Category: <a href="/brain/categories/writing/" class="internal-link">Writing</a></span></p>"#).expect("footer paragraph");
+    assert!(fs > p.find("e-content").unwrap() && fs < p.find("nl-footer").unwrap());
+
+    // other: shows the word, no "More in"
+    let p = page(&out, "manual-note");
+    assert!(p.contains(r#"href="/brain/categories/other/" class="internal-link">Other</a>"#), "other is a real category");
+
+    // index: curated order, descriptions, start-with hubs, counts, Other last, no tags listing
+    let idx = std::fs::read_to_string(out.join("categories/index.html")).expect("categories index");
+    assert!(!idx.contains("All posts"), "tags taxonomy template must not render here");
+    let lakes = idx.find(r#"href="/brain/categories/data-lakes/""#).expect("data-lakes entry");
+    let writing = idx.find(r#"href="/brain/categories/writing/""#).expect("writing entry");
+    let other = idx.find(r#"href="/brain/categories/other/""#).expect("other entry");
+    let moc = idx.find(r#"href="/brain/categories/moc/""#).expect("implicit (vault-tagged) category listed");
+    assert!(lakes < writing && writing < moc && moc < other, "curated order, then vault-only categories, then Other");
+    assert!(idx.contains("Lakes and table formats."), "description");
+    assert!(idx.contains(r#"<span class="cat-count">1 note</span>"#), "singular count");
+    let grp = idx.find("Data engineering").expect("group heading");
+    assert!(grp < lakes, "group heading before its first category");
+    assert!(idx.contains(r#"<a href="/brain/status-note/" class="internal-link">Status Note</a>"#), "start-with hub link");
+    assert!(idx.contains(r#"<a href="/brain/hub-x/" class="internal-link">Hub (X)</a>"#), "parenthesised hub resolves:\n{idx}");
+    assert!(idx.contains(r#"<span class="cat-count">3 notes</span>"#), "count for data-lakes incl. hub (x):\n{idx}");
+
+    // term page: hubs first, then the rest by degree, description shown
+    let term = std::fs::read_to_string(out.join("categories/data-lakes/index.html")).expect("term page");
+    assert!(term.contains("<h1>Data lakes</h1>"), "{term}");
+    let moc_term = std::fs::read_to_string(out.join("categories/moc/index.html")).expect("moc term page");
+    assert!(moc_term.contains("<h1>Moc</h1>"), "implicit category gets a humanised title:\n{moc_term}");
+    assert!(term.contains("Lakes and table formats."));
+    let hub = term.find("Start here").expect("start here section");
+    // page-list.html writes absolute permalinks, so match on the path suffix
+    let s = term.find(r#"/brain/status-note/""#).expect("hub row");
+    let e = term.find(r#"/brain/embedder/""#).expect("member row");
+    assert!(hub < s && s < e, "hub listed before the other notes");
+    assert!(!term.contains("Tag:"), "not the tags term template");
+
+    // home feed unchanged: no category pages in the RSS
+    let rss = std::fs::read_to_string(out.join("index.xml")).unwrap();
+    assert!(!rss.contains("/categories/"), "RSS must not list category pages");
+
+    let _ = std::fs::remove_dir_all(&out);
+}
+
+#[test]
+fn hackernews_visible_false_hides_the_badge_but_keeps_the_front_matter() {
+    let out = build();
+    let shown = page(&out, "hn-shown");
+    assert!(shown.contains(r#"class="hn-badge""#), "default: badge rendered");
+    assert!(shown.contains("article-hackernews-banner"), "default: the note's own banner div stays");
+    let hidden = page(&out, "hn-hidden");
+    assert!(!hidden.contains("hn-badge"), "hackernews_visible: false hides the badge:\n{hidden}");
+    // the fixture has no `description:`, so the <meta> summary still quotes the raw source; check the body
+    let body = &hidden[hidden.find("e-content").unwrap()..hidden.find("nl-footer").unwrap()];
+    assert!(!body.contains("article-hackernews-banner"), "...and strips the banner div from the body:\n{body}");
+    assert!(body.contains("Was on HN, badge hidden."), "body text itself untouched");
+    let _ = std::fs::remove_dir_all(&out);
+}

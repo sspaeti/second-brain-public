@@ -11,7 +11,10 @@
     <!-- Begin actual content -->
     <article>
         {{partial "toc.html" .}}
-        {{partial "textprocessing.html" . }}
+        {{- /* hackernews_visible: false in _index.md keeps the HN front matter but hides the banner */ -}}
+        {{ $body := partial "textprocessing.html" . }}
+        {{ if eq .Params.hackernews_visible false }}{{ $body = replaceRE `(?s)<div class="article-hackernews-banner">.*?</div>` "" $body }}{{ end }}
+        {{ $body | safeHTML }}
         {{if hugo.Data.config.enableRecentNotes}}
           {{partial "recent.html" . }}
         {{end}}
