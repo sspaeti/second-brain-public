@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Revert published notes whose only change vs HEAD is the `lastmod:` line
-# (and, since the note-status feature, the `status:` / `status_source:` lines).
+# (and, since the note-status feature, the `status:` / `status_source:` lines;
+# since note categories, the `categories:` / `category_source:` lines too).
 #
 # Rationale: obsidian-quartz sets lastmod = max(existing lastmod, source file
 # mtime). Saving a note in Obsidian bumps its mtime even when the content was
@@ -33,12 +34,12 @@ git diff --name-only -- '*.md' | while IFS= read -r f; do
   changed=$(git diff -U0 -- "$f" \
     | grep -E '^[+-]' \
     | grep -vE '^(\+\+\+|---)' || true)
-  real=$(printf '%s\n' "$changed" | grep -vE '^[+-](lastmod|status|status_source):' || true)
+  real=$(printf '%s\n' "$changed" | grep -vE '^[+-](lastmod|status|status_source|categories|category_source):' || true)
   if [ -n "$real" ]; then
     continue
   fi
-  if printf '%s\n' "$changed" | grep -qE '^[+-](status|status_source):'; then
-    # status changed: keep the working tree, put HEAD's lastmod back
+  if printf '%s\n' "$changed" | grep -qE '^[+-](status|status_source|categories|category_source):'; then
+    # status or category changed: keep the working tree, put HEAD's lastmod back
     head_lastmod=$(git show "HEAD:$f" | grep -m1 -E '^lastmod:' || true)
     if [ -n "$head_lastmod" ]; then
       python3 - "$f" "$head_lastmod" <<'PY'

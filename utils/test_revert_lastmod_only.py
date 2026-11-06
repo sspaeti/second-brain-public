@@ -66,6 +66,29 @@ class RevertLastmodOnlyTest(unittest.TestCase):
         self.assertNotIn("status:", text)
         self.assertIn("lastmod: 2026-05-01 09:43:34\n", text)
 
+
+    def test_categories_line_is_kept_but_lastmod_is_restored(self):
+        bumped = HEAD_NOTE.replace("2026-05-01 09:43:34", "2026-10-01 13:37:29").replace(
+            "createddate: 2023-12-22\n", "categories: [neovim]\ncreateddate: 2023-12-22\n"
+        )
+        self.note.write_text(bumped, encoding="utf-8")
+        out = self.run_script()
+        text = self.note.read_text(encoding="utf-8")
+        self.assertIn("lastmod: 2026-05-01 09:43:34\n", text, "old lastmod is back")
+        self.assertIn("categories: [neovim]\n", text, "the injected category survives")
+        self.assertIn("restored lastmod (status-only change)", out)
+
+    def test_category_change_is_kept_but_lastmod_is_restored(self):
+        with_cat = HEAD_NOTE.replace("createddate: 2023-12-22\n", "categories: [ai]\ncreateddate: 2023-12-22\n")
+        self.note.write_text(with_cat, encoding="utf-8")
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qam", "with category"], check=True)
+        moved = with_cat.replace("categories: [ai]", "categories: [writing]").replace("2026-05-01 09:43:34", "2026-10-02 08:00:00")
+        self.note.write_text(moved, encoding="utf-8")
+        self.run_script()
+        text = self.note.read_text(encoding="utf-8")
+        self.assertIn("categories: [writing]\n", text)
+        self.assertIn("lastmod: 2026-05-01 09:43:34\n", text)
+
     def test_real_body_change_is_left_alone(self):
         edited = HEAD_NOTE.replace("2026-05-01 09:43:34", "2026-10-01 13:37:29").replace(
             "butter and bread.", "butter and bread of every data engineer."
