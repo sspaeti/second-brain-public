@@ -379,6 +379,24 @@ pub fn split_garden_tag(tags: Vec<String>) -> (Vec<String>, Option<Level>, Vec<S
     (rest, level, rejected)
 }
 
+/// Pull `category/<slug>` out of a note's tag list: the remaining tags and the
+/// first slug (lowercased). Spec: docs/superpowers/specs/2026-11-06-note-categories-design.md
+pub fn split_category_tag(tags: Vec<String>) -> (Vec<String>, Option<String>) {
+    let mut rest = Vec::with_capacity(tags.len());
+    let mut slug = None;
+    for tag in tags {
+        match tag.to_ascii_lowercase().strip_prefix("category/") {
+            Some(v) if !v.is_empty() => {
+                if slug.is_none() {
+                    slug = Some(v.to_string());
+                }
+            }
+            _ => rest.push(tag),
+        }
+    }
+    (rest, slug)
+}
+
 use std::error::Error;
 use std::fs;
 use std::path::Path;
@@ -570,6 +588,16 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn split_category_tag_takes_first_lowercased_and_strips_it() {
+        let tags: Vec<String> = ["publish", "category/Neovim", "x", "category/ai"].iter().map(|s| s.to_string()).collect();
+        let (rest, slug) = split_category_tag(tags);
+        assert_eq!(rest, vec!["publish", "x"]);
+        assert_eq!(slug.as_deref(), Some("neovim"));
+        let (rest, slug) = split_category_tag(vec!["a".to_string()]);
+        assert_eq!((rest, slug), (vec!["a".to_string()], None));
+    }
+
     use super::*;
 
     fn facts(words: usize, sessions: usize, span_days: i64) -> NoteFacts {

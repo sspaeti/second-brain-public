@@ -10,7 +10,7 @@ use std::fs::copy;
 
 use serde_yaml::Value;
 
-use crate::note_status::{split_garden_tag, Level};
+use crate::note_status::{split_category_tag, split_garden_tag, Level};
 use crate::slug::brain_slug;
 use crate::svg_generator::{
     extract_title_from_md, generate_mermaid_og_image, generate_og_image, ImageConfig,
@@ -222,6 +222,7 @@ pub fn process_file(
     let mut title = String::new();
     let mut tags: Vec<String> = Vec::new();
     let mut garden_level: Option<Level> = None;
+    let mut category_override: Option<String> = None;
 
     let mut found_title = false;
     let mut found_publish = false;
@@ -348,8 +349,11 @@ pub fn process_file(
                     path.display()
                 );
             }
+            // #category/<slug> -> categories + category_source: manual (note-category leaves it alone)
+            let (rest, category) = split_category_tag(rest);
             tags = rest;
             garden_level = level;
+            category_override = category;
             lines.pop();
             continue;
         }
@@ -578,6 +582,10 @@ pub fn process_file(
                 frontmatter_parts.push(format!("status: {}", level.as_str()));
                 frontmatter_parts.push("status_source: manual".to_string());
             }
+            if let Some(slug) = &category_override {
+                frontmatter_parts.push(format!("categories: [{}]", slug));
+                frontmatter_parts.push("category_source: manual".to_string());
+            }
             frontmatter = format!("---\n{}\n---\n", frontmatter_parts.join("\n"));
         } else {
             // Merge frontmatter
@@ -731,6 +739,21 @@ pub fn process_file(
                     serde_yaml::Value::String("manual".to_string()),
                 );
             }
+            // #category/<slug> -> categories + category_source: manual. Without the
+            // tag both keys are dropped: `obsidian-quartz note-category` re-injects
+            // the computed `categories:` line on every build.
+            existing_frontmatter.remove("categories");
+            existing_frontmatter.remove("category_source");
+            if let Some(slug) = &category_override {
+                existing_frontmatter.insert(
+                    "categories".to_string(),
+                    serde_yaml::Value::Sequence(vec![serde_yaml::Value::String(slug.clone())]),
+                );
+                existing_frontmatter.insert(
+                    "category_source".to_string(),
+                    serde_yaml::Value::String("manual".to_string()),
+                );
+            }
 
             // Redundant check removed - we now handle empty tags earlier
 
@@ -807,7 +830,7 @@ pub fn process_file(
                 // and need YAML flow style. The generic Sequence arm below joins
                 // with ", " and no brackets, which would turn `aliases` back into
                 // the scalar Hugo mis-splits on whitespace.
-                if key == "tags" || key == "aliases" {
+                if key == "tags" || key == "aliases" || key == "categories" {
                     if let serde_yaml::Value::Sequence(seq) = value {
                         // Skip completely empty tag arrays
                         if seq.is_empty() {
