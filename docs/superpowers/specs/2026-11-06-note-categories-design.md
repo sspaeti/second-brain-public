@@ -197,7 +197,10 @@ Seeded label propagation:
    `order` = number of curated categories + 1, injected like any other slug, so
    `/brain/categories/other/` exists and every note has exactly one category. `other` may not
    be used as a slug in `categories.yaml`.
-4. Override: a vault tag `#category/<slug>` wins over the computation, handled like
+4. Override: a vault tag `#category/<slug>` wins over the computation (slug as in
+   `categories.yaml`, e.g. `#category/neovim`). A slug not in the YAML creates an implicit
+   category (Title Case name, no hubs, listed after the curated ones) so the tag always wins and
+   the page exists; the report asks the author to add it to the YAML. Handled like
    `#garden/<level>` in `file_utils.rs` (a `split_category_tag` next to `split_garden_tag`;
    stripped from `tags`, written as `categories: [<slug>]` and `category_source: manual` by the
    export, in both the empty-front-matter branch and the merge branch, with `categories` added
@@ -282,9 +285,10 @@ Outputs:
   `note_category_proposal.md`.
 - **Rollout and CDN.** `utils/purge_cdn.py` purges only notes whose `lastmod` moved since the
   last purge. The first build changes every note's HTML (meta line, "More in") without touching
-  `lastmod`, and so does every later edit of `categories.yaml`. The first deploy is therefore
-  `make deploy-clean` (full purge), and the report prints a reminder to run `make purge-cdn`
-  whenever the moved-notes list is non-empty. After the first `make prepare` the author
+  `lastmod`, and so does every later edit of `categories.yaml`. So after the first
+  `make deploy` run `make purge-cdn` once (purges every brain page; `deploy-clean` is not needed,
+  that one also deletes old hashed assets). The report prints the same reminder on the first run
+  and whenever the moved-notes list is non-empty. After the first `make prepare` the author
   commits the content submodule once; until then the ~700 touched notes sit in the working
   tree, which `recent_updates.py` treats as uncommitted edits (harmless, local serve only).
 
@@ -377,7 +381,7 @@ Outputs:
 - The footer line renders on every note with a category (also `hideLastUpdate` /
   `hideBacklinks` pages); `hideCategory: true` opts out.
 - `path` in the JSON has no trailing slash, matching the dashboard's `page` key.
-- First deploy is `make deploy-clean`; `categories.yaml` edits need a CDN purge.
+- First deploy: `make deploy` then `make purge-cdn`; later `categories.yaml` edits too.
 - Provisional `blog_categories` mapping as listed in the dashboard section.
 
 ## Left to the builder

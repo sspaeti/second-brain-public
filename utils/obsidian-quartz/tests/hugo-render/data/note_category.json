@@ -43,7 +43,7 @@
   "category": "other",
   "name": "Other",
   "group": null,
-  "order": 3,
+  "order": 4,
   "path": "/brain/manual-note",
   "source": "other",
   "score": 0,
@@ -61,5 +61,31 @@
   "degree": 9,
   "reason": "Hub of Data lakes",
   "related": []
+ },
+ "vault tagged": {
+  "category": "moc",
+  "name": "Moc",
+  "group": null,
+  "order": 3,
+  "path": "/brain/vault-tagged",
+  "source": "manual",
+  "score": 0,
+  "degree": 0,
+  "reason": "Set by author (#category/moc)",
+  "related": []
+ },
+ "don't stop": {
+  "category": "writing",
+  "name": "Writing",
+  "group": null,
+  "order": 2,
+  "path": "/brain/dont-stop",
+  "source": "links",
+  "score": 1,
+  "degree": 1,
+  "reason": "Links with source note in Writing",
+  "related": [
+   "source note"
+  ]
  }
 }

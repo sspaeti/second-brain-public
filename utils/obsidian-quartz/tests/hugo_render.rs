@@ -288,36 +288,36 @@ fn diagram_renderer_empty_value_falls_back_to_mermaid() {
 fn note_category_link_index_and_term_page() {
     let out = build();
 
-    // note page: the category sits in the note footer (after the body, before the
-    // tags footer), never in the meta line; "More in" lists the other notes inline
+    // note page: "Category: <name>" sits inside the note's own Origin/References
+    // paragraph (between the two lines), as plain body text; nothing in the meta line,
+    // no "More" list (backlinks, links and the graph already cover that)
     let p = page(&out, "status-note");
     let meta_start = p.find(r#"<p class="meta popover-hint">"#).expect("meta line");
     let meta = &p[meta_start..p[meta_start..].find("</p>").unwrap() + meta_start];
     assert!(!meta.contains("note-category"), "meta line stays compact:\n{meta}");
-    let foot_start = p.find(r#"<p class="note-category-footer">"#).expect("category footer");
-    let foot = &p[foot_start..p[foot_start..].find("</p>").unwrap() + foot_start];
-    assert!(foot_start > p.find("e-content").expect("content div"), "footer after the body");
-    assert!(foot_start < p.find("tags-footer").unwrap_or(usize::MAX), "footer before the tags");
-    assert!(foot.contains(r#"<a class="note-category" href="/brain/categories/data-lakes/">Data lakes</a>"#), "{foot}");
-    assert!(foot.contains(r#"<span class="more-in-category">"#), "{foot}");
-    assert!(foot.contains(r#"href="/brain/embedder/""#), "{foot}");
-    assert!(foot.contains(r#"href="/brain/hub-x/""#), "parenthesised stem resolves via logical path:\n{foot}");
-    assert!(!foot.contains(r#"href="/brain/status-note/""#), "self excluded:\n{foot}");
-    // "More" prefers the note's own same-category neighbours (`related`), then fills by degree
-    let foot = {
-        let p = page(&out, "embedder");
-        let fs = p.find(r#"<p class="note-category-footer">"#).expect("category footer");
-        p[fs..p[fs..].find("</p>").unwrap() + fs].to_string()
-    };
-    let hx = foot.find(r#"href="/brain/hub-x/""#).expect("related hub (x)");
-    let sn = foot.find(r#"href="/brain/status-note/""#).expect("related status note");
-    assert!(hx < sn, "related order kept (hub (x) first, then status note):\n{foot}");
-    assert!(!p.contains(r#"<div class="more-in-category">"#), "nothing in the gutter");
+    let origin = p.find("<p>Origin:").expect("origin paragraph");
+    let para = &p[origin..p[origin..].find("</p>").unwrap() + origin];
+    let cat = para.find(r#"<span class="note-category-line">Category: <a href="/brain/categories/data-lakes/" class="internal-link">Data lakes</a></span>"#).expect(&format!("category line inside the origin paragraph:\n{para}"));
+    let refs = para.find("References:").expect("references line");
+    assert!(cat < refs, "category between Origin and References:\n{para}");
+    assert!(!p.contains("more-in-category"), "no More list");
+    assert!(!p.contains("note-category-footer"), "no separate footer paragraph when Origin exists");
+
+    // Origin line without References: appended to the Origin line
+    let p = page(&out, "embedder");
+    let origin = p.find("<p>Origin:").expect("origin paragraph");
+    let para = &p[origin..p[origin..].find("</p>").unwrap() + origin];
+    assert!(para.ends_with(r#"<br>
+<span class="note-category-line">Category: <a href="/brain/categories/data-lakes/" class="internal-link">Data lakes</a></span>"#), "appended after Origin:\n{para}");
+
+    // note without an Origin/References footer: own paragraph after the body
+    let p = page(&out, "dont-stop");
+    let fs = p.find(r#"<p class="note-category-footer"><span class="note-category-line">Category: <a href="/brain/categories/writing/" class="internal-link">Writing</a></span></p>"#).expect("footer paragraph");
+    assert!(fs > p.find("e-content").unwrap() && fs < p.find("nl-footer").unwrap());
 
     // other: shows the word, no "More in"
     let p = page(&out, "manual-note");
-    assert!(p.contains(r#"<a class="note-category" href="/brain/categories/other/">Other</a>"#), "other is a real category");
-    assert!(!p.contains("more-in-category"), "no More-in for other");
+    assert!(p.contains(r#"href="/brain/categories/other/" class="internal-link">Other</a>"#), "other is a real category");
 
     // index: curated order, descriptions, start-with hubs, counts, Other last, no tags listing
     let idx = std::fs::read_to_string(out.join("categories/index.html")).expect("categories index");
@@ -325,7 +325,8 @@ fn note_category_link_index_and_term_page() {
     let lakes = idx.find(r#"href="/brain/categories/data-lakes/""#).expect("data-lakes entry");
     let writing = idx.find(r#"href="/brain/categories/writing/""#).expect("writing entry");
     let other = idx.find(r#"href="/brain/categories/other/""#).expect("other entry");
-    assert!(lakes < writing && writing < other, "curated order then Other");
+    let moc = idx.find(r#"href="/brain/categories/moc/""#).expect("implicit (vault-tagged) category listed");
+    assert!(lakes < writing && writing < moc && moc < other, "curated order, then vault-only categories, then Other");
     assert!(idx.contains("Lakes and table formats."), "description");
     assert!(idx.contains(r#"<span class="cat-count">1 note</span>"#), "singular count");
     let grp = idx.find("Data engineering").expect("group heading");
@@ -337,6 +338,8 @@ fn note_category_link_index_and_term_page() {
     // term page: hubs first, then the rest by degree, description shown
     let term = std::fs::read_to_string(out.join("categories/data-lakes/index.html")).expect("term page");
     assert!(term.contains("<h1>Data lakes</h1>"), "{term}");
+    let moc_term = std::fs::read_to_string(out.join("categories/moc/index.html")).expect("moc term page");
+    assert!(moc_term.contains("<h1>Moc</h1>"), "implicit category gets a humanised title:\n{moc_term}");
     assert!(term.contains("Lakes and table formats."));
     let hub = term.find("Start here").expect("start here section");
     // page-list.html writes absolute permalinks, so match on the path suffix

@@ -31,6 +31,34 @@ pub struct Category {
     pub blog_categories: Vec<String>,
 }
 
+
+/// `#category/<slug>` tags naming a slug that is not in `categories.yaml` become
+/// implicit categories appended after the curated ones (sorted; name = the slug
+/// in Title Case, no hubs, no description), so the override always wins and the
+/// category page exists. The report asks the author to add them to the YAML.
+pub fn with_manual_categories(mut cats: Vec<Category>, manual: &BTreeMap<String, String>) -> (Vec<Category>, Vec<String>) {
+    let known: BTreeSet<String> = cats.iter().map(|c| c.slug.clone()).collect();
+    let mut added: Vec<String> = manual.values().filter(|s| !known.contains(*s) && s.as_str() != OTHER_SLUG).cloned().collect();
+    added.sort();
+    added.dedup();
+    for slug in &added {
+        let name = slug
+            .split('-')
+            .filter(|w| !w.is_empty())
+            .map(|w| {
+                let mut c = w.chars();
+                match c.next() {
+                    Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
+                    None => String::new(),
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
+        cats.push(Category { slug: slug.clone(), name, group: None, description: None, hubs: vec![], blog_categories: vec![] });
+    }
+    (cats, added)
+}
+
 /// Parse and validate the curated list. Slugs must be lowercase
 /// `[a-z0-9-]+`, unique, never `other`; every category needs at least one hub.
 pub fn parse_categories(yaml: &str) -> Result<Vec<Category>, String> {
@@ -420,6 +448,14 @@ pub fn render_report(prev: Option<&serde_json::Value>, assigns: &[Assignment], c
         out.push_str(&format!("- {} (degree {})\n", a.stem, graph.degree(&a.stem)));
     }
 
+    let manual: Vec<&Assignment> = assigns.iter().filter(|a| a.source == Source::Manual).collect();
+    if !manual.is_empty() {
+        out.push_str(&format!("\n## set by #category/ tag ({})\n\n", manual.len()));
+        for a in &manual {
+            out.push_str(&format!("- {} -> {}\n", a.stem, a.slug));
+        }
+    }
+
     let weak: Vec<&Assignment> = assigns.iter().filter(|a| a.source == Source::Links && a.score == 1).collect();
     out.push_str(&format!("\n## weak, score 1 ({})\n\n", weak.len()));
     for a in &weak {
@@ -434,7 +470,7 @@ pub fn render_report(prev: Option<&serde_json::Value>, assigns: &[Assignment], c
     }
 
     if prev.is_none() {
-        out.push_str("\n> First run (no previous data/note_category.json): every note's HTML changes without a lastmod bump, so the first deploy is `make deploy-clean` (full CDN purge).\n");
+        out.push_str("\n> First run (no previous data/note_category.json): every note's HTML changes without a lastmod bump, so after `make deploy` run `make purge-cdn` once (all brain pages).\n");
     }
     if let Some(prev) = prev.and_then(|p| p.as_object()) {
         let mut moved = Vec::new();
@@ -450,7 +486,7 @@ pub fn render_report(prev: Option<&serde_json::Value>, assigns: &[Assignment], c
             out.push_str(m);
         }
         if !moved.is_empty() {
-            out.push_str("\n> Category pages and these notes' meta lines changed without a lastmod bump: run `make purge-cdn` after deploying.\n");
+            out.push_str("\n> Category pages and these notes' footers changed without a lastmod bump: run `make purge-cdn` after `make deploy`.\n");
         }
     }
 
@@ -489,7 +525,12 @@ pub fn run(args: &[String]) -> Result<(), Box<dyn Error>> {
         .iter()
         .filter_map(|(stem, text)| manual_from_frontmatter(text).map(|s| (stem.clone(), s)))
         .collect();
-    let (assigns, warnings) = assign(&graph, &cats, &manual);
+    let (cats, implicit) = with_manual_categories(cats, &manual);
+    let (assigns, mut warnings) = assign(&graph, &cats, &manual);
+    for slug in &implicit {
+        let n = manual.values().filter(|s| *s == slug).count();
+        warnings.push(format!("#category/{} on {} note(s) is not in {}: category created with no hubs/description; add it to the YAML for a proper name and order", slug, n, CATEGORIES_YAML));
+    }
     for w in &warnings {
         eprintln!("note-category: {}", w);
     }
@@ -886,7 +927,7 @@ mod tests {
         assert!(r.contains("- lonely (degree 0)"), "{r}");
         let r2 = render_report(None, &asg, &cats, &g, &w);
         assert!(!r2.contains("moved since"), "{r2}");
-        assert!(r2.contains("make deploy-clean"), "first run reminds about the full purge:\n{r2}");
+        assert!(r2.contains("make purge-cdn"), "first run reminds about the full purge:\n{r2}");
     }
 
 
@@ -934,6 +975,22 @@ mod tests {
         assert!(text.contains("## communities"), "{text}");
         assert!(text.contains("## isolated notes (1)\n\n- solo"), "{text}");
         assert!(text.contains("## map-like notes"), "{text}");
+    }
+
+
+    #[test]
+    fn with_manual_categories_appends_unknown_slugs_as_implicit_categories() {
+        let cats = vec![cat("a", &["h"])];
+        let mut manual = BTreeMap::new();
+        manual.insert("n1".to_string(), "moc".to_string());
+        manual.insert("n2".to_string(), "a".to_string());
+        manual.insert("n3".to_string(), "deep-life".to_string());
+        let (all, added) = with_manual_categories(cats, &manual);
+        assert_eq!(all.iter().map(|c| c.slug.as_str()).collect::<Vec<_>>(), vec!["a", "deep-life", "moc"]);
+        assert_eq!(all[1].name, "Deep Life");
+        assert_eq!(all[2].name, "Moc");
+        assert!(all[2].hubs.is_empty() && all[2].description.is_none());
+        assert_eq!(added, vec!["deep-life", "moc"]);
     }
 
     #[test]

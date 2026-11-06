@@ -10,52 +10,52 @@
 # (note_category_proposal.md); the build report is note_category_report.md.
 # Spec: docs/superpowers/specs/2026-11-06-note-categories-design.md
 - slug: data-engineering
-  name: Data engineering
-  group: Data engineering
+  name: Data Engineering
+  group: Data Engineering
   description: Concepts, lifecycle, tooling and the entry points of the Data Engineering Vault.
   hubs: [data engineering, data engineering concepts, data engineering whitepapers, data engineering lifecycle, data engineering toolkit, apache kafka, change data capture (cdc)]
   blog_categories: [data engineering]
 - slug: data-lakes
-  name: Data lakes & table formats
-  group: Data engineering
+  name: Data Lakes & Table Formats
+  group: Data Engineering
   description: DuckDB, lakehouses, Iceberg, Delta, DuckLake, Arrow and the open data stack.
   hubs: [duckdb, data lake table format, data lakehouse, ducklake, delta lake, apache iceberg, datafusion, apache arrow, data lake, open data stack]
 - slug: data-modeling
-  name: Data modeling & warehousing
-  group: Data engineering
+  name: Data Modeling & Warehousing
+  group: Data Engineering
   description: Dimensional modeling, data warehouses, modeling languages and tools.
   hubs: [data modeling, data warehouse, dimensional modeling, data modeling languages, data modeling tools, relational model, data warehouse automation]
   blog_categories: [data warehouse automation]
 - slug: orchestration
-  name: Orchestration & data stacks
-  group: Data engineering
+  name: Orchestration & Data Stacks
+  group: Data Engineering
   description: Orchestrators, the modern and declarative data stack, data contracts.
   hubs: [data orchestrators, dagster, apache airflow, modern data stack, data contracts, declarative, declarative data stack, dag]
 - slug: analytics
-  name: Analytics, OLAP & semantic layer
-  group: Data engineering
+  name: Analytics, OLAP & Semantic Layer
+  group: Data Engineering
   description: Semantic and metrics layers, OLAP, cloud warehouses and BI tools.
   hubs: [semantic layer, metrics layer, cube, olap, modern olap systems, cloud data warehouses, rill developer, business intelligence, bi tools]
 - slug: programming
   name: Programming
-  group: Data engineering
+  group: Data Engineering
   description: Python, Rust, SQL, functional programming, containers.
   hubs: [programming, python, rust, sql, functional data engineering, extending sql for analytics, great open-source tools in rust, docker, kubernetes, functional programming]
 - slug: second-brain
-  name: Second brain & digital garden
+  name: Second Brain & Digital Garden
   description: Personal knowledge management, Obsidian, Zettelkasten and publishing a garden on the open web.
   hubs: [second brain, obsidian, personal knowledge management (pkm), zettelkasten, digital garden, public second brain with quartz, managing my business with obsidian, permanent notes, how to build a second brain, smart note taking, map of content (moc), open-source obsidian publish alternatives, other public second brains, static site generators (ssg), future of blogging, bluesky, at protocol, why have your website, gohugo]
 - slug: writing
-  name: Writing & reading
+  name: Writing & Reading
   description: Writing by hand and with AI, Markdown and plain text, reading.
   hubs: [writing, reading, writing is thinking, markdown, creative writing, distract-free typewriter, markdown vs rich text, plain text files, ai writing, writing manually, will ai replace humans]
   blog_categories: [writing]
 - slug: ai
-  name: AI & coding with agents
+  name: AI & Coding with Agents
   description: Vibe coding, agents, and what generative AI does to craft and attention.
   hubs: [vibe coding, claude code, neomd, using obsidian with ai, generative ai and its addiction, having taste (with ai)]
 - slug: neovim
-  name: Neovim & terminal
+  name: Neovim & Terminal
   description: Vim motions, Neovim setup, TUIs, dotfiles, tmux and Linux desktops.
   hubs: [neovim, vim, neovim setup, vim language (and motions), query databases in vim (vim-dadbod), vim for obsidian, tuis, dotfiles, my terminal workflow with macos and linux, tmux, omarchy]
   blog_categories: [show your workflow]
@@ -65,7 +65,7 @@
   hubs: [productivity, getting things done (gtd), my gigs, no meetings (async), music that keeps you focused, creativity vs productivity, hell yeah or no, ultradian rhythm, todos, weekly todo lists, deep work]
   blog_categories: [productivity]
 - slug: deep-life
-  name: Deep life & philosophy
+  name: Deep Life & Philosophy
   description: Digital minimalism, a happy life, journaling, stoicism and slowing down.
   hubs: [deep life, digital minimalism, what makes a happy life, thoughts on journal, minimalism, pathless path, dumb phone, journaling, slow technology, mini retirements, stoic, kintsugi, deep happiness, shallow happiness, slow living, default path, connecting the dots]
   blog_categories: [reflections]
@@ -74,6 +74,6 @@
   description: Reading books, book notes and reading lists.
   hubs: [reading books for a happy life, how to read books, books of data engineering, audiobooks, taking notes for physical books, the data engineering cookbook]
 - slug: food
-  name: Food & coffee
+  name: Food & Coffee
   description: Coffee beans I drank and recipes I cook.
   hubs: [coffee-beans-base, adrianos espresso, kafoj espresso, espresso dark roast, pintli coffee, home made ramen, ramen - soy sauce eggs, miso-glazed celeriac steaks with warm asian slaw, matcha]

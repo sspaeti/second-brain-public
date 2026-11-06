@@ -38,6 +38,16 @@
             </div>
           {{ end }}
         {{ end }}
+        {{- /* categories that exist only through #category/<slug> vault tags (not in the YAML) */ -}}
+        {{ $curated := slice }}{{ range hugo.Data.categories }}{{ $curated = $curated | append .slug }}{{ end }}
+        {{ range $slug, $pages := $tax }}
+          {{ if and (ne $slug "other") (not (in $curated $slug)) }}
+            {{ $n := len $pages }}
+            <div class="cat-entry cat-implicit">
+              <h3><a href="{{ $pages.Page.RelPermalink }}">{{ $pages.Page.Title }}</a> <span class="cat-count">{{ $n }} note{{ if ne $n 1 }}s{{ end }}</span></h3>
+            </div>
+          {{ end }}
+        {{ end }}
         {{ with index $tax "other" }}
           {{ $n := len . }}
           <div class="cat-entry cat-other">

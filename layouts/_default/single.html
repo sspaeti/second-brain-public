@@ -90,25 +90,24 @@
         });
       })();
       </script>
-      {{partial "textprocessing.html" . }}
-      {{- /* Category footer: "Category: <name>" plus the five most-linked notes of the
-             same category, one quiet line under the body (next to Origin / tags). */ -}}
+      {{- /* Category line: "Category: <name>" as plain body text inside the note's own
+             Origin/References paragraph (between the two lines when both exist, after
+             Origin otherwise); a paragraph of its own after the body when the note has no
+             Origin line. Spec: docs/superpowers/specs/2026-11-06-note-categories-design.md */ -}}
+      {{ $body := partial "textprocessing.html" . }}
       {{ with $nc }}
-      {{ $slug := .category }}
-      {{- /* "More": the note's own same-category neighbours first (`related`, by link weight),
-             then the category's most-linked notes until there are five. Pages are looked up by
-             stem (Hugo's logical path keeps parentheses etc.; the URL slug does not). */ -}}
-      {{ $more := slice }}{{ $seen := dict $stem true }}
-      {{ if ne $slug "other" }}
-        {{ range .related }}{{ if not (index $seen .) }}{{ with $.Site.GetPage (printf "/%s" .) }}{{ $more = $more | append . }}{{ end }}{{ $seen = merge $seen (dict . true) }}{{ end }}{{ end }}
-        {{ if lt (len $more) 5 }}
-          {{ $fill := slice }}
-          {{ range $k, $v := hugo.Data.note_category }}{{ if and (eq $v.category $slug) (not (index $seen $k)) }}{{ $fill = $fill | append (dict "stem" $k "degree" (int $v.degree)) }}{{ end }}{{ end }}
-          {{ range sort $fill "degree" "desc" }}{{ if lt (len $more) 5 }}{{ with $.Site.GetPage (printf "/%s" .stem) }}{{ $more = $more | append . }}{{ end }}{{ end }}{{ end }}
+        {{ $line := printf `<span class="note-category-line">Category: <a href="%s" class="internal-link">%s</a></span>` (printf "categories/%s/" .category | relURL) .name }}
+        {{ $originRefs := `(?s)(<p>Origin:.*?<br>\s*)(References:)` }}
+        {{ $origin := `(?s)(<p>Origin:.*?)(</p>)` }}
+        {{ if findRE $originRefs $body 1 }}
+          {{ $body = replaceRE $originRefs (printf "${1}%s<br>\n${2}" $line) $body }}
+        {{ else if findRE $origin $body 1 }}
+          {{ $body = replaceRE $origin (printf "${1}<br>\n%s${2}" $line) $body }}
+        {{ else }}
+          {{ $body = printf `%s<p class="note-category-footer">%s</p>` $body $line }}
         {{ end }}
       {{ end }}
-      <p class="note-category-footer"><span class="ncf-label">Category:</span> <a class="note-category" href="{{ printf "categories/%s/" $slug | relURL }}">{{ .name }}</a>{{ with $more }} <span class="more-in-category"><span class="ncf-label">· More:</span>{{ range $i, $o := first 5 . }}{{ if $i }},{{ end }} <a href="{{ $o.RelPermalink }}" class="internal-link" data-src="{{ $o.RelPermalink }}">{{ $o.Title }}</a>{{ end }}</span>{{ end }}</p>
-      {{ end }}
+      {{ $body | safeHTML }}
       {{ with (.GetTerms "tags") }}
       <ul class="tags tags-footer">
           {{ range . }}
