@@ -13,9 +13,8 @@
 <main class="singlePage">
     <article class="categories-index">
         <h1>Categories</h1>
-        <p class="cat-intro">Every note lives in one of these topics, assigned from how the notes link to each other. New here? Pick a topic and begin with its first notes, or start from the <a href="{{ "map-of-content-moc/" | relURL }}" class="internal-link">Map of Content</a>.</p>
+        <p class="cat-intro">Every note lives in one of these topics, assigned from how the notes link to each other. New here? Pick a topic and begin with its first notes, start from the <a href="{{ "map-of-content-moc/" | relURL }}" class="internal-link">Map of Content</a>, or browse the topic cards on the <a href="{{ "" | relURL }}">home page</a>.</p>
         {{ $tax := .Site.Taxonomies.categories }}
-        {{ $data := hugo.Data.note_category }}
         {{ $group := "" }}
         {{ range hugo.Data.categories }}
           {{ $cat := . }}
@@ -31,8 +30,9 @@
               {{ with $cat.description }}<p class="cat-desc">{{ . }}</p>{{ end }}
               {{ with $cat.hubs }}
               <p class="cat-start">Start with
-                {{- range $i, $h := first 3 . }}{{ with index $data $h }}{{ with $.Site.GetPage (printf "/%s" (path.Base .path)) }}{{ if $i }},{{ end }} <a href="{{ .RelPermalink }}" class="internal-link">{{ .Title }}</a>{{ end }}{{ end }}{{ end }}
-                {{- if gt (len .) 3 }} and <a href="{{ $term := index $tax $cat.slug }}{{ $term.Page.RelPermalink }}">{{ sub (len .) 3 }} more</a>{{ end }}
+                {{- $shown := 0 }}
+                {{- range $h := . }}{{ if lt $shown 3 }}{{ with $.Site.GetPage (printf "/%s" $h) }}{{ if $shown }},{{ end }} <a href="{{ .RelPermalink }}" class="internal-link">{{ .Title }}</a>{{ $shown = add $shown 1 }}{{ end }}{{ end }}{{ end }}
+                {{- if gt (len .) $shown }} and <a href="{{ $term := index $tax $cat.slug }}{{ $term.Page.RelPermalink }}">{{ sub (len .) $shown }} more</a>{{ end }}
               </p>
               {{ end }}
             </div>

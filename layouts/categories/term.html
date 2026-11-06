@@ -12,14 +12,16 @@
 <main class="singlePage">
     <article class="category-page">
         {{ $slug := .Data.Term }}
-        {{ $cat := dict "name" "Other" "description" "Notes that do not link to any topic yet." "hubs" slice }}
+        {{- /* unknown slug (stale content/ after a rename): plain title, no description */ -}}
+        {{ $cat := dict "name" .Title "description" "" "hubs" slice }}
+        {{ if eq $slug "other" }}{{ $cat = dict "name" "Other" "description" "Notes that do not link to any topic yet." "hubs" slice }}{{ end }}
         {{ range hugo.Data.categories }}{{ if eq .slug $slug }}{{ $cat = . }}{{ end }}{{ end }}
         {{ $data := hugo.Data.note_category }}
         <p class="cat-crumb"><a href="{{ "categories/" | relURL }}">Categories</a></p>
         <h1>{{ $cat.name }}</h1>
         {{ with $cat.description }}<p class="cat-desc">{{ . }}</p>{{ end }}
         {{ $hubs := slice }}
-        {{ range $cat.hubs }}{{ with index $data . }}{{ with $.Site.GetPage (printf "/%s" (path.Base .path)) }}{{ $hubs = $hubs | append . }}{{ end }}{{ end }}{{ end }}
+        {{ range $cat.hubs }}{{ with $.Site.GetPage (printf "/%s" .) }}{{ $hubs = $hubs | append . }}{{ end }}{{ end }}
         {{ with $hubs }}
         <h2 class="cat-section">Start here</h2>
         {{ partial "page-list.html" . }}

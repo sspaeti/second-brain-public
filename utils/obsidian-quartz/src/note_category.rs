@@ -277,11 +277,20 @@ pub fn assign(graph: &Graph, cats: &[Category], manual: &BTreeMap<String, String
 
 
 const OUT_JSON: &str = "data/note_category.json";
+const RELATED_MAX: usize = 5;
 
 /// `data/note_category.json`, keyed by stem like `note_status.json`.
 pub fn to_json(assigns: &[Assignment], cats: &[Category], graph: &Graph) -> serde_json::Value {
+    let slug_of: BTreeMap<&str, &str> = assigns.iter().map(|a| (a.stem.as_str(), a.slug.as_str())).collect();
     let mut map = serde_json::Map::new();
     for a in assigns {
+        // same-category neighbours by link weight desc then stem: the note's own "More" list
+        let mut related: Vec<(&String, u32)> = graph
+            .neighbours(&a.stem)
+            .map(|nb| nb.iter().filter(|(m, _)| slug_of.get(m.as_str()) == Some(&a.slug.as_str())).map(|(m, &w)| (m, w)).collect())
+            .unwrap_or_default();
+        related.sort_by(|x, y| y.1.cmp(&x.1).then(x.0.cmp(y.0)));
+        let related: Vec<&String> = related.iter().take(RELATED_MAX).map(|(m, _)| *m).collect();
         let (name, group, order) = match cats.iter().position(|c| c.slug == a.slug) {
             Some(i) => (cats[i].name.clone(), cats[i].group.clone(), i + 1),
             None => (OTHER_NAME.to_string(), None, cats.len() + 1),
@@ -298,6 +307,7 @@ pub fn to_json(assigns: &[Assignment], cats: &[Category], graph: &Graph) -> serd
                 "score": a.score,
                 "degree": graph.degree(&a.stem),
                 "reason": a.reason,
+                "related": related,
             }),
         );
     }
@@ -423,6 +433,9 @@ pub fn render_report(prev: Option<&serde_json::Value>, assigns: &[Assignment], c
         }
     }
 
+    if prev.is_none() {
+        out.push_str("\n> First run (no previous data/note_category.json): every note's HTML changes without a lastmod bump, so the first deploy is `make deploy-clean` (full CDN purge).\n");
+    }
     if let Some(prev) = prev.and_then(|p| p.as_object()) {
         let mut moved = Vec::new();
         for a in assigns {
@@ -849,6 +862,8 @@ mod tests {
         assert_eq!(e["score"], 1);
         assert_eq!(e["degree"], 1);
         assert_eq!(e["reason"], "Links with duckdb in Data lakes");
+        assert_eq!(e["related"], serde_json::json!(["duckdb"]), "same-category neighbours by weight");
+        assert_eq!(j["duckdb"]["related"], serde_json::json!(["don't stop"]));
         assert_eq!(j["duckdb"]["source"], "hub");
         let o = &j["lonely"];
         assert_eq!((o["category"].as_str(), o["name"].as_str(), o["order"].as_u64()), (Some("other"), Some("Other"), Some(2)));
@@ -871,6 +886,7 @@ mod tests {
         assert!(r.contains("- lonely (degree 0)"), "{r}");
         let r2 = render_report(None, &asg, &cats, &g, &w);
         assert!(!r2.contains("moved since"), "{r2}");
+        assert!(r2.contains("make deploy-clean"), "first run reminds about the full purge:\n{r2}");
     }
 
 

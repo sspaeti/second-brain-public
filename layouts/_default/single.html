@@ -95,9 +95,19 @@
              same category, one quiet line under the body (next to Origin / tags). */ -}}
       {{ with $nc }}
       {{ $slug := .category }}
-      {{ $others := slice }}
-      {{ if ne $slug "other" }}{{ range $k, $v := hugo.Data.note_category }}{{ if and (eq $v.category $slug) (ne $k $stem) }}{{ with $.Site.GetPage (printf "/%s" (path.Base $v.path)) }}{{ $others = $others | append (dict "page" . "degree" (int $v.degree)) }}{{ end }}{{ end }}{{ end }}{{ end }}
-      <p class="note-category-footer"><span class="ncf-label">Category:</span> <a class="note-category" href="{{ printf "categories/%s/" $slug | relURL }}">{{ .name }}</a>{{ with $others }} <span class="more-in-category"><span class="ncf-label">· More:</span>{{ range $i, $o := first 5 (sort . "degree" "desc") }}{{ if $i }},{{ end }} <a href="{{ $o.page.RelPermalink }}" class="internal-link" data-src="{{ $o.page.RelPermalink }}">{{ $o.page.Title }}</a>{{ end }}</span>{{ end }}</p>
+      {{- /* "More": the note's own same-category neighbours first (`related`, by link weight),
+             then the category's most-linked notes until there are five. Pages are looked up by
+             stem (Hugo's logical path keeps parentheses etc.; the URL slug does not). */ -}}
+      {{ $more := slice }}{{ $seen := dict $stem true }}
+      {{ if ne $slug "other" }}
+        {{ range .related }}{{ if not (index $seen .) }}{{ with $.Site.GetPage (printf "/%s" .) }}{{ $more = $more | append . }}{{ end }}{{ $seen = merge $seen (dict . true) }}{{ end }}{{ end }}
+        {{ if lt (len $more) 5 }}
+          {{ $fill := slice }}
+          {{ range $k, $v := hugo.Data.note_category }}{{ if and (eq $v.category $slug) (not (index $seen $k)) }}{{ $fill = $fill | append (dict "stem" $k "degree" (int $v.degree)) }}{{ end }}{{ end }}
+          {{ range sort $fill "degree" "desc" }}{{ if lt (len $more) 5 }}{{ with $.Site.GetPage (printf "/%s" .stem) }}{{ $more = $more | append . }}{{ end }}{{ end }}{{ end }}
+        {{ end }}
+      {{ end }}
+      <p class="note-category-footer"><span class="ncf-label">Category:</span> <a class="note-category" href="{{ printf "categories/%s/" $slug | relURL }}">{{ .name }}</a>{{ with $more }} <span class="more-in-category"><span class="ncf-label">· More:</span>{{ range $i, $o := first 5 . }}{{ if $i }},{{ end }} <a href="{{ $o.RelPermalink }}" class="internal-link" data-src="{{ $o.RelPermalink }}">{{ $o.Title }}</a>{{ end }}</span>{{ end }}</p>
       {{ end }}
       {{ with (.GetTerms "tags") }}
       <ul class="tags tags-footer">

@@ -212,9 +212,12 @@ Outputs:
   "duckdb": {"category": "data-lakes", "name": "Data lakes & table formats",
              "group": "Data engineering", "order": 2, "path": "/brain/duckdb/",
              "source": "hub" | "links" | "manual", "score": 7, "degree": 96,
+             "related": ["ducklake", "datafusion", "..."],
              "reason": "Hub of Data lakes & table formats" |
                        "Links with duckdb, delta lake and 3 more notes in Data lakes & table formats"}
   ```
+  `related` is the note's same-category neighbours by link weight (max 5), which the note
+  footer shows first before filling up with the category's most-linked notes;
   `path` is `/brain/` + `brain_slug(stem)` **without a trailing slash**, because that is the
   `page` key GoatCounter paths are normalised to in the dashboard (`regexp_replace(path,
   '/+$', '')`), so the join needs no slugging and no further normalisation;

@@ -301,7 +301,17 @@ fn note_category_link_index_and_term_page() {
     assert!(foot.contains(r#"<a class="note-category" href="/brain/categories/data-lakes/">Data lakes</a>"#), "{foot}");
     assert!(foot.contains(r#"<span class="more-in-category">"#), "{foot}");
     assert!(foot.contains(r#"href="/brain/embedder/""#), "{foot}");
+    assert!(foot.contains(r#"href="/brain/hub-x/""#), "parenthesised stem resolves via logical path:\n{foot}");
     assert!(!foot.contains(r#"href="/brain/status-note/""#), "self excluded:\n{foot}");
+    // "More" prefers the note's own same-category neighbours (`related`), then fills by degree
+    let foot = {
+        let p = page(&out, "embedder");
+        let fs = p.find(r#"<p class="note-category-footer">"#).expect("category footer");
+        p[fs..p[fs..].find("</p>").unwrap() + fs].to_string()
+    };
+    let hx = foot.find(r#"href="/brain/hub-x/""#).expect("related hub (x)");
+    let sn = foot.find(r#"href="/brain/status-note/""#).expect("related status note");
+    assert!(hx < sn, "related order kept (hub (x) first, then status note):\n{foot}");
     assert!(!p.contains(r#"<div class="more-in-category">"#), "nothing in the gutter");
 
     // other: shows the word, no "More in"
@@ -317,11 +327,12 @@ fn note_category_link_index_and_term_page() {
     let other = idx.find(r#"href="/brain/categories/other/""#).expect("other entry");
     assert!(lakes < writing && writing < other, "curated order then Other");
     assert!(idx.contains("Lakes and table formats."), "description");
-    assert!(idx.contains(r#"<span class="cat-count">2 notes</span>"#), "count for data-lakes:\n{idx}");
     assert!(idx.contains(r#"<span class="cat-count">1 note</span>"#), "singular count");
     let grp = idx.find("Data engineering").expect("group heading");
     assert!(grp < lakes, "group heading before its first category");
     assert!(idx.contains(r#"<a href="/brain/status-note/" class="internal-link">Status Note</a>"#), "start-with hub link");
+    assert!(idx.contains(r#"<a href="/brain/hub-x/" class="internal-link">Hub (X)</a>"#), "parenthesised hub resolves:\n{idx}");
+    assert!(idx.contains(r#"<span class="cat-count">3 notes</span>"#), "count for data-lakes incl. hub (x):\n{idx}");
 
     // term page: hubs first, then the rest by degree, description shown
     let term = std::fs::read_to_string(out.join("categories/data-lakes/index.html")).expect("term page");

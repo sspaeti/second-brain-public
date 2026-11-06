@@ -4,7 +4,7 @@
   name: Data lakes
   group: Data engineering
   description: Lakes and table formats.
-  hubs: [status note]
+  hubs: [status note, hub (x)]
 - slug: writing
   name: Writing
   description: Words.
