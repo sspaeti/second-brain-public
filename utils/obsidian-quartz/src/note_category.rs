@@ -459,7 +459,11 @@ pub fn run(args: &[String]) -> Result<(), Box<dyn Error>> {
         Err(_) => None,
     };
     if args.iter().any(|a| a == "--propose") {
-        let text = propose(&graph, &notes, cats.as_deref());
+        let mut with_index = notes.clone();
+        if let Ok(index) = fs::read_to_string(Path::new(CONTENT_DIR).join("_index.md")) {
+            with_index.insert("_index".to_string(), index);
+        }
+        let text = propose(&graph, &with_index, cats.as_deref());
         fs::write(OUT_PROPOSAL, &text)?;
         println!("note-category: proposal written to {}", OUT_PROPOSAL);
         return Ok(());
@@ -536,14 +540,14 @@ pub fn parse_home_grid(index_md: &str, stems: &BTreeSet<String>) -> Vec<(String,
     out
 }
 
-/// Deterministic synchronous label propagation: every node starts as its own
-/// label; each round every node takes the heaviest label among its
-/// neighbours (lowest label on ties). Groups are returned largest first,
-/// members sorted by degree descending then stem.
+/// Deterministic label propagation for the proposal: every node starts as its
+/// own label; nodes are visited in sorted order and updated in place, each
+/// taking the heaviest label among its neighbours (ties: the label whose
+/// note has the higher degree, then the lower stem). Groups are returned
+/// largest first, members sorted by degree descending then stem.
 pub fn communities(graph: &Graph) -> Vec<Vec<String>> {
     let mut label: BTreeMap<&String, &String> = graph.stems.iter().map(|s| (s, s)).collect();
     for _ in 0..LPA_ROUNDS {
-        let mut next = label.clone();
         let mut changed = 0;
         for stem in &graph.stems {
             let Some(nb) = graph.neighbours(stem) else { continue };
@@ -551,18 +555,18 @@ pub fn communities(graph: &Graph) -> Vec<Vec<String>> {
             for (m, w) in nb {
                 *votes.entry(label[m]).or_insert(0) += w;
             }
-            let best = votes.iter().fold(None::<(&String, u32)>, |acc, (&l, &w)| match acc {
-                Some((_, bw)) if bw >= w => acc,
-                _ => Some((l, w)),
+            let best = votes.iter().max_by(|(la, wa), (lb, wb)| {
+                wa.cmp(wb)
+                    .then(graph.degree(la).cmp(&graph.degree(lb)))
+                    .then(lb.cmp(la))
             });
-            if let Some((l, _)) = best {
+            if let Some((&l, _)) = best {
                 if label[stem] != l {
-                    next.insert(stem, l);
+                    label.insert(stem, l);
                     changed += 1;
                 }
             }
         }
-        label = next;
         if changed == 0 {
             break;
         }

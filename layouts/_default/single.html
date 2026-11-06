@@ -114,12 +114,13 @@
         {{ with $nc }}{{ if ne .category "other" }}
         {{ $slug := .category }}{{ $name := .name }}
         {{ $others := slice }}
-        {{ range $k, $v := hugo.Data.note_category }}{{ if and (eq $v.category $slug) (ne $k $stem) }}{{ $others = $others | append (dict "stem" $k "degree" (int $v.degree) "path" $v.path) }}{{ end }}{{ end }}
+        {{- /* resolve pages while collecting: only notes that exist in this build are ranked */ -}}
+        {{ range $k, $v := hugo.Data.note_category }}{{ if and (eq $v.category $slug) (ne $k $stem) }}{{ with $.Site.GetPage (printf "/%s" (path.Base $v.path)) }}{{ $others = $others | append (dict "page" . "degree" (int $v.degree)) }}{{ end }}{{ end }}{{ end }}
         {{ with $others }}
         <div class="more-in-category">
           <p class="more-in-title">More in <a href="{{ printf "categories/%s/" $slug | relURL }}">{{ $name }}</a></p>
           <ul>
-          {{ range first 5 (sort . "degree" "desc") }}{{ with $.Site.GetPage (printf "/%s" (path.Base .path)) }}
+          {{ range first 5 (sort . "degree" "desc") }}{{ with .page }}
             <li><a href="{{ .RelPermalink }}" class="internal-link" data-src="{{ .RelPermalink }}">{{ .Title }}</a></li>
           {{ end }}{{ end }}
           </ul>

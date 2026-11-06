@@ -89,6 +89,40 @@ class RevertLastmodOnlyTest(unittest.TestCase):
         self.assertIn("categories: [writing]\n", text)
         self.assertIn("lastmod: 2026-05-01 09:43:34\n", text)
 
+
+    def test_category_only_change_without_lastmod_bump_is_silent(self):
+        # note-category injects the line on an unchanged note: nothing to restore, nothing to say
+        with_cat = HEAD_NOTE.replace("createddate: 2023-12-22\n", "categories: [neovim]\ncreateddate: 2023-12-22\n")
+        self.note.write_text(with_cat, encoding="utf-8")
+        out = self.run_script()
+        self.assertEqual(self.note.read_text(encoding="utf-8"), with_cat)
+        self.assertEqual(out, "")
+
+
+    def test_non_ascii_filename_is_handled_without_junk_files(self):
+        # git quotes non-ASCII paths in `diff --name-only` unless core.quotepath=false;
+        # a quoted name used to end up as a new empty file literally named with the quotes
+        note = self.repo / "getting the data \u2013 scraping.md"
+        note.write_text(HEAD_NOTE, encoding="utf-8")
+        subprocess.run(["git", "-C", str(self.repo), "add", "-A"], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qm", "dash note"], check=True)
+        note.write_text(HEAD_NOTE.replace("2026-05-01 09:43:34", "2026-10-01 13:37:29"), encoding="utf-8")
+        out = self.run_script()
+        self.assertEqual(note.read_text(encoding="utf-8"), HEAD_NOTE)
+        self.assertIn("reverted (lastmod-only)", out)
+        junk = [p.name for p in self.repo.iterdir() if p.name.startswith('"')]
+        self.assertEqual(junk, [], "no quoted junk file")
+
+    def test_staged_new_note_is_left_alone(self):
+        # a note added to the index but not yet in HEAD has nothing to revert to
+        new = self.repo / "brand new.md"
+        new.write_text(HEAD_NOTE, encoding="utf-8")
+        subprocess.run(["git", "-C", str(self.repo), "add", "-A"], check=True)
+        new.write_text(HEAD_NOTE.replace("2026-05-01 09:43:34", "2026-10-01 13:37:29"), encoding="utf-8")
+        out = self.run_script()
+        self.assertIn("2026-10-01 13:37:29", new.read_text(encoding="utf-8"), "not truncated or reverted")
+        self.assertEqual(out, "")
+
     def test_real_body_change_is_left_alone(self):
         edited = HEAD_NOTE.replace("2026-05-01 09:43:34", "2026-10-01 13:37:29").replace(
             "butter and bread.", "butter and bread of every data engineer."

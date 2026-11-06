@@ -28,7 +28,12 @@ set -euo pipefail
 
 cd "${1:-$(dirname "$0")/../content}"
 
-git diff --name-only -- '*.md' | while IFS= read -r f; do
+# core.quotepath=false: git would otherwise print a non-ASCII name (en dash,
+# umlaut) quoted and escaped, and `git show HEAD:"..."` then fails and `> "$f"`
+# creates an empty junk file with the quotes in its name.
+git -c core.quotepath=false diff --name-only -- '*.md' | while IFS= read -r f; do
+  # A note staged but not yet in HEAD has nothing to revert to.
+  git cat-file -e "HEAD:$f" 2>/dev/null || continue
   # Changed content lines only: drop diff hunk/file headers, then drop the
   # lines a tag-only save may legitimately touch.
   changed=$(git diff -U0 -- "$f" \
@@ -40,6 +45,10 @@ git diff --name-only -- '*.md' | while IFS= read -r f; do
   fi
   if printf '%s\n' "$changed" | grep -qE '^[+-](status|status_source|categories|category_source):'; then
     # status or category changed: keep the working tree, put HEAD's lastmod back
+    # (only when lastmod moved at all: the category line alone is a no-op here)
+    if ! printf '%s\n' "$changed" | grep -qE '^[+-]lastmod:'; then
+      continue
+    fi
     head_lastmod=$(git show "HEAD:$f" | grep -m1 -E '^lastmod:' || true)
     if [ -n "$head_lastmod" ]; then
       python3 - "$f" "$head_lastmod" <<'PY'
