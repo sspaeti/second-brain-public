@@ -69,8 +69,8 @@
   description: Digital minimalism, a happy life, journaling, stoicism and slowing down.
   hubs: [deep life, digital minimalism, what makes a happy life, thoughts on journal, minimalism, pathless path, dumb phone, journaling, slow technology, mini retirements, stoic, kintsugi, deep happiness, shallow happiness, slow living, default path, connecting the dots]
   blog_categories: [reflections]
-- slug: books
-  name: Books
+- slug: book
+  name: Book
   description: Reading books, book notes and reading lists.
   hubs: [reading books for a happy life, how to read books, books of data engineering, audiobooks, taking notes for physical books, the data engineering cookbook]
 - slug: food
