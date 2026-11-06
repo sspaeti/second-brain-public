@@ -13,7 +13,8 @@
 <main class="singlePage">
     <article class="categories-index">
         <h1>Categories</h1>
-        <p class="cat-intro">Every note lives in one of these topics, assigned from how the notes link to each other. New here? Pick a topic and begin with its first notes, start from the <a href="{{ "map-of-content-moc/" | relURL }}" class="internal-link">Map of Content</a>, or browse the topic cards on the <a href="{{ "" | relURL }}">home page</a>.</p>
+        <p class="cat-intro">Every note has one category assigned, so if you are new here, you can explore by category. With 700+ notes and 1000+ interlinks, it can be hard to know where to start. With categories, next to <a href="{{ "map-of-content-moc/" | relURL }}" class="internal-link">Map of Content</a>, you can choose a starting point and go from there.
+        <br><br>Another option is also to browse through the topic cards on the <a href="{{ "" | relURL }}">Second Brain</a> or <a href="{{ "data-engineering/" | relURL }}">Data Engineering Vault</a>.</p>
         {{ $tax := .Site.Taxonomies.categories }}
         {{ $group := "" }}
         {{ range hugo.Data.categories }}
