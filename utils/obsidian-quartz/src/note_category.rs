@@ -12,6 +12,47 @@ use regex::Regex;
 
 const CONTENT_DIR: &str = "content";
 
+const CATEGORIES_YAML: &str = "data/categories.yaml";
+pub const OTHER_SLUG: &str = "other";
+pub const OTHER_NAME: &str = "Other";
+
+/// One curated category from `data/categories.yaml`, in file order.
+#[derive(Clone, Debug, serde::Deserialize)]
+pub struct Category {
+    pub slug: String,
+    pub name: String,
+    #[serde(default)]
+    pub group: Option<String>,
+    #[serde(default)]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub hubs: Vec<String>,
+    #[serde(default)]
+    pub blog_categories: Vec<String>,
+}
+
+/// Parse and validate the curated list. Slugs must be lowercase
+/// `[a-z0-9-]+`, unique, never `other`; every category needs at least one hub.
+pub fn parse_categories(yaml: &str) -> Result<Vec<Category>, String> {
+    let cats: Vec<Category> = serde_yaml::from_str(yaml).map_err(|e| format!("categories.yaml: {e}"))?;
+    let mut seen = BTreeSet::new();
+    for c in &cats {
+        if c.slug.is_empty() || !c.slug.chars().all(|ch| ch.is_ascii_lowercase() || ch.is_ascii_digit() || ch == '-') {
+            return Err(format!("categories.yaml: slug '{}' must be lowercase [a-z0-9-]", c.slug));
+        }
+        if c.slug == OTHER_SLUG {
+            return Err(format!("categories.yaml: '{}' is the built-in fallback and cannot be curated", OTHER_SLUG));
+        }
+        if !seen.insert(c.slug.clone()) {
+            return Err(format!("categories.yaml: duplicate slug '{}'", c.slug));
+        }
+        if c.hubs.is_empty() {
+            return Err(format!("categories.yaml: category '{}' has no hubs", c.slug));
+        }
+    }
+    Ok(cats)
+}
+
 /// Undirected weighted wikilink graph over the published notes.
 #[derive(Debug, Default)]
 pub struct Graph {
@@ -108,6 +149,34 @@ mod tests {
 
     fn notes(pairs: &[(&str, &str)]) -> BTreeMap<String, String> {
         pairs.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect()
+    }
+
+
+    const YAML: &str = "- slug: data-lakes\n  name: Data lakes\n  group: Data engineering\n  description: Lakes.\n  hubs: [duckdb, delta lake]\n  blog_categories: [data engineering]\n  unknown_key: 1\n- slug: pkm\n  name: PKM\n  hubs: [obsidian]\n";
+
+    #[test]
+    fn parse_categories_reads_optional_keys_and_ignores_unknown() {
+        let cats = parse_categories(YAML).unwrap();
+        assert_eq!(cats.len(), 2);
+        assert_eq!(cats[0].slug, "data-lakes");
+        assert_eq!(cats[0].group.as_deref(), Some("Data engineering"));
+        assert_eq!(cats[0].hubs, vec!["duckdb", "delta lake"]);
+        assert_eq!(cats[0].blog_categories, vec!["data engineering"]);
+        assert_eq!(cats[1].group, None);
+        assert_eq!(cats[1].description, None);
+        assert!(cats[1].blog_categories.is_empty());
+    }
+
+    #[test]
+    fn parse_categories_rejects_bad_slugs() {
+        let err = parse_categories("- slug: Data-Eng\n  name: X\n  hubs: [a]\n").unwrap_err();
+        assert!(err.contains("lowercase"), "{err}");
+        let err = parse_categories("- slug: other\n  name: X\n  hubs: [a]\n").unwrap_err();
+        assert!(err.contains("other"), "{err}");
+        let err = parse_categories("- slug: a\n  name: X\n  hubs: [a]\n- slug: a\n  name: Y\n  hubs: [b]\n").unwrap_err();
+        assert!(err.contains("duplicate"), "{err}");
+        let err = parse_categories("- slug: a\n  name: X\n  hubs: []\n").unwrap_err();
+        assert!(err.contains("hubs"), "{err}");
     }
 
     #[test]
