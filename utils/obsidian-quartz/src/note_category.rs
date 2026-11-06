@@ -272,6 +272,102 @@ pub fn assign(graph: &Graph, cats: &[Category], manual: &BTreeMap<String, String
     (out, warnings)
 }
 
+
+const OUT_JSON: &str = "data/note_category.json";
+
+/// `data/note_category.json`, keyed by stem like `note_status.json`.
+pub fn to_json(assigns: &[Assignment], cats: &[Category], graph: &Graph) -> serde_json::Value {
+    let mut map = serde_json::Map::new();
+    for a in assigns {
+        let (name, group, order) = match cats.iter().position(|c| c.slug == a.slug) {
+            Some(i) => (cats[i].name.clone(), cats[i].group.clone(), i + 1),
+            None => (OTHER_NAME.to_string(), None, cats.len() + 1),
+        };
+        map.insert(
+            a.stem.clone(),
+            serde_json::json!({
+                "category": a.slug,
+                "name": name,
+                "group": group,
+                "order": order,
+                "path": format!("/brain/{}", crate::slug::brain_slug(&a.stem)),
+                "source": a.source.as_str(),
+                "score": a.score,
+                "degree": graph.degree(&a.stem),
+                "reason": a.reason,
+            }),
+        );
+    }
+    serde_json::Value::Object(map)
+}
+
+/// Byte offsets of the front-matter lines: (start of first key line, start of closing `---` line).
+fn frontmatter_span(text: &str) -> Option<(usize, usize)> {
+    let rest = text.strip_prefix("---\n")?;
+    let start = 4;
+    let mut pos = start;
+    for line in rest.split_inclusive('\n') {
+        if line == "---\n" || line == "---" {
+            return Some((start, pos));
+        }
+        pos += line.len();
+    }
+    None
+}
+
+/// Insert or replace the single `categories: [<slug>]` line at its sorted key
+/// position. Everything else stays byte-identical. `None` when the file
+/// already has exactly this line or has no front matter.
+pub fn inject_category_line(text: &str, slug: &str) -> Option<String> {
+    let (start, end) = frontmatter_span(text)?;
+    let wanted = format!("categories: [{}]\n", slug);
+    let fm = &text[start..end];
+    let mut out = String::with_capacity(text.len() + wanted.len());
+    out.push_str(&text[..start]);
+    let mut done = false;
+    for line in fm.split_inclusive('\n') {
+        if line.starts_with("categories:") {
+            if line == wanted {
+                return None;
+            }
+            out.push_str(&wanted);
+            done = true;
+            continue;
+        }
+        if !done {
+            let key = line.split(':').next().unwrap_or("");
+            // insert before the first top-level key that sorts after "categories"
+            if !line.starts_with(' ') && !line.starts_with('-') && key > "categories" {
+                out.push_str(&wanted);
+                done = true;
+            }
+        }
+        out.push_str(line);
+    }
+    if !done {
+        out.push_str(&wanted);
+    }
+    out.push_str(&text[end..]);
+    Some(out)
+}
+
+/// The slug of a `#category/<slug>` vault override the export wrote
+/// (`categories: [<slug>]` together with `category_source: manual`).
+pub fn manual_from_frontmatter(text: &str) -> Option<String> {
+    let (start, end) = frontmatter_span(text)?;
+    let fm = &text[start..end];
+    let mut slug = None;
+    let mut manual = false;
+    for line in fm.lines() {
+        if let Some(v) = line.strip_prefix("categories:") {
+            slug = Some(v.trim().trim_start_matches('[').trim_end_matches(']').trim().to_string());
+        } else if let Some(v) = line.strip_prefix("category_source:") {
+            manual = v.trim() == "manual";
+        }
+    }
+    slug.filter(|s| !s.is_empty() && manual)
+}
+
 /// Top-level `content/*.md` as `stem -> text`, skipping `_index`.
 pub fn read_content(dir: &Path) -> Result<BTreeMap<String, String>, Box<dyn Error>> {
     let mut out = BTreeMap::new();
@@ -410,6 +506,68 @@ mod tests {
         let (asg3, w) = assign(&g, &cats, &manual);
         assert_eq!(by_stem(&asg3, "m").slug, "a");
         assert!(w.iter().any(|x| x.contains("zzz")), "{w:?}");
+    }
+
+
+    const NOTE: &str = "---\naliases: [x]\ncreateddate: 2021-01-01\nlastmod: 2026-01-01 10:00:00\ntitle: \"T\"\n---\nBody [[a]]\n";
+
+    #[test]
+    fn inject_inserts_at_sorted_position() {
+        let got = inject_category_line(NOTE, "neovim").unwrap();
+        assert_eq!(got, "---\naliases: [x]\ncategories: [neovim]\ncreateddate: 2021-01-01\nlastmod: 2026-01-01 10:00:00\ntitle: \"T\"\n---\nBody [[a]]\n");
+    }
+
+    #[test]
+    fn inject_appends_as_last_key_when_all_sort_before() {
+        let got = inject_category_line("---\naliases: [x]\n---\nB\n", "ai").unwrap();
+        assert_eq!(got, "---\naliases: [x]\ncategories: [ai]\n---\nB\n");
+    }
+
+    #[test]
+    fn inject_replaces_existing_line_and_is_idempotent() {
+        let once = inject_category_line(NOTE, "neovim").unwrap();
+        assert_eq!(inject_category_line(&once, "neovim"), None, "same slug: unchanged");
+        let twice = inject_category_line(&once, "writing").unwrap();
+        assert!(twice.contains("categories: [writing]\n"));
+        assert!(!twice.contains("neovim"));
+        assert_eq!(twice.matches("categories:").count(), 1);
+    }
+
+    #[test]
+    fn inject_leaves_notes_without_front_matter_alone() {
+        assert_eq!(inject_category_line("Just a body\n", "ai"), None);
+    }
+
+    #[test]
+    fn manual_from_frontmatter_needs_both_keys() {
+        assert_eq!(manual_from_frontmatter("---\ncategories: [ai]\ncategory_source: manual\n---\n"), Some("ai".into()));
+        assert_eq!(manual_from_frontmatter("---\ncategories: [ai]\n---\n"), None);
+        assert_eq!(manual_from_frontmatter("---\ncategory_source: manual\n---\n"), None);
+    }
+
+    #[test]
+    fn to_json_carries_path_order_group_degree() {
+        let n = notes(&[("don't stop", "[[duckdb]]"), ("duckdb", ""), ("lonely", "")]);
+        let g = build_graph(&n);
+        let mut c = cat("data-lakes", &["duckdb"]);
+        c.group = Some("Data engineering".into());
+        c.name = "Data lakes".into();
+        let (asg, _) = assign(&g, &[c.clone()], &BTreeMap::new());
+        let j = to_json(&asg, &[c], &g);
+        let e = &j["don't stop"];
+        assert_eq!(e["category"], "data-lakes");
+        assert_eq!(e["name"], "Data lakes");
+        assert_eq!(e["group"], "Data engineering");
+        assert_eq!(e["order"], 1);
+        assert_eq!(e["path"], "/brain/dont-stop");
+        assert_eq!(e["source"], "links");
+        assert_eq!(e["score"], 1);
+        assert_eq!(e["degree"], 1);
+        assert_eq!(e["reason"], "Links with duckdb in Data lakes");
+        assert_eq!(j["duckdb"]["source"], "hub");
+        let o = &j["lonely"];
+        assert_eq!((o["category"].as_str(), o["name"].as_str(), o["order"].as_u64()), (Some("other"), Some("Other"), Some(2)));
+        assert!(o["group"].is_null());
     }
 
     #[test]
