@@ -12,6 +12,9 @@
     <article>
         {{partial "toc.html" .}}
         {{partial "textprocessing.html" . }}
+        {{ with hugo.Data.categories }}
+        <p class="browse-categories"><a href="{{ "categories/" | relURL }}">Browse all notes by category</a></p>
+        {{ end }}
         {{if hugo.Data.config.enableRecentNotes}}
           {{partial "recent.html" . }}
         {{end}}

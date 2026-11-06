@@ -1,4 +1,5 @@
 ---
+categories: [writing]
 title: "Source Note"
 ---
 Intro paragraph of the source note.

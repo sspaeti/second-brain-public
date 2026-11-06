@@ -1,0 +1,6 @@
+{
+  "status note": {"category": "data-lakes", "name": "Data lakes", "group": "Data engineering", "order": 1, "path": "/brain/status-note", "source": "hub", "score": 0, "degree": 3, "reason": "Hub of Data lakes"},
+  "embedder": {"category": "data-lakes", "name": "Data lakes", "group": "Data engineering", "order": 1, "path": "/brain/embedder", "source": "links", "score": 2, "degree": 2, "reason": "Links with status note in Data lakes"},
+  "source note": {"category": "writing", "name": "Writing", "group": null, "order": 2, "path": "/brain/source-note", "source": "hub", "score": 0, "degree": 1, "reason": "Hub of Writing"},
+  "manual note": {"category": "other", "name": "Other", "group": null, "order": 3, "path": "/brain/manual-note", "source": "other", "score": 0, "degree": 0, "reason": "No links to a categorised note"}
+}

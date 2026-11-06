@@ -15,6 +15,12 @@
       {{if not .Params.hideTitle}}
       {{if .Title}}<h1 class="p-name popover-hint">{{ .Title }}</h1>{{end}}
       {{end}}
+      {{- /* Note category (data/note_category.json, `obsidian-quartz note-category`):
+             a link to the category page in the meta line, before the status word.
+             Spec: docs/superpowers/specs/2026-11-06-note-categories-design.md */ -}}
+      {{ $stem := .File.BaseFileName }}
+      {{ $nc := "" }}{{ with hugo.Data.note_category }}{{ $nc = index . $stem }}{{ end }}
+      {{ if .Params.hideCategory }}{{ $nc = "" }}{{ end }}
       <p class="meta popover-hint">
           {{if not .Params.hideLastUpdate}}
           <span class="meta-label-full">Last updated</span><span class="meta-label-short">Updated:</span> <time class="dt-published" datetime="{{ .Lastmod.Format "2006-01-02T15:04:05-07:00" }}">{{ partial "date-fmt.html" .}}</time>
@@ -26,7 +32,7 @@
                  (data/note_status.json, `obsidian-quartz note-status`) is the
                  trigger; the sessions list (data/recent_updates.json) follows
                  when there is one. Spec: docs/superpowers/specs/2026-10-01-note-status-design.md */ -}}
-          {{ $stem := .File.BaseFileName }}
+          {{ with $nc }} · <a class="note-category" href="{{ printf "categories/%s/" .category | relURL }}">{{ .name }}</a>{{ end }}
           {{ $ns := "" }}{{ with hugo.Data.note_status }}{{ $ns = index . $stem }}{{ end }}
           {{ $ru := "" }}{{ with hugo.Data.recent_updates }}{{ $ru = index . $stem }}{{ end }}
           {{ with $ns }} ·
@@ -54,6 +60,9 @@
             </span>
           </span>
           {{ end }}
+          {{ else }}
+          {{- /* hideLastUpdate notes (the Data Engineering Vault page) still say where they sit */ -}}
+          {{ with $nc }}<a class="note-category" href="{{ printf "categories/%s/" .category | relURL }}">{{ .name }}</a>{{ end }}
           {{end}}
           {{- /* Hacker News badge: sits inline in the meta line (skipped when
                  hackernews_bottom is set, where the banner lives at the bottom). */ -}}
@@ -101,6 +110,22 @@
     <div class="backlinks-container">
         {{partial "toc.html" .}}
         {{partial "backlinks.html" .}}
+        {{- /* "More in <category>": the five most-linked notes of the same category */ -}}
+        {{ with $nc }}{{ if ne .category "other" }}
+        {{ $slug := .category }}{{ $name := .name }}
+        {{ $others := slice }}
+        {{ range $k, $v := hugo.Data.note_category }}{{ if and (eq $v.category $slug) (ne $k $stem) }}{{ $others = $others | append (dict "stem" $k "degree" (int $v.degree) "path" $v.path) }}{{ end }}{{ end }}
+        {{ with $others }}
+        <div class="more-in-category">
+          <p class="more-in-title">More in <a href="{{ printf "categories/%s/" $slug | relURL }}">{{ $name }}</a></p>
+          <ul>
+          {{ range first 5 (sort . "degree" "desc") }}{{ with $.Site.GetPage (printf "/%s" (path.Base .path)) }}
+            <li><a href="{{ .RelPermalink }}" class="internal-link" data-src="{{ .RelPermalink }}">{{ .Title }}</a></li>
+          {{ end }}{{ end }}
+          </ul>
+        </div>
+        {{ end }}
+        {{ end }}{{ end }}
     </div>
     </div>
     {{end}}

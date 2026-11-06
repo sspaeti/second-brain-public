@@ -283,3 +283,58 @@ fn diagram_renderer_empty_value_falls_back_to_mermaid() {
     assert!(!page.contains("npm/pele@1"), "pele not emitted for an empty mermaidRenderer");
     let _ = std::fs::remove_dir_all(&out);
 }
+
+#[test]
+fn note_category_link_index_and_term_page() {
+    let out = build();
+
+    // note page: category link in the meta line, before the status word
+    let p = page(&out, "status-note");
+    let meta_start = p.find(r#"<p class="meta popover-hint">"#).expect("meta line");
+    let meta = &p[meta_start..p[meta_start..].find("</p>").unwrap() + meta_start];
+    let cat = meta.find(r#"<a class="note-category" href="/brain/categories/data-lakes/">Data lakes</a>"#).expect("category link in meta");
+    assert!(cat > meta.find("min read").unwrap(), "category after read time");
+    assert!(cat < meta.find(r#"<span class="nc-label">growing</span>"#).unwrap(), "category before status word");
+    // "More in <category>": other notes of the same category, not the note itself
+    let more_start = p.find(r#"<div class="more-in-category">"#).expect("more-in block");
+    let more = &p[more_start..p[more_start..].find("</div>").unwrap() + more_start];
+    assert!(more.contains("More in <a href=\"/brain/categories/data-lakes/\">Data lakes</a>"), "{more}");
+    assert!(more.contains(r#"href="/brain/embedder/""#), "{more}");
+    assert!(!more.contains(r#"href="/brain/status-note/""#), "self excluded:\n{more}");
+
+    // other: shows the word, no "More in"
+    let p = page(&out, "manual-note");
+    assert!(p.contains(r#"<a class="note-category" href="/brain/categories/other/">Other</a>"#), "other is a real category");
+    assert!(!p.contains("more-in-category"), "no More-in for other");
+
+    // index: curated order, descriptions, start-with hubs, counts, Other last, no tags listing
+    let idx = std::fs::read_to_string(out.join("categories/index.html")).expect("categories index");
+    assert!(!idx.contains("All posts"), "tags taxonomy template must not render here");
+    let lakes = idx.find(r#"href="/brain/categories/data-lakes/""#).expect("data-lakes entry");
+    let writing = idx.find(r#"href="/brain/categories/writing/""#).expect("writing entry");
+    let other = idx.find(r#"href="/brain/categories/other/""#).expect("other entry");
+    assert!(lakes < writing && writing < other, "curated order then Other");
+    assert!(idx.contains("Lakes and table formats."), "description");
+    assert!(idx.contains(r#"<span class="cat-count">2 notes</span>"#), "count for data-lakes:\n{idx}");
+    assert!(idx.contains(r#"<span class="cat-count">1 note</span>"#), "singular count");
+    let grp = idx.find("Data engineering").expect("group heading");
+    assert!(grp < lakes, "group heading before its first category");
+    assert!(idx.contains(r#"<a href="/brain/status-note/" class="internal-link">Status Note</a>"#), "start-with hub link");
+
+    // term page: hubs first, then the rest by degree, description shown
+    let term = std::fs::read_to_string(out.join("categories/data-lakes/index.html")).expect("term page");
+    assert!(term.contains("<h1>Data lakes</h1>"), "{term}");
+    assert!(term.contains("Lakes and table formats."));
+    let hub = term.find("Start here").expect("start here section");
+    // page-list.html writes absolute permalinks, so match on the path suffix
+    let s = term.find(r#"/brain/status-note/""#).expect("hub row");
+    let e = term.find(r#"/brain/embedder/""#).expect("member row");
+    assert!(hub < s && s < e, "hub listed before the other notes");
+    assert!(!term.contains("Tag:"), "not the tags term template");
+
+    // home feed unchanged: no category pages in the RSS
+    let rss = std::fs::read_to_string(out.join("index.xml")).unwrap();
+    assert!(!rss.contains("/categories/"), "RSS must not list category pages");
+
+    let _ = std::fs::remove_dir_all(&out);
+}

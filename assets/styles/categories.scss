@@ -1,0 +1,29 @@
+// Note categories: meta-line link, "More in" block, /categories/ index and term pages.
+// Pure ASCII on purpose (a non-ASCII char makes Dart Sass emit a BOM that drops the first rule).
+.note-category {
+  text-decoration: none;
+  border-bottom: 1px dotted var(--secondary);
+}
+.note-category:hover { border-bottom-style: solid; }
+
+.more-in-category {
+  margin-top: 1.5em;
+  .more-in-title { font-weight: 600; margin: 0 0 0.3em 0; }
+  .more-in-title a { text-decoration: none; }
+  ul { list-style: none; padding-left: 0; margin: 0; }
+  li { margin: 0.2em 0; font-size: 0.95em; }
+}
+
+.categories-index, .category-page {
+  .cat-intro { color: var(--secondary); }
+  .cat-group { margin-top: 1.8em; margin-bottom: 0.2em; font-size: 1.1em; text-transform: uppercase; letter-spacing: 0.04em; color: var(--secondary); }
+  .cat-entry { margin: 0.9em 0 1.2em 0; }
+  .cat-entry h3 { margin: 0; }
+  .cat-count { font-weight: normal; font-size: 0.8em; color: var(--secondary); margin-left: 0.4em; }
+  .cat-desc { margin: 0.15em 0 0.25em 0; }
+  .cat-start { margin: 0; font-size: 0.95em; color: var(--secondary); }
+  .cat-crumb { margin: 0; font-size: 0.9em; color: var(--secondary); }
+  .cat-crumb a { text-decoration: none; }
+  .cat-section { margin-top: 1.6em; }
+}
+.browse-categories { margin: 0.5em 0 1.5em 0; }

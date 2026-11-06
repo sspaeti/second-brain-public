@@ -1,4 +1,5 @@
 ---
+categories: [data-lakes]
 title: "Embedder"
 ---
 Heading embed, plain:

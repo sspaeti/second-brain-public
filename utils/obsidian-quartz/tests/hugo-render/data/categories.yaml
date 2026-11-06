@@ -1,0 +1,11 @@
+# Test fixture for layouts/categories/*.html (tests/hugo_render.rs). The real
+# list lives in /data/categories.yaml; this one is mounted in front of it.
+- slug: data-lakes
+  name: Data lakes
+  group: Data engineering
+  description: Lakes and table formats.
+  hubs: [status note]
+- slug: writing
+  name: Writing
+  description: Words.
+  hubs: [source note]
