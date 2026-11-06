@@ -240,14 +240,13 @@ Outputs:
 
 ### Reader-facing
 
-- **Note page** (`layouts/_default/single.html`): the category name joins the meta line as a
-  link to the category page, right before the status word:
-  `Last updated Oct 1, 2026 · Created Oct 1, 2026 · 1 min read · Data lakes & table formats · growing`.
-  Read from `hugo.Data.note_category` by `.File.BaseFileName`, same as note status. `other`
-  notes show "Other". Notes with `hideLastUpdate: true` (`data engineering`, `data engineering
-  toolkit`, `cv`) still get the category item as a meta line of its own, because the Data
-  Engineering Vault page is the entry note of the biggest group and should say where it sits;
-  a `hideCategory: true` front-matter key turns it off per note.
+- **Note page** (`layouts/_default/single.html`): one quiet footer line after the body, next to
+  where the author's `Origin:` line and the tags footer sit, never in the meta line (author
+  feedback 2026-11-06: keep the top compact, no extra line, link not bold):
+  `Category: Data lakes & table formats · More: DuckDB, Delta Lake, ...` with the category as a
+  link to its page and the five most-linked notes of the same category inline. Read from
+  `hugo.Data.note_category` by `.File.BaseFileName`, same as note status. `other` notes show
+  `Category: Other` and no "More". A `hideCategory: true` front-matter key turns the line off.
 - **Category index** `/brain/categories/` — the map of content. `layouts/categories/
   taxonomy.html` iterates `hugo.Data.categories` (so the curated order and descriptions win over
   Hugo's alphabetical taxonomy order), optionally grouped by `group`, each entry with name,
@@ -261,11 +260,6 @@ Outputs:
   with the existing date + status word per row. No pagination; the biggest category is ~90 rows.
 - **Home-page link**: in `layouts/index.html` next to the recent-notes partial (a "Browse by
   category" line), never in the vault-owned `_index.md`.
-- **Related notes on the note page** (cheap, v1): under the backlinks, "More in <category>":
-  up to 5 highest-degree notes of the same category, excluding the note itself. This is the
-  "find the other Obsidian notes" moment the problem statement opens with. Skipped for `other`
-  (no meaningful "more") and, like the backlinks, for `hideBacklinks: true` notes (those are curated landing pages
-  with their own lists).
 - Templates: new `layouts/categories/{taxonomy,term}.html` only. `layouts/_default/
   taxonomy.html` and `layouts/tags/term.html` are tags-specific and stay untouched. Note that
   `/brain/categories/` already exists today: with no terms it is rendered by
@@ -365,8 +359,8 @@ Outputs:
 - Optional `group` key so the five data-engineering categories still roll up to one number.
 - Hubs are the "start here" notes; the first hub is the entry note. No separate `start:` key.
 - Category page sorted by link degree, not by last updated; hubs first.
-- "More in <category>" block on each note page is in v1; it is five template lines once the
-  JSON carries `degree`.
+- "More: ..." (five most-linked notes of the category) is part of the footer line, not a block
+  in the backlinks gutter (first version put it there; the author found it distracting).
 - `note-category` runs before `revert-lastmod-only.sh`; the script learns two more line names.
 - Report diffs against the previous run and skips community detection; `--propose` keeps it.
 - JSON carries `path`, `order`, `group`, `degree` so neither the dashboard nor the templates
@@ -377,7 +371,8 @@ Outputs:
 
 - Front-matter injection is a sorted-position line insert, never a re-serialisation of
   `content/` (see Outputs); the export writes `categories:` only for the manual override.
-- Category item shows even on `hideLastUpdate` notes; "More in" follows `hideBacklinks`.
+- The footer line renders on every note with a category (also `hideLastUpdate` /
+  `hideBacklinks` pages); `hideCategory: true` opts out.
 - `path` in the JSON has no trailing slash, matching the dashboard's `page` key.
 - First deploy is `make deploy-clean`; `categories.yaml` edits need a CDN purge.
 - Provisional `blog_categories` mapping as listed in the dashboard section.

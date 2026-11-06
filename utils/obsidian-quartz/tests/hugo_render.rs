@@ -288,19 +288,21 @@ fn diagram_renderer_empty_value_falls_back_to_mermaid() {
 fn note_category_link_index_and_term_page() {
     let out = build();
 
-    // note page: category link in the meta line, before the status word
+    // note page: the category sits in the note footer (after the body, before the
+    // tags footer), never in the meta line; "More in" lists the other notes inline
     let p = page(&out, "status-note");
     let meta_start = p.find(r#"<p class="meta popover-hint">"#).expect("meta line");
     let meta = &p[meta_start..p[meta_start..].find("</p>").unwrap() + meta_start];
-    let cat = meta.find(r#"<a class="note-category" href="/brain/categories/data-lakes/">Data lakes</a>"#).expect("category link in meta");
-    assert!(cat > meta.find("min read").unwrap(), "category after read time");
-    assert!(cat < meta.find(r#"<span class="nc-label">growing</span>"#).unwrap(), "category before status word");
-    // "More in <category>": other notes of the same category, not the note itself
-    let more_start = p.find(r#"<div class="more-in-category">"#).expect("more-in block");
-    let more = &p[more_start..p[more_start..].find("</div>").unwrap() + more_start];
-    assert!(more.contains("More in <a href=\"/brain/categories/data-lakes/\">Data lakes</a>"), "{more}");
-    assert!(more.contains(r#"href="/brain/embedder/""#), "{more}");
-    assert!(!more.contains(r#"href="/brain/status-note/""#), "self excluded:\n{more}");
+    assert!(!meta.contains("note-category"), "meta line stays compact:\n{meta}");
+    let foot_start = p.find(r#"<p class="note-category-footer">"#).expect("category footer");
+    let foot = &p[foot_start..p[foot_start..].find("</p>").unwrap() + foot_start];
+    assert!(foot_start > p.find("e-content").expect("content div"), "footer after the body");
+    assert!(foot_start < p.find("tags-footer").unwrap_or(usize::MAX), "footer before the tags");
+    assert!(foot.contains(r#"<a class="note-category" href="/brain/categories/data-lakes/">Data lakes</a>"#), "{foot}");
+    assert!(foot.contains(r#"<span class="more-in-category">"#), "{foot}");
+    assert!(foot.contains(r#"href="/brain/embedder/""#), "{foot}");
+    assert!(!foot.contains(r#"href="/brain/status-note/""#), "self excluded:\n{foot}");
+    assert!(!p.contains(r#"<div class="more-in-category">"#), "nothing in the gutter");
 
     // other: shows the word, no "More in"
     let p = page(&out, "manual-note");

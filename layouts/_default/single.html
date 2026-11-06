@@ -16,7 +16,7 @@
       {{if .Title}}<h1 class="p-name popover-hint">{{ .Title }}</h1>{{end}}
       {{end}}
       {{- /* Note category (data/note_category.json, `obsidian-quartz note-category`):
-             a link to the category page in the meta line, before the status word.
+             rendered as a footer line after the body (see below), never in the meta line.
              Spec: docs/superpowers/specs/2026-11-06-note-categories-design.md */ -}}
       {{ $stem := .File.BaseFileName }}
       {{ $nc := "" }}{{ with hugo.Data.note_category }}{{ $nc = index . $stem }}{{ end }}
@@ -32,7 +32,6 @@
                  (data/note_status.json, `obsidian-quartz note-status`) is the
                  trigger; the sessions list (data/recent_updates.json) follows
                  when there is one. Spec: docs/superpowers/specs/2026-10-01-note-status-design.md */ -}}
-          {{ with $nc }} · <a class="note-category" href="{{ printf "categories/%s/" .category | relURL }}">{{ .name }}</a>{{ end }}
           {{ $ns := "" }}{{ with hugo.Data.note_status }}{{ $ns = index . $stem }}{{ end }}
           {{ $ru := "" }}{{ with hugo.Data.recent_updates }}{{ $ru = index . $stem }}{{ end }}
           {{ with $ns }} ·
@@ -60,9 +59,6 @@
             </span>
           </span>
           {{ end }}
-          {{ else }}
-          {{- /* hideLastUpdate notes (the Data Engineering Vault page) still say where they sit */ -}}
-          {{ with $nc }}<a class="note-category" href="{{ printf "categories/%s/" .category | relURL }}">{{ .name }}</a>{{ end }}
           {{end}}
           {{- /* Hacker News badge: sits inline in the meta line (skipped when
                  hackernews_bottom is set, where the banner lives at the bottom). */ -}}
@@ -95,6 +91,14 @@
       })();
       </script>
       {{partial "textprocessing.html" . }}
+      {{- /* Category footer: "Category: <name>" plus the five most-linked notes of the
+             same category, one quiet line under the body (next to Origin / tags). */ -}}
+      {{ with $nc }}
+      {{ $slug := .category }}
+      {{ $others := slice }}
+      {{ if ne $slug "other" }}{{ range $k, $v := hugo.Data.note_category }}{{ if and (eq $v.category $slug) (ne $k $stem) }}{{ with $.Site.GetPage (printf "/%s" (path.Base $v.path)) }}{{ $others = $others | append (dict "page" . "degree" (int $v.degree)) }}{{ end }}{{ end }}{{ end }}{{ end }}
+      <p class="note-category-footer"><span class="ncf-label">Category:</span> <a class="note-category" href="{{ printf "categories/%s/" $slug | relURL }}">{{ .name }}</a>{{ with $others }} <span class="more-in-category"><span class="ncf-label">· More:</span>{{ range $i, $o := first 5 (sort . "degree" "desc") }}{{ if $i }},{{ end }} <a href="{{ $o.page.RelPermalink }}" class="internal-link" data-src="{{ $o.page.RelPermalink }}">{{ $o.page.Title }}</a>{{ end }}</span>{{ end }}</p>
+      {{ end }}
       {{ with (.GetTerms "tags") }}
       <ul class="tags tags-footer">
           {{ range . }}
@@ -110,23 +114,6 @@
     <div class="backlinks-container">
         {{partial "toc.html" .}}
         {{partial "backlinks.html" .}}
-        {{- /* "More in <category>": the five most-linked notes of the same category */ -}}
-        {{ with $nc }}{{ if ne .category "other" }}
-        {{ $slug := .category }}{{ $name := .name }}
-        {{ $others := slice }}
-        {{- /* resolve pages while collecting: only notes that exist in this build are ranked */ -}}
-        {{ range $k, $v := hugo.Data.note_category }}{{ if and (eq $v.category $slug) (ne $k $stem) }}{{ with $.Site.GetPage (printf "/%s" (path.Base $v.path)) }}{{ $others = $others | append (dict "page" . "degree" (int $v.degree)) }}{{ end }}{{ end }}{{ end }}
-        {{ with $others }}
-        <div class="more-in-category">
-          <p class="more-in-title">More in <a href="{{ printf "categories/%s/" $slug | relURL }}">{{ $name }}</a></p>
-          <ul>
-          {{ range first 5 (sort . "degree" "desc") }}{{ with .page }}
-            <li><a href="{{ .RelPermalink }}" class="internal-link" data-src="{{ .RelPermalink }}">{{ .Title }}</a></li>
-          {{ end }}{{ end }}
-          </ul>
-        </div>
-        {{ end }}
-        {{ end }}{{ end }}
     </div>
     </div>
     {{end}}
